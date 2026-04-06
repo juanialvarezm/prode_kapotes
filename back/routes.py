@@ -8,6 +8,7 @@ from flask_jwt_extended import (
     jwt_required,
 )
 
+
 from db import db
 from models import User, Group, GroupMember, Match, Prediction
 
@@ -53,8 +54,36 @@ def login():
     if not user or not user.check_password(password):
         return jsonify({'error': 'Invalid credentials'}), 401
 
-    access_token = create_access_token(identity=user.id)
+    access_token = create_access_token(identity=str(user.id))
     return jsonify({'access_token': access_token}), 200
+
+
+
+@bp.route('/me', methods=['GET'])
+@jwt_required()
+def get_name():
+    identity = get_jwt_identity()
+    try:
+        user_id = int(identity)
+    except (TypeError, ValueError):
+        return jsonify({'error': 'Invalid user identity'}), 401
+
+    user = User.query.get(user_id)
+    if not user:
+        return jsonify({'error': 'User not found'}), 404
+
+    groups_count = GroupMember.query.filter_by(user_id=user_id).count()
+    total_predictions = Prediction.query.filter_by(user_id=user_id).count()
+
+    return jsonify({
+        'id': user.id,
+        'username': user.username,
+        'email': user.email,
+        'created_at': user.created_at.isoformat() if user.created_at else None,
+        'groups_count': groups_count,
+        'total_predictions': total_predictions,
+    }), 200
+
 
 
 @bp.route('/groups', methods=['POST'])
@@ -80,6 +109,8 @@ def create_group():
     db.session.commit()
 
     return jsonify({'message': 'Group created', 'group_id': group.id}), 201
+
+
 
 
 @bp.route('/groups/<int:group_id>/join', methods=['POST'])
@@ -278,24 +309,6 @@ def my_groups():
         groups.append({'id': g.id, 'name': g.name, 'description': g.description})
 
     return jsonify({'groups': groups}), 200
-
-
-@bp.route('/me', methods=['GET'])
-@jwt_required()
-def get_me():
-    current_user_id = get_jwt_identity()
-    user = User.query.get_or_404(current_user_id)
-    memberships = GroupMember.query.filter_by(user_id=current_user_id).all()
-    total_predictions = Prediction.query.filter_by(user_id=current_user_id).count()
-
-    return jsonify({
-        'id': user.id,
-        'username': user.username,
-        'email': user.email,
-        'created_at': user.created_at.isoformat(),
-        'groups_count': len(memberships),
-        'total_predictions': total_predictions,
-    }), 200
 
 
 @bp.route('/groups/<int:group_id>', methods=['GET'])
