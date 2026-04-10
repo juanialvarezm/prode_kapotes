@@ -16,6 +16,7 @@ class User(db.Model):
     groups = db.relationship('Group', backref='owner', lazy=True)
     group_memberships = db.relationship('GroupMember', back_populates='user', lazy=True)
     predictions = db.relationship('Prediction', back_populates='user', lazy=True)
+    join_requests = db.relationship('JoinRequest', back_populates='user', lazy=True)
 
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
@@ -29,11 +30,15 @@ class Group(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(120), unique=True, nullable=False)
     description = db.Column(db.String(255), nullable=True)
+    avatar_url = db.Column(db.String(500), nullable=True)
     owner_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
-    members = db.relationship('GroupMember', back_populates='group', lazy=True)
+    members = db.relationship('GroupMember', back_populates='group', lazy=True,
+                              cascade='all, delete-orphan')
     predictions = db.relationship('Prediction', back_populates='group', lazy=True)
+    join_requests_rel = db.relationship('JoinRequest', back_populates='group', lazy=True,
+                                        cascade='all, delete-orphan')
 
 
 class GroupMember(db.Model):
@@ -45,6 +50,18 @@ class GroupMember(db.Model):
 
     group = db.relationship('Group', back_populates='members')
     user = db.relationship('User', back_populates='group_memberships')
+
+
+class JoinRequest(db.Model):
+    __tablename__ = 'join_requests'
+    id = db.Column(db.Integer, primary_key=True)
+    group_id = db.Column(db.Integer, db.ForeignKey('groups.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    status = db.Column(db.String(20), nullable=False, default='pending')  # pending | accepted | rejected
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    group = db.relationship('Group', back_populates='join_requests_rel')
+    user = db.relationship('User', back_populates='join_requests')
 
 
 class Match(db.Model):
@@ -86,4 +103,3 @@ class Prediction(db.Model):
         actual_diff = self.match.home_score - self.match.away_score
         predicted_diff = self.predicted_home - self.predicted_away
         return (actual_diff > 0 and predicted_diff > 0) or (actual_diff < 0 and predicted_diff < 0) or (actual_diff == 0 and predicted_diff == 0)
-

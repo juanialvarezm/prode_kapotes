@@ -1,6 +1,6 @@
 import { useNavigate, useLocation } from 'react-router-dom';
 
-export default function Header({ hasGroups }) {
+export default function Header({ hasGroups, pendingRequestsCount = 0 }) {
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -52,6 +52,16 @@ export default function Header({ hasGroups }) {
               ➕ Grupos
             </button>
           )}
+
+          <button
+            className={`nav-link nav-link-requests ${isActive('/requests') ? 'active' : ''}`}
+            onClick={() => navigate('/requests')}
+          >
+            📨 Solicitudes
+            {pendingRequestsCount > 0 && (
+              <span className="nav-badge">{pendingRequestsCount}</span>
+            )}
+          </button>
 
           <button
             className={`nav-link ${isActive('/profile') ? 'active' : ''}`}

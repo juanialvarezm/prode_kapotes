@@ -24,8 +24,15 @@ export async function getMyGroups() {
   return axios.get(`${API_URL}/mygroups`, { headers: authHeaders() });
 }
 
-export async function createGroup(payload) {
-  return axios.post(`${API_URL}/groups`, payload, { headers: authHeaders() });
+export async function createGroup(formData) {
+  // formData is a FormData object (for file upload support)
+  const token = localStorage.getItem('token');
+  return axios.post(`${API_URL}/groups`, formData, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'multipart/form-data',
+    },
+  });
 }
 
 export async function joinGroup(groupId) {
@@ -54,4 +61,53 @@ export async function searchUsers(query) {
 
 export async function addMemberToGroup(groupId, userId) {
   return axios.post(`${API_URL}/groups/${groupId}/add_member`, { user_id: userId }, { headers: authHeaders() });
+}
+
+// --- Join Request System ---
+
+export async function getJoinRequests(groupId) {
+  return axios.get(`${API_URL}/groups/${groupId}/requests`, { headers: authHeaders() });
+}
+
+export async function acceptJoinRequest(groupId, requestId) {
+  return axios.post(`${API_URL}/groups/${groupId}/requests/${requestId}/accept`, {}, { headers: authHeaders() });
+}
+
+export async function rejectJoinRequest(groupId, requestId) {
+  return axios.post(`${API_URL}/groups/${groupId}/requests/${requestId}/reject`, {}, { headers: authHeaders() });
+}
+
+// --- Leave & Kick ---
+
+export async function leaveGroup(groupId) {
+  return axios.post(`${API_URL}/groups/${groupId}/leave`, {}, { headers: authHeaders() });
+}
+
+export async function kickMember(groupId, userId) {
+  return axios.post(`${API_URL}/groups/${groupId}/kick/${userId}`, {}, { headers: authHeaders() });
+}
+
+// --- Avatar ---
+
+export async function updateGroupAvatar(groupId, file) {
+  const formData = new FormData();
+  formData.append('avatar', file);
+  const token = localStorage.getItem('token');
+  return axios.post(`${API_URL}/groups/${groupId}/avatar`, formData, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'multipart/form-data',
+    },
+  });
+}
+
+export function getAvatarUrl(path) {
+  if (!path) return null;
+  return `${API_URL}${path}`;
+}
+
+// --- All pending requests for owned groups ---
+
+export async function getMyPendingRequests() {
+  return axios.get(`${API_URL}/my-requests`, { headers: authHeaders() });
 }

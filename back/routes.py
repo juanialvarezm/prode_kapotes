@@ -1,18 +1,27 @@
+import os
+import uuid
 import requests
 from datetime import datetime
 
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, jsonify, request, current_app
 from flask_jwt_extended import (
     create_access_token,
     get_jwt_identity,
     jwt_required,
 )
+from werkzeug.utils import secure_filename
 
 
 from db import db
-from models import User, Group, GroupMember, Match, Prediction
+from models import User, Group, GroupMember, Match, Prediction, JoinRequest
 
 bp = Blueprint('api', __name__)
+
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'webp'}
+
+
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 
 @bp.route('/')
@@ -89,9 +98,8 @@ def get_name():
 @bp.route('/groups', methods=['POST'])
 @jwt_required()
 def create_group():
-    data = request.json or {}
-    name = data.get('name')
-    description = data.get('description', '')
+    name = request.form.get('name') or (request.json or {}).get('name')
+    description = request.form.get('description', '') or (request.json or {}).get('description', '')
 
     if not name:
         return jsonify({'error': 'Group name is required'}), 400
@@ -100,7 +108,19 @@ def create_group():
         return jsonify({'error': 'Group already exists'}), 409
 
     current_user_id = get_jwt_identity()
-    group = Group(name=name, description=description, owner_id=current_user_id)
+
+    # Handle avatar upload
+    avatar_url = None
+    if 'avatar' in request.files:
+        file = request.files['avatar']
+        if file and file.filename and allowed_file(file.filename):
+            ext = file.filename.rsplit('.', 1)[1].lower()
+            filename = f"group_{uuid.uuid4().hex}.{ext}"
+            filepath = os.path.join(current_app.config['UPLOAD_FOLDER'], filename)
+            file.save(filepath)
+            avatar_url = f"/uploads/{filename}"
+
+    group = Group(name=name, description=description, owner_id=current_user_id, avatar_url=avatar_url)
     db.session.add(group)
     db.session.commit()
 
@@ -111,7 +131,39 @@ def create_group():
     return jsonify({'message': 'Group created', 'group_id': group.id}), 201
 
 
+@bp.route('/groups/<int:group_id>/avatar', methods=['POST'])
+@jwt_required()
+def update_group_avatar(group_id):
+    current_user_id = get_jwt_identity()
+    group = Group.query.get_or_404(group_id)
 
+    if str(group.owner_id) != str(current_user_id):
+        return jsonify({'error': 'Only the group owner can update the avatar'}), 403
+
+    if 'avatar' not in request.files:
+        return jsonify({'error': 'No avatar file provided'}), 400
+
+    file = request.files['avatar']
+    if not file or not file.filename or not allowed_file(file.filename):
+        return jsonify({'error': 'Invalid file type. Allowed: png, jpg, jpeg, gif, webp'}), 400
+
+    # Delete old avatar if exists
+    if group.avatar_url:
+        old_path = os.path.join(current_app.config['UPLOAD_FOLDER'], os.path.basename(group.avatar_url))
+        if os.path.exists(old_path):
+            os.remove(old_path)
+
+    ext = file.filename.rsplit('.', 1)[1].lower()
+    filename = f"group_{uuid.uuid4().hex}.{ext}"
+    filepath = os.path.join(current_app.config['UPLOAD_FOLDER'], filename)
+    file.save(filepath)
+    group.avatar_url = f"/uploads/{filename}"
+    db.session.commit()
+
+    return jsonify({'message': 'Avatar updated', 'avatar_url': group.avatar_url}), 200
+
+
+# --- JOIN REQUEST SYSTEM (private groups) ---
 
 @bp.route('/groups/<int:group_id>/join', methods=['POST'])
 @jwt_required()
@@ -119,14 +171,139 @@ def join_group(group_id):
     current_user_id = get_jwt_identity()
     group = Group.query.get_or_404(group_id)
 
+    # Already a member
     if GroupMember.query.filter_by(group_id=group.id, user_id=current_user_id).first():
         return jsonify({'message': 'Already member'}), 200
 
-    membership = GroupMember(group_id=group.id, user_id=current_user_id)
+    # Check for existing pending request
+    existing = JoinRequest.query.filter_by(
+        group_id=group.id, user_id=current_user_id, status='pending'
+    ).first()
+    if existing:
+        return jsonify({'message': 'Join request already pending'}), 200
+
+    join_req = JoinRequest(group_id=group.id, user_id=current_user_id, status='pending')
+    db.session.add(join_req)
+    db.session.commit()
+
+    return jsonify({'message': 'Join request sent. Waiting for admin approval.'}), 200
+
+
+@bp.route('/groups/<int:group_id>/requests', methods=['GET'])
+@jwt_required()
+def get_join_requests(group_id):
+    current_user_id = get_jwt_identity()
+    group = Group.query.get_or_404(group_id)
+
+    if str(group.owner_id) != str(current_user_id):
+        return jsonify({'error': 'Only the group owner can view requests'}), 403
+
+    pending = JoinRequest.query.filter_by(group_id=group.id, status='pending').all()
+    result = []
+    for r in pending:
+        result.append({
+            'id': r.id,
+            'user_id': r.user.id,
+            'username': r.user.username,
+            'email': r.user.email,
+            'created_at': r.created_at.isoformat() if r.created_at else None,
+        })
+
+    return jsonify({'requests': result}), 200
+
+
+@bp.route('/groups/<int:group_id>/requests/<int:request_id>/accept', methods=['POST'])
+@jwt_required()
+def accept_join_request(group_id, request_id):
+    current_user_id = get_jwt_identity()
+    group = Group.query.get_or_404(group_id)
+
+    if str(group.owner_id) != str(current_user_id):
+        return jsonify({'error': 'Only the group owner can accept requests'}), 403
+
+    join_req = JoinRequest.query.get_or_404(request_id)
+    if join_req.group_id != group.id:
+        return jsonify({'error': 'Request does not belong to this group'}), 400
+    if join_req.status != 'pending':
+        return jsonify({'error': 'Request already processed'}), 400
+
+    # Accept: create membership
+    join_req.status = 'accepted'
+    membership = GroupMember(group_id=group.id, user_id=join_req.user_id)
     db.session.add(membership)
     db.session.commit()
 
-    return jsonify({'message': f'User joined group {group.name}'}), 200
+    return jsonify({'message': f'{join_req.user.username} accepted into {group.name}'}), 200
+
+
+@bp.route('/groups/<int:group_id>/requests/<int:request_id>/reject', methods=['POST'])
+@jwt_required()
+def reject_join_request(group_id, request_id):
+    current_user_id = get_jwt_identity()
+    group = Group.query.get_or_404(group_id)
+
+    if str(group.owner_id) != str(current_user_id):
+        return jsonify({'error': 'Only the group owner can reject requests'}), 403
+
+    join_req = JoinRequest.query.get_or_404(request_id)
+    if join_req.group_id != group.id:
+        return jsonify({'error': 'Request does not belong to this group'}), 400
+    if join_req.status != 'pending':
+        return jsonify({'error': 'Request already processed'}), 400
+
+    join_req.status = 'rejected'
+    db.session.commit()
+
+    return jsonify({'message': f'{join_req.user.username} rejected from {group.name}'}), 200
+
+
+# --- LEAVE GROUP ---
+
+@bp.route('/groups/<int:group_id>/leave', methods=['POST'])
+@jwt_required()
+def leave_group(group_id):
+    current_user_id = get_jwt_identity()
+    group = Group.query.get_or_404(group_id)
+
+    membership = GroupMember.query.filter_by(group_id=group.id, user_id=current_user_id).first()
+    if not membership:
+        return jsonify({'error': 'You are not a member of this group'}), 400
+
+    # Owner logic: can only leave if they are the last member
+    if str(group.owner_id) == str(current_user_id):
+        member_count = GroupMember.query.filter_by(group_id=group.id).count()
+        if member_count > 1:
+            return jsonify({'error': 'El owner no puede abandonar el grupo mientras haya otros miembros. Eliminá a los demás primero.'}), 403
+
+    db.session.delete(membership)
+    db.session.commit()
+
+    return jsonify({'message': f'Left group {group.name}'}), 200
+
+
+# --- KICK MEMBER ---
+
+@bp.route('/groups/<int:group_id>/kick/<int:user_id>', methods=['POST'])
+@jwt_required()
+def kick_member(group_id, user_id):
+    current_user_id = get_jwt_identity()
+    group = Group.query.get_or_404(group_id)
+
+    if str(group.owner_id) != str(current_user_id):
+        return jsonify({'error': 'Only the group owner can remove members'}), 403
+
+    if str(user_id) == str(current_user_id):
+        return jsonify({'error': 'Cannot kick yourself. Use leave instead.'}), 400
+
+    membership = GroupMember.query.filter_by(group_id=group.id, user_id=user_id).first()
+    if not membership:
+        return jsonify({'error': 'User is not a member of this group'}), 404
+
+    db.session.delete(membership)
+    db.session.commit()
+
+    user = User.query.get(user_id)
+    return jsonify({'message': f'{user.username} removed from {group.name}'}), 200
 
 
 @bp.route('/groups/<int:group_id>/members', methods=['GET'])
@@ -306,7 +483,13 @@ def my_groups():
     groups = []
     for m in memberships:
         g = m.group
-        groups.append({'id': g.id, 'name': g.name, 'description': g.description})
+        groups.append({
+            'id': g.id,
+            'name': g.name,
+            'description': g.description,
+            'avatar_url': g.avatar_url,
+            'owner_id': g.owner_id,
+        })
 
     return jsonify({'groups': groups}), 200
 
@@ -314,13 +497,42 @@ def my_groups():
 @bp.route('/groups/<int:group_id>', methods=['GET'])
 @jwt_required()
 def get_group(group_id):
+    current_user_id = get_jwt_identity()
     group = Group.query.get_or_404(group_id)
+
+    # Check membership
+    is_member = GroupMember.query.filter_by(group_id=group.id, user_id=current_user_id).first() is not None
+    is_owner = str(group.owner_id) == str(current_user_id)
+
+    # Check pending request for current user
+    pending_request = JoinRequest.query.filter_by(
+        group_id=group.id, user_id=current_user_id, status='pending'
+    ).first()
+
+    # Get members
+    memberships = GroupMember.query.filter_by(group_id=group.id).all()
+    members = [{
+        'id': ms.user.id,
+        'username': ms.user.username,
+        'email': ms.user.email,
+        'joined_at': ms.joined_at.isoformat(),
+    } for ms in memberships]
+
+    # Get pending request count (for owner)
+    pending_count = JoinRequest.query.filter_by(group_id=group.id, status='pending').count() if is_owner else 0
+
     return jsonify({
         'id': group.id,
         'name': group.name,
         'description': group.description,
+        'avatar_url': group.avatar_url,
         'owner_id': group.owner_id,
         'created_at': group.created_at.isoformat() if group.created_at else None,
+        'is_member': is_member,
+        'is_owner': is_owner,
+        'has_pending_request': pending_request is not None,
+        'members': members,
+        'pending_requests_count': pending_count,
     }), 200
 
 
@@ -366,3 +578,38 @@ def add_member(group_id):
     db.session.commit()
 
     return jsonify({'message': f'{user.username} added to {group.name}'}), 200
+
+
+@bp.route('/my-requests', methods=['GET'])
+@jwt_required()
+def my_pending_requests():
+    """Get all pending join requests for groups the current user owns."""
+    current_user_id = get_jwt_identity()
+
+    # Get all groups owned by this user
+    owned_groups = Group.query.filter_by(owner_id=current_user_id).all()
+    owned_group_ids = [g.id for g in owned_groups]
+
+    if not owned_group_ids:
+        return jsonify({'requests': [], 'total': 0}), 200
+
+    # Get all pending requests for those groups
+    pending = JoinRequest.query.filter(
+        JoinRequest.group_id.in_(owned_group_ids),
+        JoinRequest.status == 'pending'
+    ).all()
+
+    result = []
+    for r in pending:
+        result.append({
+            'id': r.id,
+            'group_id': r.group_id,
+            'group_name': r.group.name,
+            'user_id': r.user.id,
+            'username': r.user.username,
+            'email': r.user.email,
+            'created_at': r.created_at.isoformat() if r.created_at else None,
+        })
+
+    return jsonify({'requests': result, 'total': len(result)}), 200
+
