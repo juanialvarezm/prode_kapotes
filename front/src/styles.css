@@ -1607,6 +1607,81 @@ body {
 }
 
 /* ============================================
+   PRIZE POOL BANNER
+   ============================================ */
+.prize-banner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 18px 28px;
+  margin-bottom: 20px;
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.12), rgba(16, 185, 129, 0.08));
+  border: 1px solid rgba(245, 158, 11, 0.25);
+  border-radius: var(--radius-lg);
+  position: relative;
+  overflow: hidden;
+  animation: banner-glow 3s ease-in-out infinite;
+}
+
+.prize-banner::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(245, 158, 11, 0.06), transparent);
+  animation: banner-shimmer 3s ease-in-out infinite;
+}
+
+@keyframes banner-glow {
+  0%, 100% { box-shadow: 0 0 12px rgba(245, 158, 11, 0.1); }
+  50% { box-shadow: 0 0 28px rgba(245, 158, 11, 0.2); }
+}
+
+@keyframes banner-shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+.prize-banner-icon {
+  font-size: 1.8rem;
+  filter: drop-shadow(0 0 8px rgba(245, 158, 11, 0.4));
+  z-index: 1;
+}
+
+.prize-banner-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  z-index: 1;
+}
+
+.prize-label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--gold);
+  margin-bottom: 2px;
+}
+
+.prize-amount {
+  font-size: 1.8rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  background: linear-gradient(135deg, var(--gold-light), var(--gold), #d97706);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-shadow: none;
+}
+
+.prize-banner-sparkle {
+  font-size: 1.5rem;
+  z-index: 1;
+  filter: drop-shadow(0 0 6px rgba(245, 158, 11, 0.3));
+}
+
+/* ============================================
    RESPONSIVE
    ============================================ */
 @media (max-width: 640px) {
