@@ -613,3 +613,98 @@ def my_pending_requests():
 
     return jsonify({'requests': result, 'total': len(result)}), 200
 
+
+# ── WC2026 API ─────────────────────────────────────────────────────────
+
+WC2026_API_BASE = 'https://api.wc2026api.com'
+WC2026_API_KEY = 'xxx'
+
+
+@bp.route('/fetch_api_matches', methods=['POST'])
+@jwt_required()
+def fetch_api_matches():
+    headers = {
+        'Authorization': f'Bearer {WC2026_API_KEY}',
+    }
+
+    try:
+        resp = requests.get(
+            f'{WC2026_API_BASE}/matches',
+            headers=headers,
+            timeout=15,
+        )
+    except requests.RequestException as e:
+        return jsonify({'error': f'Error connecting to WC2026 API: {str(e)}'}), 502
+
+    if resp.status_code == 401:
+        return jsonify({'error': 'WC2026 API: unauthorized – check API key'}), 502
+    if resp.status_code != 200:
+        return jsonify({'error': f'WC2026 API returned status {resp.status_code}'}), 502
+
+    external_matches = resp.json()
+    if not isinstance(external_matches, list):
+        return jsonify({'error': 'Unexpected response format from WC2026 API'}), 502
+
+    from dateutil import parser as dateparser
+
+    inserted = 0
+    updated = 0
+
+    for m in external_matches:
+        ext_id = str(m.get('id') or m.get('match_number', ''))
+        if not ext_id:
+            continue
+
+        home_team = m.get('home_team', 'TBD')
+        away_team = m.get('away_team', 'TBD')
+        status = m.get('status', 'scheduled')
+        home_score = m.get('home_score')
+        away_score = m.get('away_score')
+        kickoff = m.get('kickoff_utc')
+
+        # Parse kickoff time
+        try:
+            match_time = dateparser.isoparse(kickoff) if kickoff else datetime.utcnow()
+        except Exception:
+            match_time = datetime.utcnow()
+
+        # Map API status to our status convention
+        status_map = {
+            'scheduled': 'SCHEDULED',
+            'live': 'IN_PLAY',
+            'completed': 'FINISHED',
+        }
+        mapped_status = status_map.get(status, status.upper())
+
+        # Upsert: update if exists, insert if new
+        match = Match.query.filter_by(external_id=ext_id).first()
+        if not match:
+            match = Match(
+                external_id=ext_id,
+                home_team=home_team,
+                away_team=away_team,
+                match_time=match_time,
+                status=mapped_status,
+                home_score=home_score,
+                away_score=away_score,
+            )
+            db.session.add(match)
+            inserted += 1
+        else:
+            match.home_team = home_team
+            match.away_team = away_team
+            match.match_time = match_time
+            match.status = mapped_status
+            match.home_score = home_score
+            match.away_score = away_score
+            updated += 1
+
+    db.session.commit()
+
+    return jsonify({
+        'message': 'Matches synced from WC2026 API',
+        'inserted': inserted,
+        'updated': updated,
+        'total': inserted + updated,
+    }), 200
+
