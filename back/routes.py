@@ -617,7 +617,7 @@ def my_pending_requests():
 # ── WC2026 API ─────────────────────────────────────────────────────────
 
 WC2026_API_BASE = 'https://api.wc2026api.com'
-WC2026_API_KEY = 'xxx'
+WC2026_API_KEY = os.getenv('WC_2026_API_KEY', '')
 
 
 @bp.route('/fetch_api_matches', methods=['POST'])
