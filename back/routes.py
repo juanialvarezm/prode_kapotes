@@ -616,59 +616,64 @@ def my_pending_requests():
 
 # ── WC2026 API ─────────────────────────────────────────────────────────
 
-WC2026_API_BASE = 'https://api.wc2026api.com'
-WC2026_API_KEY = os.getenv('WC_2026_API_KEY', '')
+WC2026_API_URL = os.getenv('WC2026_API_URL', 'https://api.wc2026api.com/matches')
+WC2026_API_KEY = os.getenv('WC2026_API_KEY', '')
+
+print(">>> URL:", WC2026_API_URL)
+print(">>> KEY:", WC2026_API_KEY)
 
 
-@bp.route('/fetch_api_matches', methods=['POST'])
-@jwt_required()
-def fetch_api_matches():
-    headers = {
-        'Authorization': f'Bearer {WC2026_API_KEY}',
-    }
-
+def _sync_matches_data(data):
     try:
-        resp = requests.get(
-            f'{WC2026_API_BASE}/matches',
-            headers=headers,
-            timeout=15,
-        )
-    except requests.RequestException as e:
-        return jsonify({'error': f'Error connecting to WC2026 API: {str(e)}'}), 502
+        # Al inicio de la función
+        print("=== INICIANDO SYNC ===")
+        
+        # Antes de la línea 663
+        print(f"STATUS RECIBIDO: {status}")
+        print(f"TIPO DE STATUS: {type(status)}")
+        
+        mapped_status = status_map.get(status, status.upper() if status else 'UNKNOWN')
+        
+        print(f"MAPPED STATUS: {mapped_status}")
+        
+    except Exception as e:
+        print(f"ERROR DETALLADO: {e}")
+        import traceback
+        traceback.print_exc()
 
-    if resp.status_code == 401:
-        return jsonify({'error': 'WC2026 API: unauthorized – check API key'}), 502
-    if resp.status_code != 200:
-        return jsonify({'error': f'WC2026 API returned status {resp.status_code}'}), 502
+    
+    """Procesa y guarda en la DB los partidos recibidos (lista o dict con lista)."""
 
-    external_matches = resp.json()
-    if not isinstance(external_matches, list):
-        return jsonify({'error': 'Unexpected response format from WC2026 API'}), 502
+    # La API puede devolver el array directo o dentro de una clave
+    if isinstance(data, dict):
+        data = data.get('matches') or data.get('data') or data.get('results') or []
 
-    from dateutil import parser as dateparser
+    if not isinstance(data, list):
+        return jsonify({'error': 'Formato de respuesta inesperado de la API'}), 400
+    if data:
+        print(">>> Primer partido:", data[0])
+
 
     inserted = 0
     updated = 0
 
-    for m in external_matches:
+    for m in data:
         ext_id = str(m.get('id') or m.get('match_number', ''))
         if not ext_id:
             continue
 
-        home_team = m.get('home_team', 'TBD')
-        away_team = m.get('away_team', 'TBD')
-        status = m.get('status', 'scheduled')
+        home_team = m.get('home_team') or 'TBD'
+        away_team = m.get('away_team') or 'TBD'
+        status = m.get('status') or 'scheduled'
         home_score = m.get('home_score')
         away_score = m.get('away_score')
         kickoff = m.get('kickoff_utc')
 
-        # Parse kickoff time
         try:
             match_time = dateparser.isoparse(kickoff) if kickoff else datetime.utcnow()
         except Exception:
             match_time = datetime.utcnow()
 
-        # Map API status to our status convention
         status_map = {
             'scheduled': 'SCHEDULED',
             'live': 'IN_PLAY',
@@ -676,7 +681,6 @@ def fetch_api_matches():
         }
         mapped_status = status_map.get(status, status.upper())
 
-        # Upsert: update if exists, insert if new
         match = Match.query.filter_by(external_id=ext_id).first()
         if not match:
             match = Match(
@@ -702,9 +706,67 @@ def fetch_api_matches():
     db.session.commit()
 
     return jsonify({
-        'message': 'Matches synced from WC2026 API',
+        'message': 'Matches synced',
         'inserted': inserted,
         'updated': updated,
         'total': inserted + updated,
     }), 200
 
+
+@bp.route('/wc2026_config', methods=['GET'])
+@jwt_required()
+def wc2026_config():
+    """Devuelve la config de la API externa solo a usuarios autenticados."""
+    return jsonify({
+        'api_url': WC2026_API_URL,
+        'api_key': WC2026_API_KEY,
+    }), 200
+
+
+@bp.route('/sync_matches', methods=['POST'])
+@jwt_required()
+def sync_matches():
+    """Recibe partidos en el body y los guarda. Útil para sync manual."""
+    data = request.json
+    return _sync_matches_data(data)
+
+
+@bp.route('/sync_wc2026', methods=['POST'])
+@jwt_required()
+def sync_wc2026():
+    # Leer acá adentro para asegurarse de que el .env ya fue cargado
+    api_url = os.getenv('WC2026_API_URL', 'https://api.wc2026api.com/matches')
+    api_key = os.getenv('WC2026_API_KEY', '')
+
+    if not api_key:
+        return jsonify({'error': 'WC2026 API key no configurada en el servidor'}), 500
+
+    headers = {
+        'Authorization': f'Bearer {api_key}',
+        'x-api-key': api_key,
+    }
+
+    try:
+        resp = requests.get(api_url, headers=headers, timeout=15)
+    except requests.exceptions.RequestException as e:
+        return jsonify({'error': 'No se pudo conectar con la API externa', 'details': str(e)}), 502
+
+    if resp.status_code == 401:
+        return jsonify({'error': 'API key inválida o expirada (401)'}), 502
+    if resp.status_code == 403:
+        return jsonify({'error': 'Acceso denegado a la API externa (403)'}), 502
+    if resp.status_code != 200:
+        return jsonify({
+            'error': f'Error {resp.status_code} al obtener partidos de la API',
+            'details': resp.text[:300],
+        }), 502
+
+    try:
+        raw = resp.json()
+    except Exception:
+        return jsonify({
+            'error': 'La API no devolvió JSON válido',
+            'details': resp.text[:300],
+        }), 502
+
+    return _sync_matches_data(raw)

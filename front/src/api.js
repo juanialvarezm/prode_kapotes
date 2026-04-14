@@ -111,3 +111,9 @@ export function getAvatarUrl(path) {
 export async function getMyPendingRequests() {
   return axios.get(`${API_URL}/my-requests`, { headers: authHeaders() });
 }
+
+// --- Fetch matches from WC2026 API ---
+
+export async function fetchApiMatches() {
+  return axios.post(`${API_URL}/sync_wc2026`, {}, { headers: authHeaders() });
+}

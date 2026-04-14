@@ -5,6 +5,7 @@ import GroupsPage from './pages/GroupsPage';
 import JoinGroupPage from './pages/JoinGroupPage';
 import ProfilePage from './pages/ProfilePage';
 import MatchesPage from './pages/MatchesPage';
+import MatchDetail from './pages/MatchDetail';
 import ChallengePage from './pages/ChallengePage';
 import RequestsPage from './pages/RequestsPage';
 import Header from './components/Header';
@@ -103,6 +104,7 @@ function App() {
                 <Route path="/" element={<GroupsPage />} />
                 <Route path="/groups" element={<GroupsPage />} />
                 <Route path="/matches" element={<MatchesPage />} />
+                <Route path="/matches/:matchId" element={<MatchDetail />} />
                 <Route path="/challenge" element={<ChallengePage />} />
                 <Route path="*" element={<Navigate to="/groups" />} />
               </>
