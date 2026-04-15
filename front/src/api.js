@@ -39,8 +39,8 @@ export async function joinGroup(groupId) {
   return axios.post(`${API_URL}/groups/${groupId}/join`, {}, { headers: authHeaders() });
 }
 
-export async function getMatches() {
-  return axios.get(`${API_URL}/matches`);
+export async function getMatches(page = 1, perPage = 10) {
+  return axios.get(`${API_URL}/matches`, { params: { page, per_page: perPage } });
 }
 
 export async function submitPrediction(payload) {
@@ -77,7 +77,7 @@ export async function rejectJoinRequest(groupId, requestId) {
   return axios.post(`${API_URL}/groups/${groupId}/requests/${requestId}/reject`, {}, { headers: authHeaders() });
 }
 
-// --- Leave & Kick ---
+
 
 export async function leaveGroup(groupId) {
   return axios.post(`${API_URL}/groups/${groupId}/leave`, {}, { headers: authHeaders() });
@@ -106,13 +106,10 @@ export function getAvatarUrl(path) {
   return `${API_URL}${path}`;
 }
 
-// --- All pending requests for owned groups ---
-
 export async function getMyPendingRequests() {
   return axios.get(`${API_URL}/my-requests`, { headers: authHeaders() });
 }
 
-// --- Group Predictions ---
 
 export async function getGroupPredictions(groupId, userId = null) {
   const params = {};

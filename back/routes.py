@@ -385,7 +385,14 @@ def refresh_matches():
 
 @bp.route('/matches', methods=['GET'])
 def list_matches():
-    matches = Match.query.order_by(Match.match_time).all()
+    page = request.args.get('page', 1, type=int)
+    per_page = request.args.get('per_page', 10, type=int)
+    per_page = min(per_page, 100)  # cap
+
+    query = Match.query.order_by(Match.match_time)
+    total = query.count()
+    matches = query.offset((page - 1) * per_page).limit(per_page).all()
+
     data = []
     for m in matches:
         data.append({
@@ -398,7 +405,13 @@ def list_matches():
             'home_score': m.home_score,
             'away_score': m.away_score,
         })
-    return jsonify(data), 200
+    return jsonify({
+        'matches': data,
+        'total': total,
+        'page': page,
+        'per_page': per_page,
+        'has_more': (page * per_page) < total,
+    }), 200
 
 
 @bp.route('/predictions', methods=['POST'])

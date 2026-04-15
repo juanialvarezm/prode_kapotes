@@ -18,22 +18,39 @@ export default function MatchesPage() {
   const [error, setError] = useState('');
   const [syncing, setSyncing] = useState(false);
   const [syncMsg, setSyncMsg] = useState('');
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
   const navigate = useNavigate();
   const selectedGroupId = localStorage.getItem('groupId');
 
-  const load = async () => {
+  const load = async (pageNum = 1, append = false) => {
     setError('');
+    if (append) setLoadingMore(true);
     try {
-      const res = await getMatches();
-      setMatches(res.data);
+      const res = await getMatches(pageNum);
+      const data = res.data;
+      if (append) {
+        setMatches((prev) => [...prev, ...data.matches]);
+      } else {
+        setMatches(data.matches);
+      }
+      setPage(data.page);
+      setHasMore(data.has_more);
     } catch (err) {
       setError('No se pudieron cargar los partidos.');
+    } finally {
+      setLoadingMore(false);
     }
   };
 
   useEffect(() => {
-    load();
+    load(1);
   }, []);
+
+  const handleLoadMore = () => {
+    load(page + 1, true);
+  };
 
   const handleSync = async () => {
     setSyncing(true);
@@ -43,9 +60,9 @@ export default function MatchesPage() {
       const res = await fetchApiMatches();
       const d = res.data;
       setSyncMsg(`✅ Sincronizado: ${d.inserted} nuevos, ${d.updated} actualizados (${d.total} total)`);
-      await load();
+      setPage(1);
+      await load(1);
     } catch (err) {
-      // Temporario para debuggear — borrar después
       console.log('STATUS:', err?.response?.status);
       console.log('DATA:', JSON.stringify(err?.response?.data));
       console.log('MESSAGE:', err?.message);
@@ -186,6 +203,20 @@ export default function MatchesPage() {
           <div className="match-cards-grid">
             {other.map(renderMatchCard)}
           </div>
+        </div>
+      )}
+      {/* Load more */}
+      {hasMore && (
+        <div style={{ textAlign: 'center', marginTop: 24 }}>
+          <button
+            className="btn-primary"
+            style={{ width: 'auto', padding: '10px 32px' }}
+            onClick={handleLoadMore}
+            disabled={loadingMore}
+            id="btn-load-more-matches"
+          >
+            {loadingMore ? '⏳ Cargando…' : '📥 Cargar más partidos'}
+          </button>
         </div>
       )}
 
