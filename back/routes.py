@@ -100,6 +100,11 @@ def get_name():
 def create_group():
     name = request.form.get('name') or (request.json or {}).get('name')
     description = request.form.get('description', '') or (request.json or {}).get('description', '')
+    prize_pool_raw = request.form.get('prize_pool') or (request.json or {}).get('prize_pool', 0)
+    try:
+        prize_pool = int(prize_pool_raw)
+    except (TypeError, ValueError):
+        prize_pool = 0
 
     if not name:
         return jsonify({'error': 'Group name is required'}), 400
@@ -120,7 +125,7 @@ def create_group():
             file.save(filepath)
             avatar_url = f"/uploads/{filename}"
 
-    group = Group(name=name, description=description, owner_id=current_user_id, avatar_url=avatar_url)
+    group = Group(name=name, description=description, owner_id=current_user_id, avatar_url=avatar_url, prize_pool=prize_pool)
     db.session.add(group)
     db.session.commit()
 
@@ -553,6 +558,7 @@ def my_groups():
             'description': g.description,
             'avatar_url': g.avatar_url,
             'owner_id': g.owner_id,
+            'prize_pool': g.prize_pool,
         })
 
     return jsonify({'groups': groups}), 200
@@ -591,6 +597,7 @@ def get_group(group_id):
         'description': group.description,
         'avatar_url': group.avatar_url,
         'owner_id': group.owner_id,
+        'prize_pool': group.prize_pool,
         'created_at': group.created_at.isoformat() if group.created_at else None,
         'is_member': is_member,
         'is_owner': is_owner,
@@ -598,6 +605,31 @@ def get_group(group_id):
         'members': members,
         'pending_requests_count': pending_count,
     }), 200
+
+
+@bp.route('/groups/<int:group_id>/prize_pool', methods=['PATCH'])
+@jwt_required()
+def update_prize_pool(group_id):
+    current_user_id = get_jwt_identity()
+    group = Group.query.get_or_404(group_id)
+
+    if str(group.owner_id) != str(current_user_id):
+        return jsonify({'error': 'Only the group owner can update the prize pool'}), 403
+
+    data = request.json or {}
+    prize_pool_raw = data.get('prize_pool', 0)
+    try:
+        prize_pool = int(prize_pool_raw)
+    except (TypeError, ValueError):
+        return jsonify({'error': 'prize_pool must be a number'}), 400
+
+    if prize_pool < 0:
+        return jsonify({'error': 'prize_pool cannot be negative'}), 400
+
+    group.prize_pool = prize_pool
+    db.session.commit()
+
+    return jsonify({'message': 'Prize pool updated', 'prize_pool': group.prize_pool}), 200
 
 
 @bp.route('/users/search', methods=['GET'])

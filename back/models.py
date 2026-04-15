@@ -32,6 +32,7 @@ class Group(db.Model):
     description = db.Column(db.String(255), nullable=True)
     avatar_url = db.Column(db.String(500), nullable=True)
     owner_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    prize_pool = db.Column(db.Integer, nullable=False, default=0)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     members = db.relationship('GroupMember', back_populates='group', lazy=True,

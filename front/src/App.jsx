@@ -9,6 +9,7 @@ import MatchDetail from './pages/MatchDetail';
 import ChallengePage from './pages/ChallengePage';
 import PredictionsPage from './pages/PredictionsPage';
 import RequestsPage from './pages/RequestsPage';
+import MiEquipo from './pages/MiEquipo';
 import Header from './components/Header';
 import Footer from './components/Footer';
 import { getMyGroups, getMyPendingRequests } from './api';
@@ -108,6 +109,7 @@ function App() {
                 <Route path="/matches/:matchId" element={<MatchDetail />} />
                 <Route path="/challenge" element={<ChallengePage />} />
                 <Route path="/predictions" element={<PredictionsPage />} />
+                <Route path="/miequipo" element={<MiEquipo />} />
                 <Route path="*" element={<Navigate to="/groups" />} />
               </>
             ) : (

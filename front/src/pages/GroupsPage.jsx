@@ -9,6 +9,7 @@ import {
   rejectJoinRequest,
   kickMember,
   updateGroupAvatar,
+  updateGroupPrizePool,
   getMe,
   getAvatarUrl,
 } from '../api';
@@ -23,6 +24,8 @@ export default function GroupsPage() {
   const [requests, setRequests] = useState([]);
   const [currentUserId, setCurrentUserId] = useState(null);
   const [loadingAction, setLoadingAction] = useState(false);
+  const [editingPrize, setEditingPrize] = useState(false);
+  const [prizeValue, setPrizeValue] = useState('');
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -236,6 +239,62 @@ export default function GroupsPage() {
               {selected.description && <p>{selected.description}</p>}
               <span className="group-id-badge">ID: {selected.id}</span>
               {selected.is_owner && <span className="owner-badge">👑 Admin</span>}
+            </div>
+          </div>
+
+          {/* Prize pool */}
+          <div className="prize-pool-section">
+            <div className="prize-pool-display">
+              <span className="prize-pool-icon">💰</span>
+              <div className="prize-pool-info">
+                <span className="prize-pool-label">Pozo acumulado</span>
+                {editingPrize ? (
+                  <div className="prize-pool-edit-row">
+                    <span className="prize-pool-currency">$</span>
+                    <input
+                      type="number"
+                      min="0"
+                      className="prize-pool-input"
+                      value={prizeValue}
+                      onChange={(e) => setPrizeValue(e.target.value)}
+                      autoFocus
+                    />
+                    <button
+                      className="btn-prize-save"
+                      disabled={loadingAction}
+                      onClick={async () => {
+                        setLoadingAction(true);
+                        try {
+                          await updateGroupPrizePool(selected.id, Number(prizeValue) || 0);
+                          setEditingPrize(false);
+                          setSuccess('✅ Pozo actualizado');
+                          onSelectGroup(selected.id);
+                        } catch (err) {
+                          setError(err?.response?.data?.error || 'Error actualizando pozo');
+                        } finally {
+                          setLoadingAction(false);
+                        }
+                      }}
+                    >
+                      ✓
+                    </button>
+                    <button className="btn-prize-cancel" onClick={() => setEditingPrize(false)}>✕</button>
+                  </div>
+                ) : (
+                  <span className="prize-pool-amount">
+                    ${(selected.prize_pool || 0).toLocaleString('es-AR')}
+                  </span>
+                )}
+              </div>
+              {selected.is_owner && !editingPrize && (
+                <button
+                  className="btn-prize-edit"
+                  onClick={() => { setPrizeValue(String(selected.prize_pool || 0)); setEditingPrize(true); }}
+                  title="Editar pozo"
+                >
+                  ✏️
+                </button>
+              )}
             </div>
           </div>
 

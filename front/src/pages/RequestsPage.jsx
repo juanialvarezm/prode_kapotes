@@ -75,7 +75,7 @@ export default function RequestsPage() {
           <span className="empty-icon">📭</span>
           <p>No tenés solicitudes pendientes.</p>
           <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: 8 }}>
-            Cuando alguien quiera unirse a uno de tus grupos, va a aparecer acá.
+            Cuando alguien quiera unirse a uno de tus grupos, y seas admin, va a aparecer acá.
           </p>
         </div>
       ) : (

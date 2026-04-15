@@ -1,9 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getMatches, fetchApiMatches } from '../api';
-
-// Monto del pozo — cambiar este valor cuando se defina dinámicamente
-const PRIZE_AMOUNT = 50000;
+import { getMatches, fetchApiMatches, getGroupById } from '../api';
 
 const STATUS_LABELS = {
   SCHEDULED: { label: 'Programado', emoji: '📅' },
@@ -21,6 +18,8 @@ export default function MatchesPage() {
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
+  const [prizePool, setPrizePool] = useState(0);
+  const [groupName, setGroupName] = useState('');
   const navigate = useNavigate();
   const selectedGroupId = localStorage.getItem('groupId');
 
@@ -46,6 +45,15 @@ export default function MatchesPage() {
 
   useEffect(() => {
     load(1);
+    // Load group info for prize pool
+    if (selectedGroupId) {
+      getGroupById(selectedGroupId)
+        .then((res) => {
+          setPrizePool(res.data.prize_pool || 0);
+          setGroupName(res.data.name || '');
+        })
+        .catch(() => { });
+    }
   }, []);
 
   const handleLoadMore = () => {
@@ -139,19 +147,21 @@ export default function MatchesPage() {
       <h2 className="page-title"><span className="icon">⚽</span> Partidos</h2>
 
       {/* Prize pool banner */}
-      <div className="prize-banner">
-        <div className="prize-banner-icon">💰</div>
-        <div className="prize-banner-content">
-          <span className="prize-label">Pozo acumulado</span>
-          <span className="prize-amount">${PRIZE_AMOUNT.toLocaleString('es-AR')}</span>
+      {prizePool > 0 && (
+        <div className="prize-banner">
+          <div className="prize-banner-icon">💰</div>
+          <div className="prize-banner-content">
+            <span className="prize-label">Pozo acumulado</span>
+            <span className="prize-amount">${prizePool.toLocaleString('es-AR')}</span>
+          </div>
+          <div className="prize-banner-sparkle">🏆</div>
         </div>
-        <div className="prize-banner-sparkle">🏆</div>
-      </div>
+      )}
 
       {/* Actions bar */}
       <div className="matches-actions-bar">
         <div className="selected-group-badge">
-          🏆 Grupo: {selectedGroupId ?? 'Ninguno'}
+          🏆 Grupo: {groupName ? selectedGroupId : 'Ninguno'}
         </div>
         <button
           className="btn-sync"

@@ -6,7 +6,7 @@ export default function JoinGroupPage({ onGroupChange }) {
   const navigate = useNavigate();
 
   // Create group state
-  const [newGroup, setNewGroup] = useState({ name: '', description: '' });
+  const [newGroup, setNewGroup] = useState({ name: '', description: '', prize_pool: '' });
   const [avatarFile, setAvatarFile] = useState(null);
   const [avatarPreview, setAvatarPreview] = useState(null);
 
@@ -37,12 +37,15 @@ export default function JoinGroupPage({ onGroupChange }) {
       const formData = new FormData();
       formData.append('name', newGroup.name);
       formData.append('description', newGroup.description);
+      if (newGroup.prize_pool) {
+        formData.append('prize_pool', newGroup.prize_pool);
+      }
       if (avatarFile) {
         formData.append('avatar', avatarFile);
       }
       await createGroup(formData);
       setSuccess(`✅ Grupo "${newGroup.name}" creado exitosamente.`);
-      setNewGroup({ name: '', description: '' });
+      setNewGroup({ name: '', description: '', prize_pool: '' });
       setAvatarFile(null);
       setAvatarPreview(null);
       onGroupChange?.();
@@ -123,6 +126,13 @@ export default function JoinGroupPage({ onGroupChange }) {
               placeholder="Descripción (opcional)"
               value={newGroup.description}
               onChange={(e) => setNewGroup({ ...newGroup, description: e.target.value })}
+            />
+            <input
+              type="number"
+              min="0"
+              placeholder="💰 Pozo acumulado (opcional)"
+              value={newGroup.prize_pool}
+              onChange={(e) => setNewGroup({ ...newGroup, prize_pool: e.target.value })}
             />
             <button type="submit" className="btn-primary" disabled={loading}>
               {loading ? 'Creando...' : 'Crear grupo'}
