@@ -49,8 +49,8 @@ export default function MatchDetail() {
   useEffect(() => {
     (async () => {
       try {
-        const res = await getMatches();
-        const found = (res.data || []).find((m) => String(m.id) === String(matchId));
+        const res = await getMatches(1, 100);
+        const found = (res.data.matches || []).find((m) => String(m.id) === String(matchId));
         if (found) {
           setMatch(found);
         } else {
