@@ -41,6 +41,12 @@ export default function Header({ hasGroups, pendingRequestsCount = 0 }) {
               >
                 🎯 Ruleta
               </button>
+              <button
+                className={`nav-link ${isActive('/predictions') ? 'active' : ''}`}
+                onClick={() => navigate('/predictions')}
+              >
+                🔮 Predicciones
+              </button>
             </>
           )}
 

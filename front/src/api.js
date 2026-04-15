@@ -112,6 +112,14 @@ export async function getMyPendingRequests() {
   return axios.get(`${API_URL}/my-requests`, { headers: authHeaders() });
 }
 
+// --- Group Predictions ---
+
+export async function getGroupPredictions(groupId, userId = null) {
+  const params = {};
+  if (userId) params.user_id = userId;
+  return axios.get(`${API_URL}/groups/${groupId}/predictions`, { params, headers: authHeaders() });
+}
+
 // --- Fetch matches from WC2026 API ---
 
 export async function fetchApiMatches() {

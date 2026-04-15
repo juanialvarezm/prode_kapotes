@@ -475,6 +475,57 @@ def group_scores(group_id):
     return jsonify({'group': group.name, 'scores': results}), 200
 
 
+@bp.route('/groups/<int:group_id>/predictions', methods=['GET'])
+@jwt_required()
+def group_predictions(group_id):
+    """Get all predictions for a group, optionally filtered by user_id."""
+    group = Group.query.get_or_404(group_id)
+
+    # Only members can see predictions
+    current_user_id = get_jwt_identity()
+    if not GroupMember.query.filter_by(group_id=group.id, user_id=current_user_id).first():
+        return jsonify({'error': 'Access denied'}), 403
+
+    # Optional user filter
+    filter_user_id = request.args.get('user_id', type=int)
+
+    query = Prediction.query.filter_by(group_id=group.id)
+    if filter_user_id:
+        query = query.filter_by(user_id=filter_user_id)
+
+    predictions = query.join(Match).order_by(Match.match_time).all()
+
+    result = []
+    for p in predictions:
+        result.append({
+            'id': p.id,
+            'user_id': p.user_id,
+            'username': p.user.username,
+            'match_id': p.match_id,
+            'home_team': p.match.home_team,
+            'away_team': p.match.away_team,
+            'match_time': p.match.match_time.isoformat(),
+            'match_status': p.match.status,
+            'home_score': p.match.home_score,
+            'away_score': p.match.away_score,
+            'predicted_home': p.predicted_home,
+            'predicted_away': p.predicted_away,
+            'is_exact': p.is_exact(),
+            'is_winner': p.is_winner(),
+            'created_at': p.created_at.isoformat() if p.created_at else None,
+        })
+
+    # Also return group members for user filter dropdown
+    members = GroupMember.query.filter_by(group_id=group.id).all()
+    members_list = [{'id': m.user.id, 'username': m.user.username} for m in members]
+
+    return jsonify({
+        'group': group.name,
+        'predictions': result,
+        'members': members_list,
+    }), 200
+
+
 @bp.route('/mygroups', methods=['GET'])
 @jwt_required()
 def my_groups():

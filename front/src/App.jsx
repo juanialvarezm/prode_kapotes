@@ -7,6 +7,7 @@ import ProfilePage from './pages/ProfilePage';
 import MatchesPage from './pages/MatchesPage';
 import MatchDetail from './pages/MatchDetail';
 import ChallengePage from './pages/ChallengePage';
+import PredictionsPage from './pages/PredictionsPage';
 import RequestsPage from './pages/RequestsPage';
 import Header from './components/Header';
 import Footer from './components/Footer';
@@ -106,6 +107,7 @@ function App() {
                 <Route path="/matches" element={<MatchesPage />} />
                 <Route path="/matches/:matchId" element={<MatchDetail />} />
                 <Route path="/challenge" element={<ChallengePage />} />
+                <Route path="/predictions" element={<PredictionsPage />} />
                 <Route path="*" element={<Navigate to="/groups" />} />
               </>
             ) : (
