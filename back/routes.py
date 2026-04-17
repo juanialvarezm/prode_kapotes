@@ -579,8 +579,12 @@ def get_group(group_id):
         group_id=group.id, user_id=current_user_id, status='pending'
     ).first()
 
-    # Get members
-    memberships = GroupMember.query.filter_by(group_id=group.id).all()
+    # Get members (paginated, 10 per page)
+    members_page = request.args.get('members_page', 1, type=int)
+    members_per_page = 10
+    members_query = GroupMember.query.filter_by(group_id=group.id)
+    members_total = members_query.count()
+    memberships = members_query.offset((members_page - 1) * members_per_page).limit(members_per_page).all()
     members = [{
         'id': ms.user.id,
         'username': ms.user.username,
@@ -603,6 +607,9 @@ def get_group(group_id):
         'is_owner': is_owner,
         'has_pending_request': pending_request is not None,
         'members': members,
+        'members_total': members_total,
+        'members_page': members_page,
+        'members_has_more': (members_page * members_per_page) < members_total,
         'pending_requests_count': pending_count,
     }), 200
 
