@@ -51,8 +51,11 @@ export async function getGroupScores(groupId) {
   return axios.get(`${API_URL}/groups/${groupId}/scores`, { headers: authHeaders() });
 }
 
-export async function getGroupById(groupId) {
-  return axios.get(`${API_URL}/groups/${groupId}`, { headers: authHeaders() });
+export async function getGroupById(groupId, membersPage = 1) {
+  return axios.get(`${API_URL}/groups/${groupId}`, {
+    params: { members_page: membersPage },
+    headers: authHeaders(),
+  });
 }
 
 export async function searchUsers(query) {

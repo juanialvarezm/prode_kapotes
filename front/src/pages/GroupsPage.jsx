@@ -26,10 +26,15 @@ export default function GroupsPage() {
   const [loadingAction, setLoadingAction] = useState(false);
   const [editingPrize, setEditingPrize] = useState(false);
   const [prizeValue, setPrizeValue] = useState('');
+  const [members, setMembers] = useState([]);
+  const [membersPage, setMembersPage] = useState(1);
+  const [membersHasMore, setMembersHasMore] = useState(false);
+  const [membersTotal, setMembersTotal] = useState(0);
+  const [loadingMembers, setLoadingMembers] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
-    getMe().then(res => setCurrentUserId(res.data.id)).catch(() => {});
+    getMe().then(res => setCurrentUserId(res.data.id)).catch(() => { });
   }, []);
 
   const load = async () => {
@@ -55,9 +60,18 @@ export default function GroupsPage() {
   const onSelectGroup = async (id) => {
     setError(''); setSuccess('');
     localStorage.setItem('groupId', String(id));
+    // Reset members pagination
+    setMembers([]);
+    setMembersPage(1);
+    setMembersHasMore(false);
+    setMembersTotal(0);
     try {
-      const res = await getGroupById(id);
+      const res = await getGroupById(id, 1);
       setSelected(res.data);
+      setMembers(res.data.members || []);
+      setMembersHasMore(res.data.members_has_more || false);
+      setMembersTotal(res.data.members_total || 0);
+      setMembersPage(1);
       // If owner, load pending requests
       if (res.data.is_owner) {
         loadRequests(id);
@@ -66,6 +80,23 @@ export default function GroupsPage() {
       }
     } catch {
       setError('No se encontró el grupo');
+    }
+  };
+
+  const loadMoreMembers = async () => {
+    if (!selected || loadingMembers || !membersHasMore) return;
+    const nextPage = membersPage + 1;
+    setLoadingMembers(true);
+    try {
+      const res = await getGroupById(selected.id, nextPage);
+      setMembers(prev => [...prev, ...(res.data.members || [])]);
+      setMembersHasMore(res.data.members_has_more || false);
+      setMembersTotal(res.data.members_total || 0);
+      setMembersPage(nextPage);
+    } catch {
+      setError('Error cargando más miembros');
+    } finally {
+      setLoadingMembers(false);
     }
   };
 
@@ -299,11 +330,11 @@ export default function GroupsPage() {
           </div>
 
           {/* Members */}
-          {selected.members && selected.members.length > 0 && (
+          {members.length > 0 && (
             <div style={{ marginTop: 16 }}>
-              <h4 style={{ fontSize: '0.9rem', marginBottom: 8 }}>👥 Miembros ({selected.members.length})</h4>
+              <h4 style={{ fontSize: '0.9rem', marginBottom: 8 }}>👥 Miembros ({members.length}{membersHasMore ? ` de ${membersTotal}` : ` de ${membersTotal}`})</h4>
               <div className="members-list">
-                {selected.members.map((m) => (
+                {members.map((m) => (
                   <div key={m.id} className="member-row">
                     <div className="member-info">
                       <div className="member-avatar">{m.username.charAt(0).toUpperCase()}</div>
@@ -328,6 +359,16 @@ export default function GroupsPage() {
                   </div>
                 ))}
               </div>
+              {membersHasMore && (
+                <button
+                  className="btn-load-more"
+                  onClick={loadMoreMembers}
+                  disabled={loadingMembers}
+                  style={{ marginTop: 8, width: '100%' }}
+                >
+                  {loadingMembers ? 'Cargando...' : `Ver más miembros (${membersTotal - members.length} restantes)`}
+                </button>
+              )}
             </div>
           )}
 
