@@ -6,7 +6,6 @@ import JoinGroupPage from './pages/JoinGroupPage';
 import ProfilePage from './pages/ProfilePage';
 import MatchesPage from './pages/MatchesPage';
 import MatchDetail from './pages/MatchDetail';
-import ChallengePage from './pages/ChallengePage';
 import PredictionsPage from './pages/PredictionsPage';
 import RequestsPage from './pages/RequestsPage';
 import MiEquipo from './pages/MiEquipo';
@@ -107,7 +106,6 @@ function App() {
                 <Route path="/groups" element={<GroupsPage />} />
                 <Route path="/matches" element={<MatchesPage />} />
                 <Route path="/matches/:matchId" element={<MatchDetail />} />
-                <Route path="/challenge" element={<ChallengePage />} />
                 <Route path="/predictions" element={<PredictionsPage />} />
                 <Route path="/miequipo" element={<MiEquipo />} />
                 <Route path="*" element={<Navigate to="/groups" />} />
