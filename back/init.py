@@ -6,6 +6,7 @@ load_dotenv()
 from flask import Flask, send_from_directory
 from flask_migrate import Migrate
 from flask_jwt_extended import JWTManager
+import cloudinary
 
 from db import db
 
@@ -15,6 +16,12 @@ app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL', 'mysql+pymysql://user:password@localhost/prode_kapotes')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['JWT_SECRET_KEY'] = os.getenv('JWT_SECRET_KEY', 'super-secret-key')
+
+cloudinary.config(
+    api_key = os.getenv("CLOUDINARY_API_KEY"),
+    api_secret = os.getenv("CLOUDINARY_API_SECRET"),
+    cloud_name = os.getenv("CLOUDINARY_CLOUD_NAME")
+)
 
 # Upload configuration
 UPLOAD_FOLDER = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'uploads')

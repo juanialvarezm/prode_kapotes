@@ -10,6 +10,7 @@ from flask_jwt_extended import (
     jwt_required,
 )
 from werkzeug.utils import secure_filename
+from PIL import Image
 
 
 from db import db
@@ -18,10 +19,67 @@ from models import User, Group, GroupMember, Match, Prediction, JoinRequest
 bp = Blueprint('api', __name__)
 
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'webp'}
+MAX_FILE_SIZE = 5 * 1024 * 1024  # 5 MB
 
 
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+
+def validate_image(file):
+    try:
+        # Check file size
+        file.seek(0, os.SEEK_END)
+        file_size = file.tell()
+        file.seek(0)
+        
+        if file_size > MAX_FILE_SIZE:
+            return False, 'La imagen es demasiado grande. El tamaño máximo es 5MB.'
+        
+        if file_size == 0:
+            return False, 'El archivo está vacío.'
+        
+        # Try to open and verify with PIL
+        try:
+            file.seek(0)
+            img = Image.open(file)
+            
+            # Verify the format is supported
+            img_format = img.format
+            if img_format and img_format.lower() not in ['png', 'jpeg', 'gif', 'webp']:
+                return False, 'El archivo no es una imagen válida. Solo se permiten PNG, JPG, GIF o WEBP.'
+            
+            # Verify that it's actually an image (this will raise an exception if corrupt)
+            img.verify()
+            
+            # Reset file pointer and reopen for dimension check (verify() makes image unusable)
+            file.seek(0)
+            img = Image.open(file)
+            width, height = img.size
+            file.seek(0)
+            
+            if width > 4000 or height > 4000:
+                return False, 'La imagen es demasiado grande. Las dimensiones máximas son 4000x4000 píxeles.'
+            
+            if width < 50 or height < 50:
+                return False, 'La imagen es demasiado pequeña. Las dimensiones mínimas son 50x50 píxeles.'
+            
+        except Exception as e:
+            return False, 'El archivo de imagen está corrupto o es inválido.'
+        
+        # TODO: For production, consider integrating content moderation API:
+        # - AWS Rekognition (detect nudity, violence, etc.)
+        # - Google Cloud Vision API (SafeSearch detection)
+        # - Azure Content Moderator
+        # - Sightengine API
+        # Example:
+        # if not is_content_appropriate(file):
+        #     return False, 'La imagen contiene contenido inapropiado.'
+        
+        return True, None
+        
+    except Exception as e:
+        return False, f'Error al validar la imagen: {str(e)}'
 
 
 @bp.route('/')
@@ -88,11 +146,84 @@ def get_name():
         'id': user.id,
         'username': user.username,
         'email': user.email,
+        'profile_picture': user.profile_picture,
         'created_at': user.created_at.isoformat() if user.created_at else None,
         'groups_count': groups_count,
         'total_predictions': total_predictions,
     }), 200
 
+
+@bp.route('/me', methods=['PUT'])
+@jwt_required()
+def update_profile():
+    identity = get_jwt_identity()
+    try:
+        user_id = int(identity)
+    except (TypeError, ValueError):
+        return jsonify({'error': 'Invalid user identity'}), 401
+
+    user = User.query.get(user_id)
+    if not user:
+        return jsonify({'error': 'User not found'}), 404
+
+    # Read only from multipart form data
+    username = request.form.get('username')
+    email = request.form.get('email')
+
+    # Update username if provided
+    if username and username != user.username:
+        # Check if username is already taken
+        existing_user = User.query.filter_by(username=username).first()
+        if existing_user:
+            return jsonify({'error': 'Username already taken'}), 409
+        user.username = username
+
+    # Update email if provided
+    if email and email != user.email:
+        # Check if email is already taken
+        existing_user = User.query.filter_by(email=email).first()
+        if existing_user:
+            return jsonify({'error': 'Email already taken'}), 409
+        user.email = email
+
+    # Handle profile picture upload
+    if 'profile_picture' in request.files:
+        file = request.files['profile_picture']
+        if file and file.filename:
+            if not allowed_file(file.filename):
+                return jsonify({'error': 'Tipo de archivo no permitido. Solo se aceptan: PNG, JPG, JPEG, GIF, WEBP'}), 400
+            is_valid, error_msg = validate_image(file)
+            if not is_valid:
+                return jsonify({'error': error_msg}), 400
+
+            try:
+                import cloudinary.uploader
+
+                # Delete old image from Cloudinary if exists
+                if user.profile_picture_id:
+                    cloudinary.uploader.destroy(user.profile_picture_id)
+
+                file.seek(0)
+                result = cloudinary.uploader.upload(
+                    file,
+                    folder='profile_pictures'
+                )
+
+                user.profile_picture = result['secure_url']
+                user.profile_picture_id = result['public_id']
+
+            except Exception as e:
+                return jsonify({'error': 'Error subiendo la imagen', 'details': str(e)}), 500
+
+    db.session.commit()
+    return jsonify({
+        'msg': 'Perfil actualizado correctamente',
+        'user': {
+            'username': user.username,
+            'email': user.email,
+            'profile_picture': user.profile_picture
+        }
+    }), 200
 
 
 @bp.route('/groups', methods=['POST'])
@@ -118,7 +249,15 @@ def create_group():
     avatar_url = None
     if 'avatar' in request.files:
         file = request.files['avatar']
-        if file and file.filename and allowed_file(file.filename):
+        if file and file.filename:
+            if not allowed_file(file.filename):
+                return jsonify({'error': 'Tipo de archivo no permitido. Solo se aceptan: PNG, JPG, JPEG, GIF, WEBP'}), 400
+            
+            # Validate image content
+            is_valid, error_msg = validate_image(file)
+            if not is_valid:
+                return jsonify({'error': error_msg}), 400
+            
             ext = file.filename.rsplit('.', 1)[1].lower()
             filename = f"group_{uuid.uuid4().hex}.{ext}"
             filepath = os.path.join(current_app.config['UPLOAD_FOLDER'], filename)
@@ -149,8 +288,16 @@ def update_group_avatar(group_id):
         return jsonify({'error': 'No avatar file provided'}), 400
 
     file = request.files['avatar']
-    if not file or not file.filename or not allowed_file(file.filename):
-        return jsonify({'error': 'Invalid file type. Allowed: png, jpg, jpeg, gif, webp'}), 400
+    if not file or not file.filename:
+        return jsonify({'error': 'No avatar file provided'}), 400
+    
+    if not allowed_file(file.filename):
+        return jsonify({'error': 'Tipo de archivo no permitido. Solo se aceptan: PNG, JPG, JPEG, GIF, WEBP'}), 400
+    
+    # Validate image content
+    is_valid, error_msg = validate_image(file)
+    if not is_valid:
+        return jsonify({'error': error_msg}), 400
 
     # Delete old avatar if exists
     if group.avatar_url:

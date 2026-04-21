@@ -20,6 +20,17 @@ export async function getMe() {
   return axios.get(`${API_URL}/me`, { headers: authHeaders() });
 }
 
+export async function updateProfile(formData) {
+  // formData is a FormData object (for file upload support)
+  const token = localStorage.getItem('token');
+  return axios.put(`${API_URL}/me`, formData, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+      // Don't set Content-Type manually - let axios handle it with FormData
+    },
+  });
+}
+
 export async function getMyGroups() {
   return axios.get(`${API_URL}/mygroups`, { headers: authHeaders() });
 }

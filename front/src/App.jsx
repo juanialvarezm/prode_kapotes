@@ -12,6 +12,7 @@ import MiEquipo from './pages/MiEquipo';
 import Header from './components/Header';
 import Footer from './components/Footer';
 import { getMyGroups, getMyPendingRequests } from './api';
+import Wordle from './pages/Wordle';
 
 function App() {
   const token = localStorage.getItem('token');
@@ -107,6 +108,7 @@ function App() {
                 <Route path="/matches" element={<MatchesPage />} />
                 <Route path="/matches/:matchId" element={<MatchDetail />} />
                 <Route path="/predictions" element={<PredictionsPage />} />
+                <Route path="/futwordle" element={<Wordle />} />
                 <Route path="/miequipo" element={<MiEquipo />} />
                 <Route path="*" element={<Navigate to="/groups" />} />
               </>

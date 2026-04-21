@@ -42,6 +42,12 @@ export default function Header({ hasGroups, pendingRequestsCount = 0 }) {
               >
                 🔮 Predicciones
               </button>
+              {/* <button
+                className={`nav-link ${isActive('/predictions') ? 'active' : ''}`}
+                onClick={() => navigate('/predictions')}
+              >
+                🔮 Wordle
+              </button> */}
               <button
                 className={`nav-link ${isActive('/miequipo') ? 'active' : ''}`}
                 onClick={() => navigate('/miequipo')}
