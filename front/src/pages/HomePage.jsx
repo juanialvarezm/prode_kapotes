@@ -2,11 +2,12 @@ import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 const navItems = [
-  { icon: '🏠', label: 'Mis Grupos', path: '/groups', desc: 'Ver tus grupos' },
-  { icon: '⚽', label: 'Partidos', path: '/matches', desc: 'Partidos del Mundial' },
-  { icon: '🔮', label: 'Predicciones', path: '/predictions', desc: 'Tus pronósticos' },
-  { icon: '🧑‍🤝‍🧑', label: 'Mi Equipo', path: '/miequipo', desc: 'Tu dream team' },
-  { icon: '👤', label: 'Perfil', path: '/profile', desc: 'Tu cuenta' },
+  { icon: '🏠', label: 'Mis Grupos',     path: '/groups',      desc: 'Ver tus grupos' },
+  { icon: '⚽', label: 'Partidos',        path: '/matches',     desc: 'Partidos del Mundial' },
+  { icon: '🔮', label: 'Predicciones',   path: '/predictions', desc: 'Tus pronósticos' },
+  { icon: '🧑‍🤝‍🧑', label: 'Mi Equipo', path: '/miequipo',   desc: 'Tu dream team' },
+  { icon: '🎮', label: 'FutWordle',      path: '/futwordle',   desc: '¿Quién es este jugador?' },
+  { icon: '👤', label: 'Perfil',         path: '/profile',     desc: 'Tu cuenta' },
 ];
 
 export default function HomePage() {
