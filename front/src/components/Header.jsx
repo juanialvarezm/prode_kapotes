@@ -48,12 +48,7 @@ export default function Header({ hasGroups, pendingRequestsCount = 0 }) {
               >
                 🔮 Wordle
               </button> */}
-              <button
-                className={`nav-link ${isActive('/miequipo') ? 'active' : ''}`}
-                onClick={() => navigate('/miequipo')}
-              >
-                Mi Equipo
-              </button>
+
             </>
           )}
 

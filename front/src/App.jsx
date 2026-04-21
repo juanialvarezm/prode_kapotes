@@ -9,6 +9,7 @@ import MatchDetail from './pages/MatchDetail';
 import PredictionsPage from './pages/PredictionsPage';
 import RequestsPage from './pages/RequestsPage';
 import MiEquipo from './pages/MiEquipo';
+import HomePage from './pages/HomePage';
 import Header from './components/Header';
 import Footer from './components/Footer';
 import { getMyGroups, getMyPendingRequests } from './api';
@@ -103,14 +104,15 @@ function App() {
 
             {hasGroups ? (
               <>
-                <Route path="/" element={<GroupsPage />} />
+                <Route path="/" element={<HomePage />} />
+                <Route path="/home" element={<HomePage />} />
                 <Route path="/groups" element={<GroupsPage />} />
                 <Route path="/matches" element={<MatchesPage />} />
                 <Route path="/matches/:matchId" element={<MatchDetail />} />
                 <Route path="/predictions" element={<PredictionsPage />} />
                 <Route path="/futwordle" element={<Wordle />} />
                 <Route path="/miequipo" element={<MiEquipo />} />
-                <Route path="*" element={<Navigate to="/groups" />} />
+                <Route path="*" element={<Navigate to="/home" />} />
               </>
             ) : (
               <Route path="*" element={<Navigate to="/join-group" />} />
