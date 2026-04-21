@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 const navItems = [
@@ -11,6 +12,14 @@ const navItems = [
 export default function HomePage() {
   const navigate = useNavigate();
   const username = localStorage.getItem('username') || 'Kapote';
+
+  // Auth guard — redirige a /auth si no hay token
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      navigate('/auth', { replace: true });
+    }
+  }, [navigate]);
 
   return (
     <div className="home-layout">
