@@ -19,12 +19,12 @@ jobs:
 
       - name: Install dependencies
         run: |
-          cd backend
+          cd back
           pip install -r requirements.txt
 
       - name: Run tests (si tenés)
         run: |
-          cd backend        
+          cd back        
           pytest || echo "No tests yet"
 
       - name: Lint (opcional)
