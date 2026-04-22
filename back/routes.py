@@ -21,7 +21,6 @@ bp = Blueprint('api', __name__)
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'webp'}
 MAX_FILE_SIZE = 5 * 1024 * 1024  # 5 MB
 
-
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
@@ -125,6 +124,9 @@ def login():
     return jsonify({'access_token': access_token}), 200
 
 
+@bp.route('/health')
+def health():
+    return {"status": "ok"}, 200
 
 @bp.route('/me', methods=['GET'])
 @jwt_required()
