@@ -12,8 +12,15 @@ from db import db
 
 app = Flask(__name__)
 
+
+uri = os.getenv("DATABASE_URL")
+
+if uri.startswith("mysql://"):
+    uri = uri.replace("mysql://", "mysql+pymysql://", 1)
+
+
 # Configuración de MySQL.
-app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL', 'mysql+pymysql://user:password@localhost/prode_kapotes')
+app.config['SQLALCHEMY_DATABASE_URI'] = uri
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['JWT_SECRET_KEY'] = os.getenv('JWT_SECRET_KEY', 'super-secret-key')
 
