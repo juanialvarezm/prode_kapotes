@@ -18,9 +18,10 @@ uri = os.getenv("DATABASE_URL")
 if not uri:
     raise RuntimeError("DATABASE_URL no está seteada")
 
-# fix para SQLAlchemy + PyMySQL
 if uri.startswith("mysql://"):
     uri = uri.replace("mysql://", "mysql+pymysql://", 1)
+
+app.config['SQLALCHEMY_DATABASE_URI'] = uri  # ← esto faltaba
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['JWT_SECRET_KEY'] = os.getenv('JWT_SECRET_KEY', 'super-secret-key')
 
