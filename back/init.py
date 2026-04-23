@@ -13,10 +13,10 @@ from db import db
 app = Flask(__name__)
 
 
-uri = os.getenv("DATABASE_URL")
+uri = os.getenv("DB_URL")
 
 if not uri:
-    raise RuntimeError("DATABASE_URL no está seteada")
+    raise RuntimeError("DB_URL no está seteada")
 
 if uri.startswith("mysql://"):
     uri = uri.replace("mysql://", "mysql+pymysql://", 1)
@@ -25,7 +25,7 @@ app.config['SQLALCHEMY_DATABASE_URI'] = uri  # ← esto faltaba
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['JWT_SECRET_KEY'] = os.getenv('JWT_SECRET_KEY', 'super-secret-key')
 
-print("DATABASE_URL =", os.getenv("DATABASE_URL"))
+print("DATABASE_URL =", os.getenv("DB_URL"))
 
 cloudinary.config(
     api_key = os.getenv("CLOUDINARY_API_KEY"),
