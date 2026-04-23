@@ -97,6 +97,8 @@ def run_migrations_online():
             connection=connection,
             target_metadata=get_metadata(),
             process_revision_directives=process_revision_directives,
+            version_table_schema=None,
+            include_schemas=False,
             **current_app.extensions['migrate'].configure_args
         )
 
