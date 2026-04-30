@@ -568,6 +568,26 @@ def list_matches():
     }), 200
 
 
+@bp.route('/sync_wc2026', methods=['POST'])
+@jwt_required()
+def sync_wc2026():
+    """Sincronización manual de partidos (usa el servicio en background)."""
+    try:
+        from back.services.sync_services import sync_matches
+        result = sync_matches(season=2026)
+        return jsonify({
+            'message': 'Sincronización completada',
+            'inserted': result['inserted'],
+            'updated': result['updated'],
+            'total': result['total'],
+        }), 200
+    except Exception as e:
+        return jsonify({
+            'error': 'Error en la sincronización',
+            'details': str(e)
+        }), 500
+
+
 @bp.route('/predictions', methods=['POST'])
 @jwt_required()
 def create_prediction():
@@ -871,156 +891,161 @@ def my_pending_requests():
 # Endpoint: GET https://v3.football.api-sports.io/fixtures?league=1&season=2026
 # Auth header: x-apisports-key: <API_KEY>
 
-AF_BASE_URL = 'https://v3.football.api-sports.io'
-AF_API_KEY  = os.getenv('API_FOOTBALL_KEY', 'xxxxxxx')
+# AF_BASE_URL = 'https://v3.football.api-sports.io'
+# AF_API_KEY  = os.getenv('API_FOOTBALL_KEY', 'xxxxxxx')
 
-# Status mapping: API-Football short codes → internal status
-AF_STATUS_MAP = {
-    # Not started
-    'NS':   'SCHEDULED',
-    'TBD':  'SCHEDULED',
-    'PST':  'POSTPONED',
-    # Live
-    '1H':   'IN_PLAY',
-    'HT':   'IN_PLAY',
-    '2H':   'IN_PLAY',
-    'ET':   'IN_PLAY',
-    'BT':   'IN_PLAY',
-    'P':    'IN_PLAY',
-    'INT':  'IN_PLAY',
-    'LIVE': 'IN_PLAY',
-    # Finished
-    'FT':   'FINISHED',
-    'AET':  'FINISHED',
-    'PEN':  'FINISHED',
-    # Other
-    'SUSP': 'POSTPONED',
-    'ABD':  'POSTPONED',
-    'AWD':  'FINISHED',
-    'WO':   'FINISHED',
-    'CANC': 'POSTPONED',
-}
-
-
-def _af_headers():
-    return {
-        'x-apisports-key': AF_API_KEY,
-    }
+# # Status mapping: API-Football short codes → internal status
+# AF_STATUS_MAP = {
+#     # Not started
+#     'NS':   'SCHEDULED',
+#     'TBD':  'SCHEDULED',
+#     'PST':  'POSTPONED',
+#     # Live
+#     '1H':   'IN_PLAY',
+#     'HT':   'IN_PLAY',
+#     '2H':   'IN_PLAY',
+#     'ET':   'IN_PLAY',
+#     'BT':   'IN_PLAY',
+#     'P':    'IN_PLAY',
+#     'INT':  'IN_PLAY',
+#     'LIVE': 'IN_PLAY',
+#     # Finished
+#     'FT':   'FINISHED',
+#     'AET':  'FINISHED',
+#     'PEN':  'FINISHED',
+#     # Other
+#     'SUSP': 'POSTPONED',
+#     'ABD':  'POSTPONED',
+#     'AWD':  'FINISHED',
+#     'WO':   'FINISHED',
+#     'CANC': 'POSTPONED',
+# }
 
 
-def _sync_api_football_data(fixtures):
-    """Toma la lista 'response' de API-Football y la guarda en la DB."""
-    from dateutil import parser as dateparser
-
-    if not isinstance(fixtures, list):
-        return jsonify({'error': 'Formato de respuesta inesperado de API-Football'}), 400
-
-    inserted = 0
-    updated  = 0
-
-    for f in fixtures:
-        fixture_info = f.get('fixture', {})
-        teams        = f.get('teams', {})
-        goals        = f.get('goals', {})
-        status_obj   = fixture_info.get('status', {})
-
-        ext_id    = str(fixture_info.get('id', ''))
-        if not ext_id:
-            continue
-
-        home_team  = teams.get('home', {}).get('name', 'TBD')
-        away_team  = teams.get('away', {}).get('name', 'TBD')
-        home_score = goals.get('home')       # None si no jugó
-        away_score = goals.get('away')
-        raw_status = status_obj.get('short', 'NS')
-        mapped_status = AF_STATUS_MAP.get(raw_status, 'SCHEDULED')
-
-        date_str = fixture_info.get('date')  # ISO 8601 con tz
-        try:
-            match_time = dateparser.isoparse(date_str)
-        except Exception:
-            match_time = datetime.utcnow()
-
-        match = Match.query.filter_by(external_id=ext_id).first()
-        if not match:
-            match = Match(
-                external_id=ext_id,
-                home_team=home_team,
-                away_team=away_team,
-                match_time=match_time,
-                status=mapped_status,
-                home_score=home_score,
-                away_score=away_score,
-            )
-            db.session.add(match)
-            inserted += 1
-        else:
-            match.home_team   = home_team
-            match.away_team   = away_team
-            match.match_time  = match_time
-            match.status      = mapped_status
-            match.home_score  = home_score
-            match.away_score  = away_score
-            updated += 1
-
-    db.session.commit()
-    return jsonify({
-        'message': 'Partidos sincronizados desde API-Football',
-        'inserted': inserted,
-        'updated':  updated,
-        'total':    inserted + updated,
-    }), 200
+# def _af_headers():
+#     return {
+#         'x-apisports-key': AF_API_KEY,
+#     }
 
 
-@bp.route('/sync_matches', methods=['POST'])
-@jwt_required()
-def sync_matches():
-    """Sincroniza partidos del Mundial 2026 desde API-Football (league=1, season=2026)."""
-    if not AF_API_KEY or AF_API_KEY == 'xxxxxxx':
-        return jsonify({'error': 'API_FOOTBALL_KEY no configurada en el servidor'}), 500
+# def _sync_api_football_data(fixtures):
+#     """Toma la lista 'response' de API-Football y la guarda en la DB."""
+#     from dateutil import parser as dateparser
 
-    params = {
-        'league': 1,      # FIFA World Cup
-        'season': 2026,
-    }
+#     if not isinstance(fixtures, list):
+#         return jsonify({'error': 'Formato de respuesta inesperado de API-Football'}), 400
 
-    try:
-        resp = requests.get(
-            f'{AF_BASE_URL}/fixtures',
-            headers=_af_headers(),
-            params=params,
-            timeout=20,
-        )
-    except requests.exceptions.RequestException as e:
-        return jsonify({'error': 'No se pudo conectar con API-Football', 'details': str(e)}), 502
+#     inserted = 0
+#     updated  = 0
 
-    if resp.status_code == 401:
-        return jsonify({'error': 'API key inválida o expirada (401)'}), 502
-    if resp.status_code == 403:
-        return jsonify({'error': 'Acceso denegado a API-Football (403)'}), 502
-    if resp.status_code != 200:
-        return jsonify({
-            'error': f'Error {resp.status_code} al obtener partidos',
-            'details': resp.text[:300],
-        }), 502
+#     for f in fixtures:
+#         fixture_info = f.get('fixture', {})
+#         teams        = f.get('teams', {})
+#         goals        = f.get('goals', {})
+#         status_obj   = fixture_info.get('status', {})
 
-    try:
-        raw = resp.json()
-    except Exception:
-        return jsonify({'error': 'API-Football no devolvió JSON válido', 'details': resp.text[:300]}), 502
+#         ext_id    = str(fixture_info.get('id', ''))
+#         if not ext_id:
+#             continue
 
-    # API-Football devuelve los fixtures en raw['response']
-    fixtures = raw.get('response', [])
-    if not fixtures:
-        errors = raw.get('errors', {})
-        return jsonify({'error': 'Sin partidos en la respuesta', 'api_errors': errors}), 502
+#         home_team  = teams.get('home', {}).get('name', 'TBD')
+#         away_team  = teams.get('away', {}).get('name', 'TBD')
+#         home_score = goals.get('home')       # None si no jugó
+#         away_score = goals.get('away')
+#         raw_status = status_obj.get('short', 'NS')
+#         mapped_status = AF_STATUS_MAP.get(raw_status, 'SCHEDULED')
 
-    return _sync_api_football_data(fixtures)
+#         date_str = fixture_info.get('date')  # ISO 8601 con tz
+#         try:
+#             match_time = dateparser.isoparse(date_str)
+#         except Exception:
+#             match_time = datetime.utcnow()
+
+#         match = Match.query.filter_by(external_id=ext_id).first()
+#         if not match:
+#             match = Match(
+#                 external_id=ext_id,
+#                 home_team=home_team,
+#                 away_team=away_team,
+#                 match_time=match_time,
+#                 status=mapped_status,
+#                 home_score=home_score,
+#                 away_score=away_score,
+#             )
+#             db.session.add(match)
+#             inserted += 1
+#         else:
+#             match.home_team   = home_team
+#             match.away_team   = away_team
+#             match.match_time  = match_time
+#             match.status      = mapped_status
+#             match.home_score  = home_score
+#             match.away_score  = away_score
+#             updated += 1
+
+#     db.session.commit()
+#     return jsonify({
+#         'message': 'Partidos sincronizados desde API-Football',
+#         'inserted': inserted,
+#         'updated':  updated,
+#         'total':    inserted + updated,
+#     }), 200
 
 
-# Mantiene compatibilidad con el endpoint viejo que usaba el frontend
-@bp.route('/sync_wc2026', methods=['POST'])
-@jwt_required()
-def sync_wc2026():
-    """Alias de /sync_matches para compatibilidad hacia atrás."""
-    return sync_matches()
+# @bp.route('/sync_matches', methods=['POST'])
+# @jwt_required()
+# def sync_matches():
+#     """Sincroniza partidos del Mundial 2026 desde API-Football (league=1, season=2026)."""
+#     if not AF_API_KEY or AF_API_KEY == 'xxxxxxx':
+#         return jsonify({'error': 'API_FOOTBALL_KEY no configurada en el servidor'}), 500
+
+#     params = {
+#         'league': 1,      # FIFA World Cup
+#         'season': 2026,
+#     }
+
+#     try:
+#         resp = requests.get(
+#             f'{AF_BASE_URL}/fixtures',
+#             headers=_af_headers(),
+#             params=params,
+#             timeout=20,
+#         )
+#     except requests.exceptions.RequestException as e:
+#         return jsonify({'error': 'No se pudo conectar con API-Football', 'details': str(e)}), 502
+
+#     if resp.status_code == 401:
+#         return jsonify({'error': 'API key inválida o expirada (401)'}), 502
+#     if resp.status_code == 403:
+#         return jsonify({'error': 'Acceso denegado a API-Football (403)'}), 502
+#     if resp.status_code != 200:
+#         return jsonify({
+#             'error': f'Error {resp.status_code} al obtener partidos',
+#             'details': resp.text[:300],
+#         }), 502
+
+#     try:
+#         raw = resp.json()
+#     except Exception:
+#         return jsonify({'error': 'API-Football no devolvió JSON válido', 'details': resp.text[:300]}), 502
+
+#     # API-Football devuelve los fixtures en raw['response']
+#     fixtures = raw.get('response', [])
+#     if not fixtures:
+#         errors = raw.get('errors', {})
+#         return jsonify({'error': 'Sin partidos en la respuesta', 'api_errors': errors}), 502
+
+#     return _sync_api_football_data(fixtures)
+
+
+# # Mantiene compatibilidad con el endpoint viejo que usaba el frontend
+# @bp.route('/sync_wc2026', methods=['POST'])
+# @jwt_required()
+# def sync_wc2026():
+#     """Alias de /sync_matches para compatibilidad hacia atrás."""
+#     return sync_matches()
+
+@bp.route("/matches", methods=["GET"])
+def get_matches():
+    matches = Match.query.all()
+    return jsonify([m.to_dict() for m in matches])

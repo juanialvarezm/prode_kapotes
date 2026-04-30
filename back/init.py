@@ -1,5 +1,6 @@
 import os
 from dotenv import load_dotenv
+from .jobs.sheduler import start_scheduler
 
 load_dotenv()
 
@@ -56,6 +57,9 @@ def uploaded_file(filename):
 from models import *
 from routes import bp as routes_bp
 app.register_blueprint(routes_bp)
+
+# Iniciar scheduler con contexto de app
+start_scheduler(app)
 
 if __name__ == '__main__':
     app.run(debug=True)
