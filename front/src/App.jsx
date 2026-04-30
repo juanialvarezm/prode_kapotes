@@ -14,12 +14,13 @@ import PrivacyPage from './pages/PrivacyPage';
 import Header from './components/Header';
 import Footer from './components/Footer';
 import { getMyGroups, getMyPendingRequests } from './api';
+import { useAuth } from './hooks/useAuth';
 import Wordle from './pages/Wordle';
 
 function App() {
-  const token = localStorage.getItem('token');
   const navigate = useNavigate();
   const location = useLocation();
+  const { isAuthenticated, isLoading: authLoading, logout } = useAuth();
 
   const [groups, setGroups] = useState([]);
   const [loadingGroups, setLoadingGroups] = useState(true);
@@ -29,11 +30,15 @@ function App() {
   const isAuth = location.pathname === '/auth';
 
   const refreshGroups = async () => {
-    if (!token) { setLoadingGroups(false); return; }
+    if (!isAuthenticated) {
+      setLoadingGroups(false);
+      return;
+    }
     try {
       const res = await getMyGroups();
       setGroups(res.data.groups || []);
-    } catch {
+    } catch (error) {
+      console.error('Error al cargar grupos:', error);
       setGroups([]);
     } finally {
       setLoadingGroups(false);
@@ -41,7 +46,7 @@ function App() {
   };
 
   const refreshPendingRequests = async () => {
-    if (!token) return;
+    if (!isAuthenticated) return;
     try {
       const res = await getMyPendingRequests();
       setPendingRequestsCount(res.data.total || 0);
@@ -51,35 +56,53 @@ function App() {
   };
 
   useEffect(() => {
-    refreshGroups();
-    refreshPendingRequests();
-  }, [token]);
+    if (isAuthenticated) {
+      refreshGroups();
+      refreshPendingRequests();
+    }
+  }, [isAuthenticated]);
 
   // Poll pending requests every 15 seconds
   useEffect(() => {
-    if (!token) return;
+    if (!isAuthenticated) return;
     const interval = setInterval(refreshPendingRequests, 15000);
     return () => clearInterval(interval);
-  }, [token]);
+  }, [isAuthenticated]);
 
-  // Not logged in or on auth page
-  if (!token || isAuth) {
+  // Mostrar loading mientras se valida el token
+  if (authLoading) {
+    return (
+      <div className="app-container">
+        <div className="app-layout">
+          <main className="app-main">
+            <div className="card empty-state">
+              <span className="empty-icon">🔐</span>
+              <p>Verificando autenticación...</p>
+            </div>
+          </main>
+        </div>
+      </div>
+    );
+  }
+
+  // No autenticado o en página de auth
+  if (!isAuthenticated || isAuth) {
     return (
       <div className="app-container">
         <Routes>
           <Route path="/auth" element={<AuthPage onSuccess={() => { navigate('/'); window.location.reload(); }} />} />
-          <Route path="*" element={<Navigate to="/auth" />} />
+          <Route path="*" element={<Navigate to="/auth" replace />} />
         </Routes>
       </div>
     );
   }
 
-  // Loading state
+  // Loading grupos
   if (loadingGroups) {
     return (
       <div className="app-container">
         <div className="app-layout">
-          <Header hasGroups={false} pendingRequestsCount={0} />
+          <Header hasGroups={false} pendingRequestsCount={0} onLogout={logout} />
           <main className="app-main">
             <div className="card empty-state">
               <span className="empty-icon">⏳</span>
@@ -95,7 +118,7 @@ function App() {
   return (
     <div className="app-container">
       <div className="app-layout">
-        <Header hasGroups={hasGroups} pendingRequestsCount={pendingRequestsCount} />
+        <Header hasGroups={hasGroups} pendingRequestsCount={pendingRequestsCount} onLogout={logout} />
         <main className="app-main">
           <Routes>
             {/* Always accessible */}
