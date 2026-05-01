@@ -2,74 +2,74 @@ import { useState } from 'react';
 import { login, register } from '../api';
 
 /* Inline SVG football — no external dependency needed */
-function FootballIcon() {
-  return (
-    <svg className="auth-ball" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
-      <defs>
-        <radialGradient id="ballGrad" cx="40%" cy="35%" r="60%">
-          <stop offset="0%" stopColor="#ffffff" />
-          <stop offset="60%" stopColor="#f5f5f5" />
-          <stop offset="100%" stopColor="#d4d4d4" />
-        </radialGradient>
-      </defs>
+// function FootballIcon() {
+//   return (
+//     <svg className="auth-ball" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+//       <defs>
+//         <radialGradient id="ballGrad" cx="40%" cy="35%" r="60%">
+//           <stop offset="0%" stopColor="#ffffff" />
+//           <stop offset="60%" stopColor="#f5f5f5" />
+//           <stop offset="100%" stopColor="#d4d4d4" />
+//         </radialGradient>
+//       </defs>
 
-      {/* Pelota blanca base */}
-      <circle cx="60" cy="60" r="50" fill="url(#ballGrad)" stroke="#999" strokeWidth="1" />
+//       {/* Pelota blanca base */}
+//       <circle cx="60" cy="60" r="50" fill="url(#ballGrad)" stroke="#999" strokeWidth="1" />
 
-      {/* Pentágono negro central */}
-      <polygon
-        points="60,25 75,35 70,52 50,52 45,35"
-        fill="#000000"
-        stroke="#333"
-        strokeWidth="1.5"
-      />
+//       {/* Pentágono negro central */}
+//       <polygon 
+//         points="60,25 75,35 70,52 50,52 45,35" 
+//         fill="#000000" 
+//         stroke="#333" 
+//         strokeWidth="1.5"
+//       />
 
-      {/* Hexágonos blancos conectados */}
-      <polygon
-        points="45,35 50,52 38,62 28,55 32,40"
-        fill="#ffffff"
-        stroke="#000000"
-        strokeWidth="1.5"
-      />
-      <polygon
-        points="75,35 82,40 88,55 78,62 70,52"
-        fill="#ffffff"
-        stroke="#000000"
-        strokeWidth="1.5"
-      />
-      <polygon
-        points="50,52 70,52 72,68 60,78 48,68"
-        fill="#ffffff"
-        stroke="#000000"
-        strokeWidth="1.5"
-      />
+//       {/* Hexágonos blancos conectados */}
+//       <polygon 
+//         points="45,35 50,52 38,62 28,55 32,40" 
+//         fill="#ffffff" 
+//         stroke="#000000" 
+//         strokeWidth="1.5"
+//       />
+//       <polygon 
+//         points="75,35 82,40 88,55 78,62 70,52" 
+//         fill="#ffffff" 
+//         stroke="#000000" 
+//         strokeWidth="1.5"
+//       />
+//       <polygon 
+//         points="50,52 70,52 72,68 60,78 48,68" 
+//         fill="#ffffff" 
+//         stroke="#000000" 
+//         strokeWidth="1.5"
+//       />
 
-      {/* Pentágonos negros laterales */}
-      <polygon
-        points="28,55 38,62 34,76 22,75 20,62"
-        fill="#000000"
-        stroke="#333"
-        strokeWidth="1.5"
-      />
-      <polygon
-        points="88,55 98,62 96,75 84,76 78,62"
-        fill="#000000"
-        stroke="#333"
-        strokeWidth="1.5"
-      />
+//       {/* Pentágonos negros laterales */}
+//       <polygon 
+//         points="28,55 38,62 34,76 22,75 20,62" 
+//         fill="#000000" 
+//         stroke="#333" 
+//         strokeWidth="1.5"
+//       />
+//       <polygon 
+//         points="88,55 98,62 96,75 84,76 78,62" 
+//         fill="#000000" 
+//         stroke="#333" 
+//         strokeWidth="1.5"
+//       />
 
-      {/* Highlight para dar volumen */}
-      <ellipse
-        cx="45"
-        cy="35"
-        rx="15"
-        ry="12"
-        fill="#ffffff"
-        opacity="0.25"
-      />
-    </svg>
-  );
-}
+//       {/* Highlight para dar volumen */}
+//       <ellipse 
+//         cx="45" 
+//         cy="35" 
+//         rx="15" 
+//         ry="12" 
+//         fill="#ffffff" 
+//         opacity="0.25"
+//       />
+//     </svg>
+//   );
+// }
 
 export default function AuthPage({ onSuccess }) {
   const [mode, setMode] = useState('login');
@@ -105,9 +105,9 @@ export default function AuthPage({ onSuccess }) {
   return (
     <div className="auth-wrapper">
       <div className="auth-card">
-        <div className="auth-ball-container">
+        {/* <div className="auth-ball-container">
           <FootballIcon />
-        </div>
+        </div> */}
 
         <h2 className="auth-title">
           <span className="brand-gradient">Prode Kapotes</span>
