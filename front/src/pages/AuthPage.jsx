@@ -4,51 +4,69 @@ import { login, register } from '../api';
 /* Inline SVG football — no external dependency needed */
 function FootballIcon() {
   return (
-    <svg className="auth-ball" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+    <svg className="auth-ball" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
       <defs>
-        <radialGradient id="ballGrad" cx="35%" cy="30%" r="65%">
+        <radialGradient id="ballGrad" cx="40%" cy="35%" r="60%">
           <stop offset="0%" stopColor="#ffffff" />
-          <stop offset="70%" stopColor="#f0f0f0" />
-          <stop offset="100%" stopColor="#d0d0d0" />
+          <stop offset="60%" stopColor="#f5f5f5" />
+          <stop offset="100%" stopColor="#d4d4d4" />
         </radialGradient>
-        <filter id="ballShadow">
-          <feGaussianBlur in="SourceAlpha" stdDeviation="2" />
-          <feOffset dx="2" dy="3" result="offsetblur" />
-          <feComponentTransfer>
-            <feFuncA type="linear" slope="0.4" />
-          </feComponentTransfer>
-          <feMerge>
-            <feMergeNode />
-            <feMergeNode in="SourceGraphic" />
-          </feMerge>
-        </filter>
       </defs>
 
-      {/* Pelota base */}
-      <circle cx="50" cy="50" r="45" fill="url(#ballGrad)" filter="url(#ballShadow)" />
+      {/* Pelota blanca base */}
+      <circle cx="60" cy="60" r="50" fill="url(#ballGrad)" stroke="#999" strokeWidth="1" />
 
-      {/* Pentágono central negro */}
-      <path d="M 50,15 L 62,24 L 57,38 L 43,38 L 38,24 Z" fill="#1a1a1a" stroke="#000000" strokeWidth="0.5" />
+      {/* Pentágono negro central */}
+      <polygon
+        points="60,25 75,35 70,52 50,52 45,35"
+        fill="#000000"
+        stroke="#333"
+        strokeWidth="1.5"
+      />
 
-      {/* Hexágonos blancos alrededor del pentágono central */}
-      <path d="M 50,15 L 38,24 L 35,18 L 40,10 L 50,10 L 55,10 L 60,10 L 65,18 L 62,24 Z" fill="#ffffff" stroke="#1a1a1a" strokeWidth="0.8" />
-      <path d="M 38,24 L 43,38 L 32,45 L 22,40 L 25,28 Z" fill="#ffffff" stroke="#1a1a1a" strokeWidth="0.8" />
-      <path d="M 62,24 L 75,28 L 78,40 L 68,45 L 57,38 Z" fill="#ffffff" stroke="#1a1a1a" strokeWidth="0.8" />
+      {/* Hexágonos blancos conectados */}
+      <polygon
+        points="45,35 50,52 38,62 28,55 32,40"
+        fill="#ffffff"
+        stroke="#000000"
+        strokeWidth="1.5"
+      />
+      <polygon
+        points="75,35 82,40 88,55 78,62 70,52"
+        fill="#ffffff"
+        stroke="#000000"
+        strokeWidth="1.5"
+      />
+      <polygon
+        points="50,52 70,52 72,68 60,78 48,68"
+        fill="#ffffff"
+        stroke="#000000"
+        strokeWidth="1.5"
+      />
 
       {/* Pentágonos negros laterales */}
-      <path d="M 22,40 L 32,45 L 28,58 L 18,56 L 16,44 Z" fill="#1a1a1a" stroke="#000000" strokeWidth="0.5" />
-      <path d="M 78,40 L 84,44 L 82,56 L 72,58 L 68,45 Z" fill="#1a1a1a" stroke="#000000" strokeWidth="0.5" />
+      <polygon
+        points="28,55 38,62 34,76 22,75 20,62"
+        fill="#000000"
+        stroke="#333"
+        strokeWidth="1.5"
+      />
+      <polygon
+        points="88,55 98,62 96,75 84,76 78,62"
+        fill="#000000"
+        stroke="#333"
+        strokeWidth="1.5"
+      />
 
-      {/* Hexágonos blancos inferiores */}
-      <path d="M 43,38 L 57,38 L 60,52 L 50,60 L 40,52 Z" fill="#ffffff" stroke="#1a1a1a" strokeWidth="0.8" />
-      <path d="M 32,45 L 40,52 L 36,66 L 26,64 L 28,58 Z" fill="#ffffff" stroke="#1a1a1a" strokeWidth="0.8" />
-      <path d="M 68,45 L 72,58 L 74,64 L 64,66 L 60,52 Z" fill="#ffffff" stroke="#1a1a1a" strokeWidth="0.8" />
-
-      {/* Pentágono negro inferior */}
-      <path d="M 40,52 L 50,60 L 60,52 L 64,66 L 50,75 L 36,66 Z" fill="#1a1a1a" stroke="#000000" strokeWidth="0.5" />
-
-      {/* Detalles de sombreado */}
-      <ellipse cx="35" cy="28" rx="8" ry="6" fill="#ffffff" opacity="0.3" />
+      {/* Highlight para dar volumen */}
+      <ellipse
+        cx="45"
+        cy="35"
+        rx="15"
+        ry="12"
+        fill="#ffffff"
+        opacity="0.25"
+      />
     </svg>
   );
 }
