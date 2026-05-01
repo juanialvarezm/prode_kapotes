@@ -1,6 +1,43 @@
 import axios from 'axios';
+import { handleLogout, isAuthError } from './utils/authUtils';
 
 const API_URL = import.meta.env.VITE_API_URL || 'https://prodekapotes-production.up.railway.app/';
+
+// ============================================================
+// INTERCEPTOR GLOBAL PARA DETECTAR TOKENS VENCIDOS
+// ============================================================
+
+// Interceptor de respuesta para manejar errores de autenticación
+axios.interceptors.response.use(
+  (response) => response, // Si la respuesta es exitosa, la devuelve tal cual
+  (error) => {
+    // Si el error es 401 o 403, el token está vencido o es inválido
+    if (isAuthError(error)) {
+      console.error('🔴 Token vencido o inválido. Cerrando sesión...');
+
+      // Limpiar localStorage y redirigir a /auth
+      handleLogout();
+
+      // Opcional: Mostrar notificación al usuario
+      if (typeof window !== 'undefined') {
+        // Evitar múltiples alerts si hay varios requests fallando
+        if (!window._authErrorShown) {
+          window._authErrorShown = true;
+          setTimeout(() => {
+            alert('Tu sesión ha expirado. Por favor, inicia sesión nuevamente.');
+            window._authErrorShown = false;
+          }, 100);
+        }
+      }
+    }
+
+    return Promise.reject(error);
+  }
+);
+
+// ============================================================
+// HEADERS DE AUTENTICACIÓN
+// ============================================================
 
 function authHeaders() {
   const token = localStorage.getItem('token');
