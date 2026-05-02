@@ -1,6 +1,6 @@
 import os
 from dotenv import load_dotenv
-from .jobs.sheduler import start_scheduler
+from back.jobs.sheduler import start_scheduler
 
 load_dotenv()
 
