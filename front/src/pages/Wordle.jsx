@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { saveWordleResult, getWordleHistory } from '../api';
 
 // ── Lista de jugadores (apellidos, mayúsculas) ──────────────────────────
 const PLAYERS = [
@@ -57,6 +58,26 @@ export default function Wordle() {
   const [current, setCurrent] = useState(''); // letra a letra
   const [gameState, setGameState] = useState('playing'); // 'playing'|'won'|'lost'
   const [shake, setShake] = useState(false);
+  const [history, setHistory] = useState([]);
+  const [currentStreak, setCurrentStreak] = useState(0);
+  const [showCalendar, setShowCalendar] = useState(false);
+
+  // Cargar historial al iniciar
+  useEffect(() => {
+    const loadHistory = async () => {
+      const token = localStorage.getItem('token');
+      if (!token) return;
+      
+      try {
+        const response = await getWordleHistory();
+        setHistory(response.data.history || []);
+        setCurrentStreak(response.data.current_streak || 0);
+      } catch (error) {
+        console.error('Error loading wordle history:', error);
+      }
+    };
+    loadHistory();
+  }, []);
 
   // Mapa de estado de cada letra del teclado
   const letterStatus = {};
@@ -70,7 +91,7 @@ export default function Wordle() {
     }
   }
 
-  const submitGuess = useCallback(() => {
+  const submitGuess = useCallback(async () => {
     if (current.length !== wordLen || gameState !== 'playing') return;
 
     const hints = computeHints(current, secret);
@@ -78,10 +99,33 @@ export default function Wordle() {
     setGuesses(newGuesses);
     setCurrent('');
 
+    let won = false;
+    let finished = false;
+
     if (current === secret) {
       setGameState('won');
+      won = true;
+      finished = true;
     } else if (newGuesses.length >= MAX_GUESSES) {
       setGameState('lost');
+      won = false;
+      finished = true;
+    }
+
+    // Guardar resultado si el juego terminó
+    if (finished) {
+      const token = localStorage.getItem('token');
+      if (token) {
+        try {
+          await saveWordleResult(won, newGuesses.length, secret);
+          // Recargar historial
+          const response = await getWordleHistory();
+          setHistory(response.data.history || []);
+          setCurrentStreak(response.data.current_streak || 0);
+        } catch (error) {
+          console.error('Error saving wordle result:', error);
+        }
+      }
     }
   }, [current, wordLen, gameState, guesses, secret]);
 
@@ -140,6 +184,26 @@ export default function Wordle() {
     wrong: { background: 'rgba(30,41,59,0.9)', borderColor: 'rgba(30,41,59,0.9)', color: '#475569' },
   };
 
+  // Generar últimos 30 días para el calendario
+  const generateCalendarDays = () => {
+    const days = [];
+    const today = new Date();
+    for (let i = 29; i >= 0; i--) {
+      const date = new Date(today);
+      date.setDate(date.getDate() - i);
+      const dateStr = date.toISOString().split('T')[0];
+      const record = history.find(h => h.date === dateStr);
+      days.push({
+        date: dateStr,
+        won: record?.won || false,
+        played: !!record,
+      });
+    }
+    return days;
+  };
+
+  const calendarDays = generateCalendarDays();
+
   return (
     <div className="wordle-page">
       {/* Header */}
@@ -167,7 +231,32 @@ export default function Wordle() {
             <span className="wordle-stat-num">{MAX_GUESSES - guesses.length}</span>
             <span className="wordle-stat-label">Restantes</span>
           </div>
+          <div className="wordle-stat-chip" style={{ cursor: 'pointer' }} onClick={() => setShowCalendar(!showCalendar)}>
+            <span className="wordle-stat-num">{currentStreak}</span>
+            <span className="wordle-stat-label">🔥 Racha</span>
+          </div>
         </div>
+
+        {/* Calendario de racha */}
+        {showCalendar && (
+          <div className="wordle-calendar">
+            <h3 className="wordle-calendar-title">Historial (últimos 30 días)</h3>
+            <div className="wordle-calendar-grid">
+              {calendarDays.map((day, idx) => {
+                const dayNum = new Date(day.date).getDate();
+                return (
+                  <div
+                    key={idx}
+                    className={`wordle-calendar-day ${day.played ? (day.won ? 'won' : 'lost') : 'empty'}`}
+                    title={day.played ? `${day.date}: ${day.won ? 'Ganaste ✅' : 'Perdiste ❌'}` : day.date}
+                  >
+                    <span>{dayNum}</span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Leyenda */}

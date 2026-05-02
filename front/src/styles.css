@@ -4326,11 +4326,9 @@ body {
 /* ---- Hero ---- */
 .home-hero {
   position: relative;
-  background: linear-gradient(
-    135deg,
-    rgba(16, 185, 129, 0.08) 0%,
-    rgba(245, 158, 11, 0.05) 100%
-  );
+  background: linear-gradient(135deg,
+      rgba(16, 185, 129, 0.08) 0%,
+      rgba(245, 158, 11, 0.05) 100%);
   border: 1px solid rgba(16, 185, 129, 0.18);
   border-radius: var(--radius-xl);
   padding: 48px 40px;
@@ -4379,8 +4377,15 @@ body {
 }
 
 @keyframes home-ball-float {
-  0%, 100% { transform: translateY(0) rotate(0deg); }
-  50% { transform: translateY(-12px) rotate(20deg); }
+
+  0%,
+  100% {
+    transform: translateY(0) rotate(0deg);
+  }
+
+  50% {
+    transform: translateY(-12px) rotate(20deg);
+  }
 }
 
 .home-hero-title {
@@ -4786,8 +4791,15 @@ body {
 }
 
 @keyframes wordle-cell-in {
-  from { opacity: 0; transform: scaleY(0.6); }
-  to   { opacity: 1; transform: scaleY(1); }
+  from {
+    opacity: 0;
+    transform: scaleY(0.6);
+  }
+
+  to {
+    opacity: 1;
+    transform: scaleY(1);
+  }
 }
 
 .wordle-cell-icon {
@@ -5019,18 +5031,42 @@ body {
 }
 
 @keyframes wordle-flip {
-  0%   { transform: scaleY(1); }
-  50%  { transform: scaleY(0); }
-  100% { transform: scaleY(1); }
+  0% {
+    transform: scaleY(1);
+  }
+
+  50% {
+    transform: scaleY(0);
+  }
+
+  100% {
+    transform: scaleY(1);
+  }
 }
 
 /* Shake when word is too short */
 @keyframes wordle-shake {
-  0%, 100% { transform: translateX(0); }
-  20%       { transform: translateX(-6px); }
-  40%       { transform: translateX(6px); }
-  60%       { transform: translateX(-4px); }
-  80%       { transform: translateX(4px); }
+
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+
+  20% {
+    transform: translateX(-6px);
+  }
+
+  40% {
+    transform: translateX(6px);
+  }
+
+  60% {
+    transform: translateX(-4px);
+  }
+
+  80% {
+    transform: translateX(4px);
+  }
 }
 
 .wordle-shake {
@@ -5122,6 +5158,81 @@ body {
 
   .wordle-key-wide {
     min-width: 50px;
+  }
+}
+
+/* ── Calendario de racha ── */
+.wordle-calendar {
+  margin-top: 24px;
+  padding: 20px;
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: 12px;
+  backdrop-filter: blur(10px);
+}
+
+.wordle-calendar-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 16px;
+  text-align: center;
+}
+
+.wordle-calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(10, 1fr);
+  gap: 6px;
+}
+
+.wordle-calendar-day {
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.wordle-calendar-day.empty {
+  background: rgba(100, 116, 139, 0.15);
+  border: 1px solid rgba(100, 116, 139, 0.3);
+  color: rgba(148, 163, 184, 0.5);
+}
+
+.wordle-calendar-day.won {
+  background: rgba(16, 185, 129, 0.25);
+  border: 1px solid rgba(16, 185, 129, 0.6);
+  color: #10b981;
+}
+
+.wordle-calendar-day.lost {
+  background: rgba(239, 68, 68, 0.20);
+  border: 1px solid rgba(239, 68, 68, 0.5);
+  color: #ef4444;
+}
+
+.wordle-calendar-day:hover {
+  transform: scale(1.05);
+}
+
+@media (max-width: 768px) {
+  .wordle-calendar-grid {
+    grid-template-columns: repeat(7, 1fr);
+  }
+}
+
+@media (max-width: 480px) {
+  .wordle-calendar-grid {
+    grid-template-columns: repeat(5, 1fr);
+    gap: 4px;
+  }
+
+  .wordle-calendar-day {
+    font-size: 0.7rem;
   }
 }
 
