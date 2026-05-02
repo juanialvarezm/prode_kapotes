@@ -1,7 +1,7 @@
 from datetime import datetime
 from dateutil import parser as dateparser
-from back.models import Match, db
-from back.services.api_football import fetch_fixtures
+from models import Match, db
+from services.api_football import fetch_fixtures
 
 AF_STATUS_MAP = {
     'NS': 'SCHEDULED',
