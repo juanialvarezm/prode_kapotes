@@ -233,7 +233,7 @@ export default function Wordle() {
           </div>
           <div className="wordle-stat-chip" style={{ cursor: 'pointer' }} onClick={() => setShowCalendar(!showCalendar)}>
             <span className="wordle-stat-num">{currentStreak}</span>
-            <span className="wordle-stat-label">🔥 Racha</span>
+            <span className="wordle-stat-label">Dias</span>
           </div>
         </div>
 
