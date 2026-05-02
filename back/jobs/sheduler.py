@@ -5,7 +5,7 @@ logger = logging.getLogger(__name__)
 
 def start_scheduler(app):
     """Inicia el scheduler con contexto de Flask."""
-    from back.services.sync_services import sync_matches
+    from services.sync_services import sync_matches
     
     scheduler = BackgroundScheduler()
 

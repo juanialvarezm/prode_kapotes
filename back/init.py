@@ -1,6 +1,6 @@
 import os
 from dotenv import load_dotenv
-from back.jobs.sheduler import start_scheduler
+from jobs.sheduler import start_scheduler
 
 load_dotenv()
 
@@ -11,7 +11,7 @@ import cloudinary
 
 from db import db
 
-app = Flask(__name__)
+app = Flask(__name__)   ##unc comentarion
 
 
 uri = os.getenv("DB_URL") or os.getenv("DATABASE_URL")

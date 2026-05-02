@@ -573,7 +573,7 @@ def list_matches():
 def sync_wc2026():
     """Sincronización manual de partidos (usa el servicio en background)."""
     try:
-        from back.services.sync_services import sync_matches
+        from services.sync_services import sync_matches
         result = sync_matches(season=2026)
         return jsonify({
             'message': 'Sincronización completada',
