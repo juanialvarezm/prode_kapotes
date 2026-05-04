@@ -81,7 +81,7 @@ function App() {
   if (location.pathname === '/auth') {
     return (
       <Routes>
-        <Route path="/auth" element={<AuthPage onSuccess={() => { navigate('/home'); window.location.reload(); }} />} />
+        <Route path="/auth" element={<AuthPage onSuccess={() => { navigate('/'); window.location.reload(); }} />} />
       </Routes>
     );
   }
@@ -100,7 +100,6 @@ function App() {
             <Routes>
               {/* Public routes - no authentication needed */}
               <Route path="/" element={<HomePage />} />
-              <Route path="/home" element={<HomePage />} />
               <Route path="/privacy" element={<PrivacyPage />} />
 
               {/* Protected routes - redirect to /auth if not logged in */}
@@ -116,7 +115,7 @@ function App() {
               <Route path="/futlegacy" element={<ProtectedRoute><FutLegacy /></ProtectedRoute>} />
 
               {/* Fallback */}
-              <Route path="*" element={<Navigate to="/home" />} />
+              <Route path="*" element={<Navigate to="/" />} />
             </Routes>
           )}
         </main>
