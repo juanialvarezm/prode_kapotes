@@ -32,6 +32,7 @@ function ProtectedRoute({ children }) {
 function App() {
   const token = localStorage.getItem('token');
   const navigate = useNavigate();
+  const location = useLocation();
 
   const [groups, setGroups] = useState([]);
   const [loadingGroups, setLoadingGroups] = useState(false);
@@ -76,6 +77,15 @@ function App() {
     return () => clearInterval(interval);
   }, [token]);
 
+  // Auth page renders without Header/Footer
+  if (location.pathname === '/auth') {
+    return (
+      <Routes>
+        <Route path="/auth" element={<AuthPage onSuccess={() => { navigate('/home'); window.location.reload(); }} />} />
+      </Routes>
+    );
+  }
+
   return (
     <div className="app-container">
       <div className="app-layout">
@@ -92,7 +102,6 @@ function App() {
               <Route path="/" element={<HomePage />} />
               <Route path="/home" element={<HomePage />} />
               <Route path="/privacy" element={<PrivacyPage />} />
-              <Route path="/auth" element={<AuthPage onSuccess={() => { navigate('/home'); window.location.reload(); }} />} />
 
               {/* Protected routes - redirect to /auth if not logged in */}
               <Route path="/join-group" element={<ProtectedRoute><JoinGroupPage onGroupChange={refreshGroups} /></ProtectedRoute>} />
