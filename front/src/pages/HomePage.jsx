@@ -5,8 +5,9 @@ const navItems = [
   { icon: '🏠', label: 'Mis Grupos',     path: '/groups',      desc: 'Ver tus grupos' },
   { icon: '⚽', label: 'Partidos',        path: '/matches',     desc: 'Partidos del Mundial' },
   { icon: '🔮', label: 'Predicciones',   path: '/predictions', desc: 'Tus pronósticos' },
-  { icon: '🧑‍🤝‍🧑', label: 'Mi Equipo', path: '/miequipo',   desc: 'Tu dream team' },
   { icon: '🎮', label: 'FutWordle',      path: '/futwordle',   desc: '¿Quién es este jugador?' },
+  { icon: '⚡', label: 'GolTexto',       path: '/goltexto',    desc: 'Adiviná por club y nac.' },
+  { icon: '👕', label: 'FutLegacy',      path: '/futlegacy',   desc: 'Adiviná por camisetas' },
   { icon: '👤', label: 'Perfil',         path: '/profile',     desc: 'Tu cuenta' },
 ];
 
@@ -119,11 +120,20 @@ export default function HomePage() {
             <span className="home-info-card-arrow">→</span>
           </div>
 
-          <div className="home-info-card" onClick={() => navigate('/miequipo')} role="button" tabIndex={0}>
-            <div className="home-info-card-icon">🧑‍🤝‍🧑</div>
+          <div className="home-info-card" onClick={() => navigate('/goltexto')} role="button" tabIndex={0}>
+            <div className="home-info-card-icon">⚡</div>
             <div className="home-info-card-body">
-              <h3>Mi Equipo</h3>
-              <p>Armá tu dream team y competí con los demás.</p>
+              <h3>GolTexto</h3>
+              <p>Adiviná el jugador misterioso por club y nacionalidad.</p>
+            </div>
+            <span className="home-info-card-arrow">→</span>
+          </div>
+
+          <div className="home-info-card" onClick={() => navigate('/futlegacy')} role="button" tabIndex={0}>
+            <div className="home-info-card-icon">👕</div>
+            <div className="home-info-card-body">
+              <h3>FutLegacy</h3>
+              <p>Adiviná el jugador por sus camisetas — ¿conocés su carrera?</p>
             </div>
             <span className="home-info-card-arrow">→</span>
           </div>

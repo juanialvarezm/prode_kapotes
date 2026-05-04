@@ -106,3 +106,20 @@ class Prediction(db.Model):
         actual_diff = self.match.home_score - self.match.away_score
         predicted_diff = self.predicted_home - self.predicted_away
         return (actual_diff > 0 and predicted_diff > 0) or (actual_diff < 0 and predicted_diff < 0) or (actual_diff == 0 and predicted_diff == 0)
+
+
+class WordleHistory(db.Model):
+    __tablename__ = 'wordle_history'
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    date = db.Column(db.Date, nullable=False)
+    won = db.Column(db.Boolean, nullable=False)
+    attempts = db.Column(db.Integer, nullable=False)
+    player_name = db.Column(db.String(50), nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    user = db.relationship('User', backref='wordle_history', lazy=True)
+
+    __table_args__ = (
+        db.UniqueConstraint('user_id', 'date', name='unique_user_date'),
+    )

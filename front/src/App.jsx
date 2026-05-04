@@ -8,7 +8,8 @@ import MatchesPage from './pages/MatchesPage';
 import MatchDetail from './pages/MatchDetail';
 import PredictionsPage from './pages/PredictionsPage';
 import RequestsPage from './pages/RequestsPage';
-import MiEquipo from './pages/MiEquipo';
+import GolTexto from './pages/GolTexto';
+import FutLegacy from './pages/FutLegacy';
 import HomePage from './pages/HomePage';
 import PrivacyPage from './pages/PrivacyPage';
 import Header from './components/Header';
@@ -136,7 +137,8 @@ function App() {
                 <Route path="/matches/:matchId" element={<MatchDetail />} />
                 <Route path="/predictions" element={<PredictionsPage />} />
                 <Route path="/futwordle" element={<Wordle />} />
-                <Route path="/miequipo" element={<MiEquipo />} />
+                <Route path="/goltexto" element={<GolTexto />} />
+                <Route path="/futlegacy" element={<FutLegacy />} />
                 <Route path="*" element={<Navigate to="/home" />} />
               </>
             ) : (

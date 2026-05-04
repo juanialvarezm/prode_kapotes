@@ -177,3 +177,17 @@ export async function getGroupPredictions(groupId, userId = null) {
 export async function fetchApiMatches() {
   return axios.post(`${API_URL}/sync_wc2026`, {}, { headers: authHeaders() });
 }
+
+// --- Wordle API ---
+
+export async function saveWordleResult(won, attempts, playerName) {
+  return axios.post(
+    `${API_URL}/wordle/save`,
+    { won, attempts, player_name: playerName },
+    { headers: authHeaders() }
+  );
+}
+
+export async function getWordleHistory() {
+  return axios.get(`${API_URL}/wordle/history`, { headers: authHeaders() });
+}
