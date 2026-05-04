@@ -17,20 +17,35 @@ import Footer from './components/Footer';
 import { getMyGroups, getMyPendingRequests } from './api';
 import Wordle from './pages/Wordle';
 
+// Protected Route Component
+function ProtectedRoute({ children }) {
+  const token = localStorage.getItem('token');
+  const location = useLocation();
+
+  if (!token) {
+    return <Navigate to="/auth" state={{ from: location }} replace />;
+  }
+
+  return children;
+}
+
 function App() {
   const token = localStorage.getItem('token');
   const navigate = useNavigate();
   const location = useLocation();
 
   const [groups, setGroups] = useState([]);
-  const [loadingGroups, setLoadingGroups] = useState(true);
+  const [loadingGroups, setLoadingGroups] = useState(false);
   const [pendingRequestsCount, setPendingRequestsCount] = useState(0);
 
   const hasGroups = groups.length > 0;
   const isAuth = location.pathname === '/auth';
+  const isHome = location.pathname === '/' || location.pathname === '/home';
+  const isPrivacy = location.pathname === '/privacy';
 
   const refreshGroups = async () => {
     if (!token) { setLoadingGroups(false); return; }
+    setLoadingGroups(true);
     try {
       const res = await getMyGroups();
       setGroups(res.data.groups || []);
@@ -52,8 +67,10 @@ function App() {
   };
 
   useEffect(() => {
-    refreshGroups();
-    refreshPendingRequests();
+    if (token) {
+      refreshGroups();
+      refreshPendingRequests();
+    }
   }, [token]);
 
   // Poll pending requests every 15 seconds
@@ -63,20 +80,38 @@ function App() {
     return () => clearInterval(interval);
   }, [token]);
 
-  // Not logged in or on auth page
-  if (!token || isAuth) {
+  // Auth page - accessible to all
+  if (isAuth) {
     return (
       <div className="app-container">
         <Routes>
           <Route path="/auth" element={<AuthPage onSuccess={() => { navigate('/'); window.location.reload(); }} />} />
-          <Route path="*" element={<Navigate to="/auth" />} />
         </Routes>
       </div>
     );
   }
 
-  // Loading state
-  if (loadingGroups) {
+  // Public pages (home and privacy) - accessible without login
+  if ((isHome || isPrivacy) && !token) {
+    return (
+      <div className="app-container">
+        <div className="app-layout">
+          <Header hasGroups={false} pendingRequestsCount={0} />
+          <main className="app-main">
+            <Routes>
+              <Route path="/" element={<HomePage />} />
+              <Route path="/home" element={<HomePage />} />
+              <Route path="/privacy" element={<PrivacyPage />} />
+            </Routes>
+          </main>
+          <Footer />
+        </div>
+      </div>
+    );
+  }
+
+  // Loading state for authenticated users
+  if (token && loadingGroups) {
     return (
       <div className="app-container">
         <div className="app-layout">
@@ -93,34 +128,32 @@ function App() {
     );
   }
 
+  // Main app layout with all routes
   return (
     <div className="app-container">
       <div className="app-layout">
-        <Header hasGroups={hasGroups} pendingRequestsCount={pendingRequestsCount} />
+        <Header hasGroups={token ? hasGroups : false} pendingRequestsCount={pendingRequestsCount} />
         <main className="app-main">
           <Routes>
-            {/* Always accessible */}
-            <Route path="/join-group" element={<JoinGroupPage onGroupChange={refreshGroups} />} />
-            <Route path="/profile" element={<ProfilePage />} />
-            <Route path="/requests" element={<RequestsPage />} />
+            {/* Public routes - accessible without authentication */}
+            <Route path="/" element={<HomePage />} />
+            <Route path="/home" element={<HomePage />} />
             <Route path="/privacy" element={<PrivacyPage />} />
 
-            {hasGroups ? (
-              <>
-                <Route path="/" element={<HomePage />} />
-                <Route path="/home" element={<HomePage />} />
-                <Route path="/groups" element={<GroupsPage />} />
-                <Route path="/matches" element={<MatchesPage />} />
-                <Route path="/matches/:matchId" element={<MatchDetail />} />
-                <Route path="/predictions" element={<PredictionsPage />} />
-                <Route path="/futwordle" element={<Wordle />} />
-                <Route path="/goltexto" element={<GolTexto />} />
-                <Route path="/futlegacy" element={<FutLegacy />} />
-                <Route path="*" element={<Navigate to="/home" />} />
-              </>
-            ) : (
-              <Route path="*" element={<Navigate to="/join-group" />} />
-            )}
+            {/* Protected routes - require authentication */}
+            <Route path="/join-group" element={<ProtectedRoute><JoinGroupPage onGroupChange={refreshGroups} /></ProtectedRoute>} />
+            <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
+            <Route path="/requests" element={<ProtectedRoute><RequestsPage /></ProtectedRoute>} />
+            <Route path="/groups" element={<ProtectedRoute><GroupsPage /></ProtectedRoute>} />
+            <Route path="/matches" element={<ProtectedRoute><MatchesPage /></ProtectedRoute>} />
+            <Route path="/matches/:matchId" element={<ProtectedRoute><MatchDetail /></ProtectedRoute>} />
+            <Route path="/predictions" element={<ProtectedRoute><PredictionsPage /></ProtectedRoute>} />
+            <Route path="/futwordle" element={<ProtectedRoute><Wordle /></ProtectedRoute>} />
+            <Route path="/goltexto" element={<ProtectedRoute><GolTexto /></ProtectedRoute>} />
+            <Route path="/futlegacy" element={<ProtectedRoute><FutLegacy /></ProtectedRoute>} />
+
+            {/* Redirect unknown routes */}
+            <Route path="*" element={<Navigate to="/home" />} />
           </Routes>
         </main>
         <Footer />
