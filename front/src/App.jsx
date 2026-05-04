@@ -43,6 +43,13 @@ function App() {
   const isHome = location.pathname === '/' || location.pathname === '/home';
   const isPrivacy = location.pathname === '/privacy';
 
+  // List of protected routes
+  const protectedRoutes = [
+    '/join-group', '/profile', '/requests', '/groups', '/matches',
+    '/predictions', '/futwordle', '/goltexto', '/futlegacy'
+  ];
+  const isProtectedRoute = protectedRoutes.some(route => location.pathname.startsWith(route));
+
   const refreshGroups = async () => {
     if (!token) { setLoadingGroups(false); return; }
     setLoadingGroups(true);
@@ -89,6 +96,11 @@ function App() {
         </Routes>
       </div>
     );
+  }
+
+  // Redirect to auth if trying to access protected routes without token
+  if (!token && isProtectedRoute) {
+    return <Navigate to="/auth" state={{ from: location }} replace />;
   }
 
   // Public pages (home and privacy) - accessible without login
