@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   getMyPendingRequests,
   acceptJoinRequest,
@@ -7,6 +8,7 @@ import {
 } from '../api';
 
 export default function RequestsPage() {
+  const navigate = useNavigate();
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -19,6 +21,10 @@ export default function RequestsPage() {
       const res = await getMyPendingRequests();
       setRequests(res.data.requests || []);
     } catch (err) {
+      if (err?.response?.status === 401 || !localStorage.getItem('token')) {
+        navigate('/auth', { replace: true });
+        return;
+      }
       setError('No se pudieron cargar las solicitudes');
     } finally {
       setLoading(false);
@@ -26,6 +32,10 @@ export default function RequestsPage() {
   };
 
   useEffect(() => {
+    if (!localStorage.getItem('token')) {
+      navigate('/auth', { replace: true });
+      return;
+    }
     load();
   }, []);
 

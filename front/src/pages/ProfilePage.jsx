@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { getMe, updateProfile } from '../api';
 
 export default function ProfilePage() {
+  const navigate = useNavigate();
   const [user, setUser] = useState(null);
   const [error, setError] = useState('');
   const [isEditing, setIsEditing] = useState(false);
@@ -12,6 +14,10 @@ export default function ProfilePage() {
   const [successMessage, setSuccessMessage] = useState('');
 
   useEffect(() => {
+    if (!localStorage.getItem('token')) {
+      navigate('/auth', { replace: true });
+      return;
+    }
     const load = async () => {
       try {
         const res = await getMe();
@@ -21,8 +27,11 @@ export default function ProfilePage() {
           email: res.data.email,
         });
       } catch (err) {
-        console.log('Error loading profile:', err.response || err);
-        setError('No se pudo cargar el perfil. Asegúrate de que el backend esté corriendo en http://localhost:5000');
+        if (err?.response?.status === 401) {
+          navigate('/auth', { replace: true });
+          return;
+        }
+        setError('No se pudo cargar el perfil.');
       }
     };
     load();
