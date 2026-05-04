@@ -26,7 +26,7 @@ def start_scheduler(app):
         seconds=300,  # 5 minutos
         id="sync_matches_job",
         replace_existing=True
-    )
+    )  
 
     scheduler.start()
     logger.info("🕐 Scheduler iniciado: sincronización cada 5 minutos")

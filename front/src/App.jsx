@@ -15,6 +15,7 @@ import PrivacyPage from './pages/PrivacyPage';
 import Header from './components/Header';
 import Footer from './components/Footer';
 import { getMyGroups, getMyPendingRequests } from './api';
+import { useAuth } from './hooks/useAuth';
 import Wordle from './pages/Wordle';
 
 // Protected Route Component - redirects to /auth if no token
@@ -30,9 +31,9 @@ function ProtectedRoute({ children }) {
 }
 
 function App() {
-  const token = localStorage.getItem('token');
   const navigate = useNavigate();
   const location = useLocation();
+  const { isAuthenticated, isLoading: authLoading, logout } = useAuth();
 
   const [groups, setGroups] = useState([]);
   const [loadingGroups, setLoadingGroups] = useState(false);
@@ -41,12 +42,15 @@ function App() {
   const hasGroups = groups.length > 0;
 
   const refreshGroups = async () => {
-    if (!token) return;
-    setLoadingGroups(true);
+    if (!isAuthenticated) {
+      setLoadingGroups(false);
+      return;
+    }
     try {
       const res = await getMyGroups();
       setGroups(res.data.groups || []);
-    } catch {
+    } catch (error) {
+      console.error('Error al cargar grupos:', error);
       setGroups([]);
     } finally {
       setLoadingGroups(false);
@@ -54,7 +58,7 @@ function App() {
   };
 
   const refreshPendingRequests = async () => {
-    if (!token) return;
+    if (!isAuthenticated) return;
     try {
       const res = await getMyPendingRequests();
       setPendingRequestsCount(res.data.total || 0);
@@ -64,34 +68,54 @@ function App() {
   };
 
   useEffect(() => {
-    if (token) {
+    if (isAuthenticated) {
       refreshGroups();
       refreshPendingRequests();
     }
-  }, [token]);
+  }, [isAuthenticated]);
 
   // Poll pending requests every 15 seconds
   useEffect(() => {
-    if (!token) return;
+    if (!isAuthenticated) return;
     const interval = setInterval(refreshPendingRequests, 15000);
     return () => clearInterval(interval);
-  }, [token]);
+  }, [isAuthenticated]);
 
-  // Auth page renders without Header/Footer
-  if (location.pathname === '/auth') {
+  // Mostrar loading mientras se valida el token
+  if (authLoading) {
     return (
-      <Routes>
-        <Route path="/auth" element={<AuthPage onSuccess={() => { navigate('/'); window.location.reload(); }} />} />
-      </Routes>
+      <div className="app-container">
+        <div className="app-layout">
+          <main className="app-main">
+            <div className="card empty-state">
+              <span className="empty-icon">🔐</span>
+              <p>Verificando autenticación...</p>
+            </div>
+          </main>
+        </div>
+      </div>
     );
   }
 
-  return (
-    <div className="app-container">
-      <div className="app-layout">
-        <Header hasGroups={token ? hasGroups : false} pendingRequestsCount={pendingRequestsCount} />
-        <main className="app-main">
-          {loadingGroups ? (
+  // No autenticado o en página de auth
+  if (!isAuthenticated || isAuth) {
+    return (
+      <div className="app-container">
+        <Routes>
+          <Route path="/auth" element={<AuthPage onSuccess={() => { navigate('/'); window.location.reload(); }} />} />
+          <Route path="*" element={<Navigate to="/auth" replace />} />
+        </Routes>
+      </div>
+    );
+  }
+
+  // Loading grupos
+  if (loadingGroups) {
+    return (
+      <div className="app-container">
+        <div className="app-layout">
+          <Header hasGroups={false} pendingRequestsCount={0} onLogout={logout} />
+          <main className="app-main">
             <div className="card empty-state">
               <span className="empty-icon">⏳</span>
               <p>Cargando...</p>
@@ -102,17 +126,17 @@ function App() {
               <Route path="/" element={<HomePage />} />
               <Route path="/privacy" element={<PrivacyPage />} />
 
-              {/* Protected routes - redirect to /auth if not logged in */}
-              <Route path="/join-group" element={<ProtectedRoute><JoinGroupPage onGroupChange={refreshGroups} /></ProtectedRoute>} />
-              <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
-              <Route path="/requests" element={<ProtectedRoute><RequestsPage /></ProtectedRoute>} />
-              <Route path="/groups" element={<ProtectedRoute><GroupsPage /></ProtectedRoute>} />
-              <Route path="/matches" element={<ProtectedRoute><MatchesPage /></ProtectedRoute>} />
-              <Route path="/matches/:matchId" element={<ProtectedRoute><MatchDetail /></ProtectedRoute>} />
-              <Route path="/predictions" element={<ProtectedRoute><PredictionsPage /></ProtectedRoute>} />
-              <Route path="/futwordle" element={<ProtectedRoute><Wordle /></ProtectedRoute>} />
-              <Route path="/goltexto" element={<ProtectedRoute><GolTexto /></ProtectedRoute>} />
-              <Route path="/futlegacy" element={<ProtectedRoute><FutLegacy /></ProtectedRoute>} />
+  return (
+    <div className="app-container">
+      <div className="app-layout">
+        <Header hasGroups={hasGroups} pendingRequestsCount={pendingRequestsCount} onLogout={logout} />
+        <main className="app-main">
+          <Routes>
+            {/* Always accessible */}
+            <Route path="/join-group" element={<JoinGroupPage onGroupChange={refreshGroups} />} />
+            <Route path="/profile" element={<ProfilePage />} />
+            <Route path="/requests" element={<RequestsPage />} />
+            <Route path="/privacy" element={<PrivacyPage />} />
 
               {/* Fallback */}
               <Route path="*" element={<Navigate to="/" />} />

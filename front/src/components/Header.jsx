@@ -1,15 +1,21 @@
 import { useNavigate, useLocation } from 'react-router-dom';
 
-export default function Header({ hasGroups, pendingRequestsCount = 0 }) {
+export default function Header({ hasGroups, pendingRequestsCount = 0, onLogout }) {
   const navigate = useNavigate();
   const location = useLocation();
 
   const isActive = (path) => location.pathname === path;
 
   const handleLogout = () => {
-    localStorage.clear();
-    navigate('/auth');
-    window.location.reload();
+    if (onLogout) {
+      // Usar la función de logout del hook useAuth (recomendado)
+      onLogout();
+    } else {
+      // Fallback: logout manual
+      localStorage.clear();
+      navigate('/auth');
+      window.location.reload();
+    }
   };
 
   return (
