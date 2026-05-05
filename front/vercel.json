@@ -1,4 +1,6 @@
 {
+    "buildCommand": "echo skip build",
+    "outputDirectory": "dist",
     "routes": [
         {
             "handle": "filesystem"
