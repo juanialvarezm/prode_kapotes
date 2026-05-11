@@ -34,6 +34,8 @@ cloudinary.config(
     cloud_name = os.getenv("CLOUDINARY_CLOUD_NAME")
 )
 
+
+
 # Upload configuration
 UPLOAD_FOLDER = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'uploads')
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)

@@ -16,6 +16,10 @@ export async function register(payload) {
   return axios.post(`${API_URL}/register`, payload);
 }
 
+export async function verifyEmail(token) {
+  return axios.get(`${API_URL}/verify-email`, { params: { token } });
+}
+
 export async function getMe() {
   return axios.get(`${API_URL}/me`, { headers: authHeaders() });
 }
