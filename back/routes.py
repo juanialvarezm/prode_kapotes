@@ -109,13 +109,14 @@ def register():
     db.session.commit()
 
     # Send verification email via RESEND
-    try:
-        resend.api_key = os.getenv('RESEND_API_KEY')
-        frontend_url = os.getenv('FRONTEND_URL', 'http://localhost:5173')
-        verify_url = f"{frontend_url}/verify-email?token={token}"
+    resend.api_key = os.getenv('RESEND_API_KEY')
+    frontend_url = os.getenv('FRONTEND_URL', 'http://localhost:5173')
+    from_email = os.getenv('RESEND_FROM_EMAIL', 'no-reply@send.prodekapotes.com')
+    verify_url = f"{frontend_url}/verify-email?token={token}"
 
-        resend.Emails.send({
-            "from": os.getenv('RESEND_FROM_EMAIL', 'Prode Kapotes <noreply@prodekapotes.com>'),
+    try:
+        result = resend.Emails.send({
+            "from": f"Prode Kapotes <{from_email}>",
             "to": [email],
             "subject": "Verificá tu cuenta en Prode Kapotes",
             "html": f"""
@@ -134,9 +135,10 @@ def register():
                 </div>
             """,
         })
+        current_app.logger.info(f"Verification email sent to {email}: {result}")
     except Exception as e:
-        # Don't fail registration if email sending fails — log and continue
-        current_app.logger.error(f"Error sending verification email to {email}: {e}")
+        current_app.logger.error(f"[RESEND ERROR] Failed to send verification email to {email}: {e}", exc_info=True)
+        return jsonify({'error': f'Error al enviar el email de verificación: {str(e)}'}), 500
 
     return jsonify({'message': 'User registered. Please check your email to verify your account.'}), 201
 
