@@ -14,6 +14,7 @@ import HomePage from './pages/HomePage';
 import PrivacyPage from './pages/PrivacyPage';
 import Header from './components/Header';
 import Footer from './components/Footer';
+import VerifyEmailPage from './pages/VerifyEmailPage';
 import { getMyGroups, getMyPendingRequests } from './api';
 import Wordle from './pages/Wordle';
 
@@ -77,11 +78,12 @@ function App() {
     return () => clearInterval(interval);
   }, [token]);
 
-  // Auth page renders without Header/Footer
-  if (location.pathname === '/auth') {
+  // Auth/verify pages render without Header/Footer
+  if (location.pathname === '/auth' || location.pathname === '/verify-email') {
     return (
       <Routes>
         <Route path="/auth" element={<AuthPage onSuccess={() => { navigate('/'); window.location.reload(); }} />} />
+        <Route path="/verify-email" element={<VerifyEmailPage />} />
       </Routes>
     );
   }

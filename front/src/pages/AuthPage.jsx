@@ -76,6 +76,7 @@ export default function AuthPage({ onSuccess }) {
   const [form, setForm] = useState({ username: '', email: '', password: '' });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [registered, setRegistered] = useState(false);
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -89,7 +90,7 @@ export default function AuthPage({ onSuccess }) {
     try {
       if (mode === 'register') {
         await register({ username: form.username, email: form.email, password: form.password });
-        setMode('login');
+        setRegistered(true);
       } else {
         const response = await login({ username: form.username, password: form.password });
         localStorage.setItem('token', response.data.access_token);
@@ -105,68 +106,85 @@ export default function AuthPage({ onSuccess }) {
   return (
     <div className="auth-wrapper">
       <div className="auth-card">
-        {/* <div className="auth-ball-container">
-          <FootballIcon />
-        </div> */}
 
         <h2 className="auth-title">
           <span className="brand-gradient">Prode Kapotes</span>
         </h2>
-        <p className="auth-subtitle">
-          {mode === 'login' ? 'Ingresá a tu cuenta' : 'Creá tu cuenta'}
-        </p>
 
-        <form onSubmit={submit}>
-          <label>Usuario</label>
-          <input
-            name="username"
-            value={form.username}
-            onChange={handleChange}
-            placeholder="Tu nombre de usuario"
-            required
-          />
+        {registered ? (
+          <>
+            <p style={{ fontSize: '2.5rem', margin: '12px 0', textAlign: 'center' }}>📧</p>
+            <p className="auth-subtitle" style={{ textAlign: 'center' }}>
+              ¡Registro exitoso! Te enviamos un email de verificación a <strong>{form.email}</strong>.
+              Revisá tu casilla (y la carpeta de spam) para activar tu cuenta.
+            </p>
+            <button
+              className="auth-btn"
+              style={{ marginTop: '16px' }}
+              onClick={() => { setRegistered(false); setMode('login'); setForm({ username: '', email: '', password: '' }); }}
+            >
+              Ir al login
+            </button>
+          </>
+        ) : (
+          <>
+            <p className="auth-subtitle">
+              {mode === 'login' ? 'Ingresá a tu cuenta' : 'Creá tu cuenta'}
+            </p>
 
-          {mode === 'register' && (
-            <>
-              <label>Email</label>
+            <form onSubmit={submit}>
+              <label>Usuario</label>
               <input
-                name="email"
-                type="email"
-                value={form.email}
+                name="username"
+                value={form.username}
                 onChange={handleChange}
-                placeholder="tu@email.com"
+                placeholder="Tu nombre de usuario"
                 required
               />
-            </>
-          )}
 
-          <label>Contraseña</label>
-          <input
-            name="password"
-            type="password"
-            value={form.password}
-            onChange={handleChange}
-            placeholder="••••••••"
-            required
-          />
+              {mode === 'register' && (
+                <>
+                  <label>Email</label>
+                  <input
+                    name="email"
+                    type="email"
+                    value={form.email}
+                    onChange={handleChange}
+                    placeholder="tu@email.com"
+                    required
+                  />
+                </>
+              )}
 
-          <button type="submit" className="auth-btn" disabled={loading}>
-            {loading
-              ? '⏳ Cargando...'
-              : mode === 'login'
-                ? '🚀 Ingresar'
-                : '✨ Registrarme'}
-          </button>
-        </form>
+              <label>Contraseña</label>
+              <input
+                name="password"
+                type="password"
+                value={form.password}
+                onChange={handleChange}
+                placeholder="••••••••"
+                required
+              />
 
-        {error && <div className="error">{error}</div>}
+              <button type="submit" className="auth-btn" disabled={loading}>
+                {loading
+                  ? '⏳ Cargando...'
+                  : mode === 'login'
+                    ? '🚀 Ingresar'
+                    : '✨ Registrarme'}
+              </button>
+            </form>
 
-        <div className="auth-toggle">
-          {mode === 'login' ? '¿No tenés cuenta?' : '¿Ya tenés cuenta?'}
-          <button onClick={() => setMode(mode === 'login' ? 'register' : 'login')}>
-            {mode === 'login' ? 'Registrarse' : 'Iniciar sesión'}
-          </button>
-        </div>
+            {error && <div className="error">{error}</div>}
+
+            <div className="auth-toggle">
+              {mode === 'login' ? '¿No tenés cuenta?' : '¿Ya tenés cuenta?'}
+              <button onClick={() => { setMode(mode === 'login' ? 'register' : 'login'); setError(''); }}>
+                {mode === 'login' ? 'Registrarse' : 'Iniciar sesión'}
+              </button>
+            </div>
+          </>
+        )}
       </div>
     </div>
   );
