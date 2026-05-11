@@ -14,6 +14,8 @@ class User(db.Model):
     profile_picture = db.Column(db.String(500), nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     profile_picture_id = db.Column(db.String(255), nullable=True)
+    is_verified = db.Column(db.Boolean, nullable=False, default=False)
+    verification_token = db.Column(db.String(64), nullable=True, unique=True)
 
     groups = db.relationship('Group', backref='owner', lazy=True)
     group_memberships = db.relationship('GroupMember', back_populates='user', lazy=True)
