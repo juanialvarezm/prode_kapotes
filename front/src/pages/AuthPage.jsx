@@ -1,5 +1,6 @@
-import { useState } from 'react';
-import { login, register } from '../api';
+import { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
+import { login, register, verifyEmail } from '../api';
 
 /* Inline SVG football — no external dependency needed */
 // function FootballIcon() {
@@ -72,11 +73,31 @@ import { login, register } from '../api';
 // }
 
 export default function AuthPage({ onSuccess }) {
+  const [searchParams] = useSearchParams();
   const [mode, setMode] = useState('login');
   const [form, setForm] = useState({ username: '', email: '', password: '' });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [registered, setRegistered] = useState(false);
+
+  // Auto-verify when arriving from email link (/auth?token=xxx)
+  useEffect(() => {
+    const token = searchParams.get('token');
+    if (!token) return;
+    setLoading(true);
+    verifyEmail(token)
+      .then((res) => {
+        const accessToken = res.data.access_token;
+        if (accessToken) {
+          localStorage.setItem('token', accessToken);
+          onSuccess?.();
+        }
+      })
+      .catch((err) => {
+        setError(err?.response?.data?.error || 'El link de verificación es inválido o ya fue utilizado.');
+      })
+      .finally(() => setLoading(false));
+  }, []);
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
