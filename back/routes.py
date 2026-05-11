@@ -150,18 +150,18 @@ def verify_email():
     frontend_url = os.getenv('FRONTEND_URL', 'http://localhost:5173')
     token = request.args.get('token')
     if not token:
-        return redirect(f"{frontend_url}/auth?verify_error=token_required")
+        return redirect(f"{frontend_url}/#/auth?verify_error=token_required")
 
     user = User.query.filter_by(verification_token=token).first()
     if not user:
-        return redirect(f"{frontend_url}/auth?verify_error=invalid_token")
+        return redirect(f"{frontend_url}/#/auth?verify_error=invalid_token")
 
     user.is_verified = True
     user.verification_token = None
     db.session.commit()
 
     access_token = create_access_token(identity=str(user.id))
-    return redirect(f"{frontend_url}/auth?access_token={access_token}")
+    return redirect(f"{frontend_url}/#/auth?access_token={access_token}")
 
 
 @bp.route('/login', methods=['POST'])
