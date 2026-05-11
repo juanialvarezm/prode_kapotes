@@ -1,6 +1,8 @@
 import os
 import uuid
+import secrets
 import requests
+import resend
 from datetime import datetime, timedelta
 
 from flask import Blueprint, jsonify, request, current_app
@@ -99,12 +101,61 @@ def register():
     if User.query.filter((User.username == username) | (User.email == email)).first():
         return jsonify({'error': 'username or email already exists'}), 409
 
-    user = User(username=username, email=email)
-    user.set_password(password) 
+    token = secrets.token_urlsafe(32)
+
+    user = User(username=username, email=email, is_verified=False, verification_token=token)
+    user.set_password(password)
     db.session.add(user)
     db.session.commit()
 
-    return jsonify({'message': 'User registered successfully'}), 201
+    # Send verification email via RESEND
+    try:
+        resend.api_key = os.getenv('RESEND_API_KEY')
+        frontend_url = os.getenv('FRONTEND_URL', 'http://localhost:5173')
+        verify_url = f"{frontend_url}/verify-email?token={token}"
+
+        resend.Emails.send({
+            "from": os.getenv('RESEND_FROM_EMAIL', 'Prode Kapotes <noreply@prodekapotes.com>'),
+            "to": [email],
+            "subject": "Verificá tu cuenta en Prode Kapotes",
+            "html": f"""
+                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                    <h2 style="color: #6c63ff;">¡Bienvenido a Prode Kapotes, {username}!</h2>
+                    <p>Gracias por registrarte. Para activar tu cuenta, hacé clic en el botón de abajo:</p>
+                    <a href="{verify_url}"
+                       style="display: inline-block; background: #6c63ff; color: white;
+                              padding: 12px 24px; border-radius: 6px; text-decoration: none;
+                              font-weight: bold; margin: 16px 0;">
+                        Verificar mi cuenta
+                    </a>
+                    <p style="color: #888; font-size: 13px;">
+                        Si no creaste esta cuenta, ignorá este mensaje.
+                    </p>
+                </div>
+            """,
+        })
+    except Exception as e:
+        # Don't fail registration if email sending fails — log and continue
+        current_app.logger.error(f"Error sending verification email to {email}: {e}")
+
+    return jsonify({'message': 'User registered. Please check your email to verify your account.'}), 201
+
+
+@bp.route('/verify-email', methods=['GET'])
+def verify_email():
+    token = request.args.get('token')
+    if not token:
+        return jsonify({'error': 'Token requerido'}), 400
+
+    user = User.query.filter_by(verification_token=token).first()
+    if not user:
+        return jsonify({'error': 'Token inválido o ya utilizado'}), 400
+
+    user.is_verified = True
+    user.verification_token = None
+    db.session.commit()
+
+    return jsonify({'message': 'Email verificado correctamente. Ya podés iniciar sesión.'}), 200
 
 
 @bp.route('/login', methods=['POST'])
@@ -119,6 +170,9 @@ def login():
     user = User.query.filter_by(username=username).first()
     if not user or not user.check_password(password):
         return jsonify({'error': 'Invalid credentials'}), 401
+
+    if not user.is_verified:
+        return jsonify({'error': 'Debés verificar tu email antes de iniciar sesión. Revisá tu casilla de correo.'}), 403
 
     access_token = create_access_token(identity=str(user.id))
     return jsonify({'access_token': access_token}), 200
