@@ -77,8 +77,9 @@ export default function AuthPage({ onSuccess }) {
   const [mode, setMode] = useState('login');
   const [form, setForm] = useState({ username: '', email: '', password: '' });
   const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(!!searchParams.get('token'));
   const [registered, setRegistered] = useState(false);
+  const [verified, setVerified] = useState(false);
 
   // Auto-verify when arriving from email link (/auth?token=xxx)
   useEffect(() => {
@@ -91,12 +92,18 @@ export default function AuthPage({ onSuccess }) {
         if (accessToken) {
           localStorage.setItem('token', accessToken);
           onSuccess?.();
+        } else {
+          // Verified but no token returned — ask user to log in
+          setError('');
+          setVerified(true);
+          setMode('login');
+          setLoading(false);
         }
       })
       .catch((err) => {
         setError(err?.response?.data?.error || 'El link de verificación es inválido o ya fue utilizado.');
-      })
-      .finally(() => setLoading(false));
+        setLoading(false);
+      });
   }, []);
 
   const handleChange = (e) => {
@@ -131,6 +138,12 @@ export default function AuthPage({ onSuccess }) {
         <h2 className="auth-title">
           <span className="brand-gradient">Prode Kapotes</span>
         </h2>
+
+        {verified && (
+          <p style={{ color: '#22c55e', textAlign: 'center', marginBottom: '8px', fontWeight: 600 }}>
+            ✅ ¡Email verificado! Ya podés iniciar sesión.
+          </p>
+        )}
 
         {registered ? (
           <>

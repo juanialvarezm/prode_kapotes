@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_URL = import.meta.env.VITE_API_URL || 'https://prodekapotes-production.up.railway.app/';
+const API_URL = (import.meta.env.VITE_API_URL || 'https://prodekapotes-production.up.railway.app').replace(/\/$/, '');
 
 function authHeaders() {
   const token = localStorage.getItem('token');
