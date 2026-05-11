@@ -112,7 +112,7 @@ def register():
     resend.api_key = os.getenv('RESEND_API_KEY')
     frontend_url = os.getenv('FRONTEND_URL', 'http://localhost:5173')
     from_email = os.getenv('RESEND_FROM_EMAIL', 'no-reply@send.prodekapotes.com')
-    verify_url = f"{frontend_url}/verify-email?token={token}"
+    verify_url = f"{frontend_url}/auth?token={token}"
 
     try:
         result = resend.Emails.send({
@@ -157,7 +157,8 @@ def verify_email():
     user.verification_token = None
     db.session.commit()
 
-    return jsonify({'message': 'Email verificado correctamente. Ya podés iniciar sesión.'}), 200
+    access_token = create_access_token(identity=str(user.id))
+    return jsonify({'message': 'Email verificado correctamente.', 'access_token': access_token}), 200
 
 
 @bp.route('/login', methods=['POST'])
