@@ -160,28 +160,6 @@ def verify_email():
     return jsonify({'message': 'Email verificado correctamente. Ya podés iniciar sesión.'}), 200
 
 
-@bp.route('/test-email', methods=['GET'])
-def test_email():
-    resend.api_key = os.getenv('RESEND_API_KEY')
-    from_email = os.getenv('RESEND_FROM_EMAIL', 'no-reply@send.prodekapotes.com')
-    to_email = request.args.get('to', 'juanialvarezm@gmail.com')
-    config_info = {
-        'RESEND_API_KEY_set': bool(resend.api_key),
-        'RESEND_FROM_EMAIL': from_email,
-        'FRONTEND_URL': os.getenv('FRONTEND_URL'),
-    }
-    try:
-        result = resend.Emails.send({
-            "from": f"Prode Kapotes <{from_email}>",
-            "to": [to_email],
-            "subject": "Test Railway",
-            "html": "<p>Test desde Railway</p>",
-        })
-        return jsonify({'ok': True, 'result': result, 'config': config_info}), 200
-    except Exception as e:
-        return jsonify({'ok': False, 'error': str(e), 'config': config_info}), 500
-
-
 @bp.route('/login', methods=['POST'])
 def login():
     data = request.json or {}
