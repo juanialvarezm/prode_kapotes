@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { login, register, verifyEmail } from '../api';
+import { login, register } from '../api';
 
 /* Inline SVG football — no external dependency needed */
 // function FootballIcon() {
@@ -77,33 +77,25 @@ export default function AuthPage({ onSuccess }) {
   const [mode, setMode] = useState('login');
   const [form, setForm] = useState({ username: '', email: '', password: '' });
   const [error, setError] = useState('');
-  const [loading, setLoading] = useState(!!searchParams.get('token'));
+  const [loading, setLoading] = useState(false);
   const [registered, setRegistered] = useState(false);
   const [verified, setVerified] = useState(false);
 
-  // Auto-verify when arriving from email link (/auth?token=xxx)
+  // Backend redirects here with ?access_token=JWT after verifying email
   useEffect(() => {
-    const token = searchParams.get('token');
-    if (!token) return;
-    setLoading(true);
-    verifyEmail(token)
-      .then((res) => {
-        const accessToken = res.data.access_token;
-        if (accessToken) {
-          localStorage.setItem('token', accessToken);
-          onSuccess?.();
-        } else {
-          // Verified but no token returned — ask user to log in
-          setError('');
-          setVerified(true);
-          setMode('login');
-          setLoading(false);
-        }
-      })
-      .catch((err) => {
-        setError(err?.response?.data?.error || 'El link de verificación es inválido o ya fue utilizado.');
-        setLoading(false);
-      });
+    const accessToken = searchParams.get('access_token');
+    const verifyError = searchParams.get('verify_error');
+
+    if (accessToken) {
+      localStorage.setItem('token', accessToken);
+      onSuccess?.();
+    } else if (verifyError) {
+      setError(
+        verifyError === 'invalid_token'
+          ? 'El link de verificación es inválido o ya fue utilizado.'
+          : 'Error en la verificación del email.'
+      );
+    }
   }, []);
 
   const handleChange = (e) => {

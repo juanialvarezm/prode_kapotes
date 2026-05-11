@@ -5,7 +5,7 @@ import requests
 import resend
 from datetime import datetime, timedelta
 
-from flask import Blueprint, jsonify, request, current_app
+from flask import Blueprint, jsonify, request, current_app, redirect
 from flask_jwt_extended import (
     create_access_token,
     get_jwt_identity,
@@ -112,7 +112,9 @@ def register():
     resend.api_key = os.getenv('RESEND_API_KEY')
     frontend_url = os.getenv('FRONTEND_URL', 'http://localhost:5173')
     from_email = os.getenv('RESEND_FROM_EMAIL', 'no-reply@send.prodekapotes.com')
-    verify_url = f"{frontend_url}/auth?token={token}"
+    # Link goes directly to the backend — backend verifies and redirects to frontend
+    backend_url = request.url_root.rstrip('/')
+    verify_url = f"{backend_url}/verify-email?token={token}"
 
     try:
         result = resend.Emails.send({
@@ -145,20 +147,21 @@ def register():
 
 @bp.route('/verify-email', methods=['GET'])
 def verify_email():
+    frontend_url = os.getenv('FRONTEND_URL', 'http://localhost:5173')
     token = request.args.get('token')
     if not token:
-        return jsonify({'error': 'Token requerido'}), 400
+        return redirect(f"{frontend_url}/auth?verify_error=token_required")
 
     user = User.query.filter_by(verification_token=token).first()
     if not user:
-        return jsonify({'error': 'Token inválido o ya utilizado'}), 400
+        return redirect(f"{frontend_url}/auth?verify_error=invalid_token")
 
     user.is_verified = True
     user.verification_token = None
     db.session.commit()
 
     access_token = create_access_token(identity=str(user.id))
-    return jsonify({'message': 'Email verificado correctamente.', 'access_token': access_token}), 200
+    return redirect(f"{frontend_url}/auth?access_token={access_token}")
 
 
 @bp.route('/login', methods=['POST'])
