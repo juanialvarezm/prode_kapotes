@@ -158,3 +158,50 @@ export async function saveWordleResult(won, attempts, playerName) {
 export async function getWordleHistory() {
   return axios.get(`${API_URL}/wordle/history`, { headers: authHeaders() });
 }
+
+// --- Leagues ---
+
+export async function createLeague(payload) {
+  return axios.post(`${API_URL}/leagues`, payload, { headers: authHeaders() });
+}
+
+export async function getMyLeagues() {
+  return axios.get(`${API_URL}/leagues`, { headers: authHeaders() });
+}
+
+export async function getLeagueById(leagueId) {
+  return axios.get(`${API_URL}/leagues/${leagueId}`, { headers: authHeaders() });
+}
+
+export async function deleteLeague(leagueId) {
+  return axios.delete(`${API_URL}/leagues/${leagueId}`, { headers: authHeaders() });
+}
+
+export async function createLeagueTeam(leagueId, payload) {
+  return axios.post(`${API_URL}/leagues/${leagueId}/teams`, payload, { headers: authHeaders() });
+}
+
+export async function deleteLeagueTeam(leagueId, teamId) {
+  return axios.delete(`${API_URL}/leagues/${leagueId}/teams/${teamId}`, { headers: authHeaders() });
+}
+
+export async function createLeagueMatch(leagueId, payload) {
+  return axios.post(`${API_URL}/leagues/${leagueId}/matches`, payload, { headers: authHeaders() });
+}
+
+export async function updateLeagueMatch(leagueId, matchId, payload) {
+  return axios.patch(`${API_URL}/leagues/${leagueId}/matches/${matchId}`, payload, { headers: authHeaders() });
+}
+
+export async function deleteLeagueMatch(leagueId, matchId) {
+  return axios.delete(`${API_URL}/leagues/${leagueId}/matches/${matchId}`, { headers: authHeaders() });
+}
+
+export async function addLeagueMember(leagueId, username) {
+  return axios.post(`${API_URL}/leagues/${leagueId}/members`, { username }, { headers: authHeaders() });
+}
+
+export async function removeLeagueMember(leagueId, userId) {
+  return axios.delete(`${API_URL}/leagues/${leagueId}/members/${userId}`, { headers: authHeaders() });
+}
+
