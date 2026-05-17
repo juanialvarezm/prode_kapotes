@@ -42,12 +42,13 @@ export default function Header({ hasGroups, pendingRequestsCount = 0 }) {
               >
                 🔮 Predicciones
               </button>
-              {/* <button
-                className={`nav-link ${isActive('/predictions') ? 'active' : ''}`}
-                onClick={() => navigate('/predictions')}
+
+              <button
+                className={`nav-link ${isActive('/leagues') ? 'active' : ''}`}
+                onClick={() => navigate('/leagues')}
               >
-                🔮 Wordle
-              </button> */}
+                🏟️ Ligas
+              </button>
 
             </>
           )}

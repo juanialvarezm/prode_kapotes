@@ -125,3 +125,80 @@ class WordleHistory(db.Model):
     __table_args__ = (
         db.UniqueConstraint('user_id', 'date', name='unique_user_date'),
     )
+
+
+# ============================================================
+#  LEAGUES FEATURE
+# ============================================================
+
+class League(db.Model):
+    __tablename__ = 'leagues'
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(120), nullable=False)
+    description = db.Column(db.String(255), nullable=True)
+    owner_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    # Relationships
+    owner = db.relationship('User', backref='owned_leagues', lazy=True)
+    teams = db.relationship('LeagueTeam', back_populates='league', lazy=True,
+                            cascade='all, delete-orphan')
+    matches = db.relationship('LeagueMatch', back_populates='league', lazy=True,
+                              cascade='all, delete-orphan')
+    members = db.relationship('LeagueMember', back_populates='league', lazy=True,
+                              cascade='all, delete-orphan')
+
+
+class LeagueTeam(db.Model):
+    __tablename__ = 'league_teams'
+    id = db.Column(db.Integer, primary_key=True)
+    league_id = db.Column(db.Integer, db.ForeignKey('leagues.id'), nullable=False)
+    name = db.Column(db.String(120), nullable=False)
+    created_by = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    league = db.relationship('League', back_populates='teams')
+    creator = db.relationship('User', backref='league_teams_created', lazy=True)
+
+    # Matches where this team is home or away
+    home_matches = db.relationship('LeagueMatch',
+                                   foreign_keys='LeagueMatch.home_team_id',
+                                   back_populates='home_team', lazy=True)
+    away_matches = db.relationship('LeagueMatch',
+                                   foreign_keys='LeagueMatch.away_team_id',
+                                   back_populates='away_team', lazy=True)
+
+
+class LeagueMatch(db.Model):
+    __tablename__ = 'league_matches'
+    id = db.Column(db.Integer, primary_key=True)
+    league_id = db.Column(db.Integer, db.ForeignKey('leagues.id'), nullable=False)
+    home_team_id = db.Column(db.Integer, db.ForeignKey('league_teams.id'), nullable=False)
+    away_team_id = db.Column(db.Integer, db.ForeignKey('league_teams.id'), nullable=False)
+    match_date = db.Column(db.DateTime, nullable=True)
+    home_score = db.Column(db.Integer, nullable=True)
+    away_score = db.Column(db.Integer, nullable=True)
+    # Status: SCHEDULED | FINISHED
+    status = db.Column(db.String(32), nullable=False, default='SCHEDULED')
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    league = db.relationship('League', back_populates='matches')
+    home_team = db.relationship('LeagueTeam', foreign_keys=[home_team_id],
+                                back_populates='home_matches')
+    away_team = db.relationship('LeagueTeam', foreign_keys=[away_team_id],
+                                back_populates='away_matches')
+
+
+class LeagueMember(db.Model):
+    __tablename__ = 'league_members'
+    id = db.Column(db.Integer, primary_key=True)
+    league_id = db.Column(db.Integer, db.ForeignKey('leagues.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    joined_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    league = db.relationship('League', back_populates='members')
+    user = db.relationship('User', backref='league_memberships', lazy=True)
+
+    __table_args__ = (
+        db.UniqueConstraint('league_id', 'user_id', name='unique_league_member'),
+    )

@@ -4,6 +4,7 @@ const navItems = [
   { icon: '🏠', label: 'Mis Grupos', path: '/groups', desc: 'Ver tus grupos' },
   { icon: '⚽', label: 'Partidos', path: '/matches', desc: 'Partidos del Mundial' },
   { icon: '🔮', label: 'Predicciones', path: '/predictions', desc: 'Tus pronósticos' },
+  { icon: '🏟️', label: 'Ligas', path: '/leagues', desc: 'Tus ligas privadas' },
   { icon: '🎮', label: 'FutWordle', path: '/futwordle', desc: '¿Quién es este jugador?' },
   { icon: '⚡', label: 'GolTexto', path: '/goltexto', desc: 'Adiviná por club y nac.' },
   { icon: '👕', label: 'FutLegacy', path: '/futlegacy', desc: 'Adiviná por camisetas' },
@@ -125,6 +126,15 @@ export default function HomePage() {
             <div className="home-info-card-body">
               <h3>FutLegacy</h3>
               <p>Adiviná el jugador por sus camisetas — ¿conocés su carrera?</p>
+            </div>
+            <span className="home-info-card-arrow">→</span>
+          </div>
+
+          <div className="home-info-card" onClick={() => navigate('/leagues')} role="button" tabIndex={0}>
+            <div className="home-info-card-icon">🏟️</div>
+            <div className="home-info-card-body">
+              <h3>Mis Ligas</h3>
+              <p>Creá tu propia liga, sumá equipos y cargá los resultados.</p>
             </div>
             <span className="home-info-card-arrow">→</span>
           </div>
