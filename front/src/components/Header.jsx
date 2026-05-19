@@ -15,7 +15,7 @@ export default function Header({ hasGroups, pendingRequestsCount = 0 }) {
   return (
     <header className="site-header">
       <div className="header-inner">
-        <a className="header-logo" href="/" onClick={(e) => { e.preventDefault(); navigate(hasGroups ? '/' : '/join-group'); }}>
+        <a className="header-logo" href="/" onClick={(e) => { e.preventDefault(); navigate('/'); }}>
           <span className="logo-icon">⚽</span>
           <span>Prode <span className="logo-highlight">Kapotes</span></span>
         </a>
