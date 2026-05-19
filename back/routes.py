@@ -307,7 +307,13 @@ def create_group():
 
     current_user_id = get_jwt_identity()
 
+    # Check if user is already in a group
+    existing_membership = GroupMember.query.filter_by(user_id=current_user_id).first()
+    if existing_membership:
+        return jsonify({'error': 'Ya pertenecés a un grupo. Para crear uno nuevo, primero tenés que salir del grupo actual desde "Mis Grupos".'}), 409
+
     # Handle avatar upload
+
     avatar_url = None
     if 'avatar' in request.files:
         file = request.files['avatar']
