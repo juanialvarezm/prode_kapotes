@@ -43,13 +43,6 @@ export default function Header({ hasGroups, pendingRequestsCount = 0 }) {
                 🔮 Predicciones
               </button>
 
-              <button
-                className={`nav-link ${isActive('/leagues') ? 'active' : ''}`}
-                onClick={() => navigate('/leagues')}
-              >
-                🏟️ Ligas
-              </button>
-
             </>
           )}
 

@@ -129,15 +129,6 @@ export default function HomePage() {
             <span className="home-info-card-arrow">→</span>
           </div>
 
-          <div className="home-info-card" onClick={() => navigate('/leagues')} role="button" tabIndex={0}>
-            <div className="home-info-card-icon">🏟️</div>
-            <div className="home-info-card-body">
-              <h3>Mis Ligas</h3>
-              <p>Creá tu propia liga, sumá equipos y cargá los resultados.</p>
-            </div>
-            <span className="home-info-card-arrow">→</span>
-          </div>
-
           <div className="home-info-card" onClick={() => navigate('/groups')} role="button" tabIndex={0}>
             <div className="home-info-card-icon">🏆</div>
             <div className="home-info-card-body">
