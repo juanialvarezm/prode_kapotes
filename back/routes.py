@@ -1,4 +1,5 @@
 import os
+import random
 import uuid
 import secrets
 import requests
@@ -68,7 +69,7 @@ def validate_image(file):
         except Exception as e:
             return False, 'El archivo de imagen está corrupto o es inválido.'
         
-        # TODO: For production, consider integrating content moderation API:
+        # TODO: For production, integrating content moderation API:
         # - AWS Rekognition (detect nudity, violence, etc.)
         # - Google Cloud Vision API (SafeSearch detection)
         # - Azure Content Moderator
@@ -483,11 +484,20 @@ def leave_group(group_id):
     if not membership:
         return jsonify({'error': 'You are not a member of this group'}), 400
 
-    # Owner logic: can only leave if they are the last member
+    members = GroupMember.query.filter_by(group_id=group.id).all()
+    member_count = len(members)
+
+    # If last member leaves, delete the group entirely
+    if member_count == 1:
+        db.session.delete(group)
+        db.session.commit()
+        return jsonify({'message': f'Left and deleted group {group.name} (no members remaining)'}), 200
+
+    # If the owner is leaving, transfer ownership to a random other member
     if str(group.owner_id) == str(current_user_id):
-        member_count = GroupMember.query.filter_by(group_id=group.id).count()
-        if member_count > 1:
-            return jsonify({'error': 'El owner no puede abandonar el grupo mientras haya otros miembros. Eliminá a los demás primero.'}), 403
+        other_members = [m for m in members if str(m.user_id) != str(current_user_id)]
+        new_owner_membership = random.choice(other_members)
+        group.owner_id = new_owner_membership.user_id
 
     db.session.delete(membership)
     db.session.commit()
@@ -1511,4 +1521,4 @@ def delete_league(league_id):
     db.session.delete(league)
     db.session.commit()
 
-    return jsonify({'message': 'Liga eliminada'}), 200
+    return jsonify({'message': 'Liga eliminada'}), 200
