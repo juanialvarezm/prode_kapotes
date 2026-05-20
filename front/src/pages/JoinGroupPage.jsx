@@ -17,6 +17,7 @@ export default function JoinGroupPage({ onGroupChange }) {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(false);
+  const [alreadyInGroup, setAlreadyInGroup] = useState(false);
 
   const handleAvatarSelect = (e) => {
     const file = e.target.files?.[0];
@@ -30,7 +31,7 @@ export default function JoinGroupPage({ onGroupChange }) {
 
   const handleCreate = async (e) => {
     e.preventDefault();
-    setError(''); setSuccess('');
+    setError(''); setSuccess(''); setAlreadyInGroup(false);
     if (!newGroup.name) return setError('Nombre del grupo requerido');
     setLoading(true);
     try {
@@ -51,8 +52,11 @@ export default function JoinGroupPage({ onGroupChange }) {
       onGroupChange?.();
       navigate('/groups');
     } catch (err) {
-      console.log('Error creating group:', err.response || err);
-      setError(err?.response?.data?.error || err.message || 'No se pudo crear el grupo. Asegúrate de que el backend esté corriendo en http://localhost:5000');
+      if (err?.response?.status === 409 && err?.response?.data?.error?.includes('Ya pertenecés')) {
+        setAlreadyInGroup(true);
+      } else {
+        setError(err?.response?.data?.error || err.message || 'No se pudo crear el grupo.');
+      }
     } finally {
       setLoading(false);
     }
@@ -88,6 +92,23 @@ export default function JoinGroupPage({ onGroupChange }) {
 
       {error && <div className="error">{error}</div>}
       {success && <div className="success">{success}</div>}
+
+      {alreadyInGroup && (
+        <div className="already-in-group-banner">
+          <span className="already-in-group-icon">🚫</span>
+          <div className="already-in-group-body">
+            <strong>Ya pertenecés a un grupo</strong>
+            <p>Para crear uno nuevo, primero tenés que salir del grupo actual.</p>
+          </div>
+          <button
+            className="btn-primary"
+            style={{ width: 'auto', padding: '10px 20px', whiteSpace: 'nowrap' }}
+            onClick={() => navigate('/groups')}
+          >
+            🏠 Ir a Mis Grupos
+          </button>
+        </div>
+      )}
 
       <div className="groups-actions">
         {/* Create Group */}
