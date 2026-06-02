@@ -17,6 +17,7 @@ import Footer from './components/Footer';
 import VerifyEmailPage from './pages/VerifyEmailPage';
 import { getMyGroups, getMyPendingRequests } from './api';
 import Wordle from './pages/Wordle';
+import LeaguePage from './pages/LeaguePage';
 
 // Protected Route Component - redirects to /auth if no token
 function ProtectedRoute({ children }) {
@@ -115,6 +116,7 @@ function App() {
               <Route path="/futwordle" element={<ProtectedRoute><Wordle /></ProtectedRoute>} />
               <Route path="/goltexto" element={<ProtectedRoute><GolTexto /></ProtectedRoute>} />
               <Route path="/futlegacy" element={<ProtectedRoute><FutLegacy /></ProtectedRoute>} />
+              <Route path="/leagues" element={<ProtectedRoute><LeaguePage /></ProtectedRoute>} />
               {/* Fallback */}
               <Route path="*" element={<Navigate to="/" />} />
             </Routes>
