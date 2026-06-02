@@ -170,13 +170,14 @@ export default function MatchDetail() {
             <span className="info-text">
               {matchDate.toLocaleDateString('es-AR', {
                 weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
+                timeZone: 'America/Argentina/Buenos_Aires',
               })}
             </span>
           </div>
           <div className="match-info-item">
             <span className="info-icon">🕐</span>
             <span className="info-text">
-              {matchDate.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' })}
+              {matchDate.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit', timeZone: 'America/Argentina/Buenos_Aires' })}
             </span>
           </div>
         </div>

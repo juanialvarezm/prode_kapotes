@@ -106,9 +106,9 @@ export default function MatchesPage() {
       >
         <div className="match-card-header">
           <span className="match-card-date">
-            {matchDate.toLocaleDateString('es-AR', { day: 'numeric', month: 'short' })}
+            {matchDate.toLocaleDateString('es-AR', { day: 'numeric', month: 'short', timeZone: 'America/Argentina/Buenos_Aires' })}
             {' · '}
-            {matchDate.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' })}
+            {matchDate.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit', timeZone: 'America/Argentina/Buenos_Aires' })}
           </span>
           <span className={`match-card-status ${isLive ? 'live' : ''}`}>
             {statusInfo.emoji} {statusInfo.label}
