@@ -24,6 +24,16 @@ function getFlag(team) {
   return FLAG_MAP[team] || '🏳️';
 }
 
+function getUTCOffsetLabel() {
+  const offset = -new Date().getTimezoneOffset();
+  const hours = Math.floor(Math.abs(offset) / 60);
+  const mins = Math.abs(offset) % 60;
+  const sign = offset >= 0 ? '+' : '-';
+  return mins > 0
+    ? `UTC${sign}${hours}:${String(mins).padStart(2, '0')}`
+    : `UTC${sign}${hours}`;
+}
+
 const STATUS_LABELS = {
   SCHEDULED: { label: 'Programado', className: 'status-scheduled' },
   TIMED: { label: 'Programado', className: 'status-scheduled' },
@@ -178,6 +188,7 @@ export default function MatchDetail() {
             <span className="info-icon">🕐</span>
             <span className="info-text">
               {matchDate.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit', timeZone: 'America/Argentina/Buenos_Aires' })}
+              {' '}<span style={{ opacity: 0.6, fontSize: '0.85em' }}>({getUTCOffsetLabel()})</span>
             </span>
           </div>
         </div>

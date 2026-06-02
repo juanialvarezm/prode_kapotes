@@ -2,6 +2,16 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getMatches, fetchApiMatches, getGroupById } from '../api';
 
+function getUTCOffsetLabel() {
+  const offset = -new Date().getTimezoneOffset();
+  const hours = Math.floor(Math.abs(offset) / 60);
+  const mins = Math.abs(offset) % 60;
+  const sign = offset >= 0 ? '+' : '-';
+  return mins > 0
+    ? `UTC${sign}${hours}:${String(mins).padStart(2, '0')}`
+    : `UTC${sign}${hours}`;
+}
+
 const STATUS_LABELS = {
   SCHEDULED: { label: 'Programado', emoji: '📅' },
   TIMED: { label: 'Programado', emoji: '📅' },
@@ -109,6 +119,7 @@ export default function MatchesPage() {
             {matchDate.toLocaleDateString('es-AR', { day: 'numeric', month: 'short', timeZone: 'America/Argentina/Buenos_Aires' })}
             {' · '}
             {matchDate.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit', timeZone: 'America/Argentina/Buenos_Aires' })}
+            {' '}<span style={{ opacity: 0.6, fontSize: '0.85em' }}>({getUTCOffsetLabel()})</span>
           </span>
           <span className={`match-card-status ${isLive ? 'live' : ''}`}>
             {statusInfo.emoji} {statusInfo.label}
