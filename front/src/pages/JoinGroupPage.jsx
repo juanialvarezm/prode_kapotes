@@ -1,9 +1,11 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { createGroup, joinGroup } from '../api';
 
 export default function JoinGroupPage({ onGroupChange }) {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const groupIdParam = searchParams.get('groupId');
 
   // Create group state
   const [newGroup, setNewGroup] = useState({ name: '', description: '', prize_pool: '' });
@@ -12,6 +14,12 @@ export default function JoinGroupPage({ onGroupChange }) {
 
   // Join group state
   const [joinId, setJoinId] = useState('');
+
+  useEffect(() => {
+    if (groupIdParam) {
+      setJoinId(groupIdParam);
+    }
+  }, [groupIdParam]);
 
   // Feedback
   const [error, setError] = useState('');

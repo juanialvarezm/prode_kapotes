@@ -54,6 +54,10 @@ export async function joinGroup(groupId) {
   return axios.post(`${API_URL}/groups/${groupId}/join`, {}, { headers: authHeaders() });
 }
 
+export async function getGroupInviteLink(groupId) {
+  return axios.post(`${API_URL}/groups/${groupId}/invitacion`, {}, { headers: authHeaders() });
+}
+
 export async function getMatches(page = 1, perPage = 10) {
   return axios.get(`${API_URL}/matches`, { params: { page, per_page: perPage } });
 }

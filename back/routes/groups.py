@@ -501,3 +501,27 @@ def my_pending_requests():
         })
 
     return jsonify({'requests': result, 'total': len(result)}), 200
+
+
+@bp.route("/groups/<int:group_id>/invitacion", methods=["POST"])
+@jwt_required()
+def invite_wpp(group_id):
+    import urllib.parse
+
+    current_user_id = get_jwt_identity()
+    group = Group.query.get_or_404(group_id)
+    
+    # Check if user is a member of the group
+    membership = GroupMember.query.filter_by(group_id=group.id, user_id=current_user_id).first()
+    if not membership:
+        return jsonify({'error': 'No pertenecés a este grupo para poder invitar.'}), 403
+
+    frontend_url = os.getenv('FRONTEND_URL', 'http://localhost:5173')
+    invite_link = f"{frontend_url}/#/join-group?groupId={group.id}"
+    
+    message = f"¡Te invito a unirte a mi grupo '{group.name}' en Prode Kapotes! Entrá a este link para unirte: {invite_link}"
+    encoded_message = urllib.parse.quote(message)
+    
+    whatsapp_url = f"https://api.whatsapp.com/send?text={encoded_message}"
+    
+    return jsonify({'whatsapp_url': whatsapp_url}), 200
