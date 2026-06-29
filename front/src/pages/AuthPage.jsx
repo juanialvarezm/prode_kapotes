@@ -128,8 +128,10 @@ export default function AuthPage({ onSuccess }) {
       <div className="auth-card">
 
         <h2 className="auth-title">
-          <span className="brand-gradient">Prode Kapotes</span>
-          <span className="brand-gradient">Creá un grupo en menos de un minuto.</span>
+          <span className="brand-gradient" style={{ display: 'block' }}>Prode Kapotes</span>
+          <span style={{ display: 'block', fontSize: '0.95rem', color: 'var(--text-secondary)', fontWeight: '400', marginTop: '6px', letterSpacing: 'normal' }}>
+            Creá un grupo en menos de un minuto.
+          </span>
         </h2>
 
         {verified && (
