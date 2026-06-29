@@ -66,10 +66,9 @@ export default function HomePage() {
 
             <p className="home-hero-subtitle">
               El{' '}
-              <span className="home-hero-brand">Prode Kapotes</span>{' '}
-              del Mundial 2026 ya está en marcha.
+              <span className="home-hero-brand"></span>{' '}
+              El prode más fácil para jugar con tus amigos.
               <br />
-              Predecí los resultados, sumá puntos y demostrá quién sabe más de fútbol.
             </p>
 
             <div className="home-hero-actions">

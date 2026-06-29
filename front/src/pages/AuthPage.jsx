@@ -129,6 +129,7 @@ export default function AuthPage({ onSuccess }) {
 
         <h2 className="auth-title">
           <span className="brand-gradient">Prode Kapotes</span>
+          <span className="brand-gradient">Creá un grupo en menos de un minuto.</span>
         </h2>
 
         {verified && (
