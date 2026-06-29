@@ -1,7 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 
 const navItems = [
-  { icon: '🏠', label: 'Mis Grupos', path: '/groups', desc: 'Ver tus grupos' },
   { icon: '⚽', label: 'Partidos', path: '/matches', desc: 'Partidos del Mundial' },
   { icon: '🔮', label: 'Predicciones', path: '/predictions', desc: 'Tus pronósticos' },
   { icon: '', label: 'FutWordle', path: '/futwordle', desc: '¿Quién es este jugador?' },
@@ -100,37 +99,10 @@ export default function HomePage() {
             <span className="home-info-card-arrow">→</span>
           </div>
 
-          <div className="home-info-card" onClick={() => navigate('/predictions')} role="button" tabIndex={0}>
-            <div className="home-info-card-icon">🔮</div>
-            <div className="home-info-card-body">
-              <h3>Tus Predicciones</h3>
-              <p>Revisá tus pronósticos y cuántos puntos llevas.</p>
-            </div>
-            <span className="home-info-card-arrow">→</span>
-          </div>
-
-          <div className="home-info-card" onClick={() => navigate('/goltexto')} role="button" tabIndex={0}>
-            <div className="home-info-card-icon">⚡</div>
-            <div className="home-info-card-body">
-              <h3>GolTexto</h3>
-              <p>Adiviná el jugador misterioso por club y nacionalidad.</p>
-            </div>
-            <span className="home-info-card-arrow">→</span>
-          </div>
-
-          <div className="home-info-card" onClick={() => navigate('/futlegacy')} role="button" tabIndex={0}>
-            <div className="home-info-card-icon">👕</div>
-            <div className="home-info-card-body">
-              <h3>FutLegacy</h3>
-              <p>Adiviná el jugador por sus camisetas — ¿conocés su carrera?</p>
-            </div>
-            <span className="home-info-card-arrow">→</span>
-          </div>
-
           <div className="home-info-card" onClick={() => navigate('/groups')} role="button" tabIndex={0}>
             <div className="home-info-card-icon">🏆</div>
             <div className="home-info-card-body">
-              <h3>Mis Grupos</h3>
+              <h3>Grupo</h3>
               <p>Gestioná tus grupos y competí con amigos.</p>
             </div>
             <span className="home-info-card-arrow">→</span>

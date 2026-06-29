@@ -29,20 +29,6 @@ export default function Header({ hasGroups, pendingRequestsCount = 0 }) {
               >
                 🏠 Grupos
               </button>
-              <button
-                className={`nav-link ${isActive('/matches') ? 'active' : ''}`}
-                onClick={() => navigate('/matches')}
-              >
-                ⚽ Partidos
-              </button>
-
-              <button
-                className={`nav-link ${isActive('/predictions') ? 'active' : ''}`}
-                onClick={() => navigate('/predictions')}
-              >
-                🔮 Predicciones
-              </button>
-
             </>
           )}
 
