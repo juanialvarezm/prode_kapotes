@@ -13,9 +13,10 @@ from .helpers import allowed_file, validate_image
 @bp.route('/groups', methods=['POST'])
 @jwt_required()
 def create_group():
-    name = request.form.get('name') or (request.json or {}).get('name')
-    description = request.form.get('description', '') or (request.json or {}).get('description', '')
-    prize_pool_raw = request.form.get('prize_pool') or (request.json or {}).get('prize_pool', 0)
+    json_data = request.get_json(silent=True) or {}
+    name = request.form.get('name') or json_data.get('name')
+    description = request.form.get('description', '') or json_data.get('description', '')
+    prize_pool_raw = request.form.get('prize_pool') or json_data.get('prize_pool', 0)
     try:
         prize_pool = int(prize_pool_raw)
     except (TypeError, ValueError):
