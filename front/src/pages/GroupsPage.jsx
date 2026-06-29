@@ -12,6 +12,7 @@ import {
   updateGroupPrizePool,
   getMe,
   getAvatarUrl,
+  getGroupInviteLink,
 } from '../api';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
@@ -270,6 +271,36 @@ export default function GroupsPage() {
               {selected.description && <p>{selected.description}</p>}
               <span className="group-id-badge">ID: {selected.id}</span>
               {selected.is_owner && <span className="owner-badge">👑 Admin</span>}
+              <div className="group-invite-section" style={{ marginTop: 12, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                <button
+                  className="btn-secondary"
+                  style={{ fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: 6, width: 'auto', padding: '6px 12px' }}
+                  onClick={async () => {
+                    try {
+                      const res = await getGroupInviteLink(selected.id);
+                      const url = res.data.whatsapp_url;
+                      window.open(url, '_blank');
+                    } catch (err) {
+                      alert('No se pudo generar el enlace de WhatsApp.');
+                    }
+                  }}
+                >
+                  <span>💬 Invitar por WhatsApp</span>
+                </button>
+                <button
+                  className="btn-secondary"
+                  style={{ fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: 6, width: 'auto', padding: '6px 12px' }}
+                  onClick={() => {
+                    const frontendUrl = window.location.origin + window.location.pathname;
+                    const inviteLink = `${frontendUrl}#/join-group?groupId=${selected.id}`;
+                    navigator.clipboard.writeText(inviteLink);
+                    setSuccess('📋 ¡Enlace de invitación copiado al portapapeles!');
+                    setTimeout(() => setSuccess(''), 3000);
+                  }}
+                >
+                  <span>🔗 Copiar enlace</span>
+                </button>
+              </div>
             </div>
           </div>
 
