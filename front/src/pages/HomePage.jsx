@@ -65,7 +65,6 @@ export default function HomePage() {
             </h1>
 
             <p className="home-hero-subtitle">
-              El{' '}
               <span className="home-hero-brand"></span>{' '}
               El prode más fácil para jugar con tus amigos.
               <br />
