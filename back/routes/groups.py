@@ -110,18 +110,16 @@ def join_group(group_id):
     if GroupMember.query.filter_by(group_id=group.id, user_id=current_user_id).first():
         return jsonify({'message': 'Already member'}), 200
 
-    # Check for existing pending request
-    existing = JoinRequest.query.filter_by(
-        group_id=group.id, user_id=current_user_id, status='pending'
-    ).first()
-    if existing:
-        return jsonify({'message': 'Join request already pending'}), 200
+    # Direct join: create membership
+    member = GroupMember(group_id=group.id, user_id=current_user_id)
+    db.session.add(member)
 
-    join_req = JoinRequest(group_id=group.id, user_id=current_user_id, status='pending')
-    db.session.add(join_req)
+    # Clean up any existing join requests (pending or rejected)
+    JoinRequest.query.filter_by(group_id=group.id, user_id=current_user_id).delete()
+
     db.session.commit()
 
-    return jsonify({'message': 'Join request sent. Waiting for admin approval.'}), 200
+    return jsonify({'message': f'Successfully joined group {group.name}'}), 200
 
 
 @bp.route('/groups/<int:group_id>/requests', methods=['GET'])
@@ -517,7 +515,7 @@ def invite_wpp(group_id):
     if not membership:
         return jsonify({'error': 'No pertenecés a este grupo para poder invitar.'}), 403
 
-    frontend_url = os.getenv('FRONTEND_URL', 'http://localhost:5173')
+    frontend_url = os.getenv('FRONTEND_URL', 'http://localhost:5173').rstrip('/')
     invite_link = f"{frontend_url}/#/join-group?groupId={group.id}"
     
     message = f"¡Te invito a unirte a mi grupo '{group.name}' en Prode Kapotes! Entrá a este link para unirte: {invite_link}"

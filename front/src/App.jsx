@@ -83,7 +83,14 @@ function App() {
   if (location.pathname === '/auth' || location.pathname === '/verify-email') {
     return (
       <Routes>
-        <Route path="/auth" element={<AuthPage onSuccess={() => { navigate('/'); window.location.reload(); }} />} />
+        <Route path="/auth" element={
+          <AuthPage onSuccess={() => {
+            const from = location.state?.from;
+            const destination = from ? (from.pathname + from.search + (from.hash || '')) : '/';
+            navigate(destination);
+            window.location.reload();
+          }} />
+        } />
         <Route path="/verify-email" element={<VerifyEmailPage />} />
       </Routes>
     );

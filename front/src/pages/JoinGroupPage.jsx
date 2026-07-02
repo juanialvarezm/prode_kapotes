@@ -14,18 +14,42 @@ export default function JoinGroupPage({ onGroupChange }) {
 
   // Join group state
   const [joinId, setJoinId] = useState('');
-
-  useEffect(() => {
-    if (groupIdParam) {
-      setJoinId(groupIdParam);
-    }
-  }, [groupIdParam]);
+  const [autoJoining, setAutoJoining] = useState(false);
 
   // Feedback
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(false);
   const [alreadyInGroup, setAlreadyInGroup] = useState(false);
+
+  useEffect(() => {
+    if (groupIdParam) {
+      setJoinId(groupIdParam);
+      
+      const performAutoJoin = async () => {
+        setAutoJoining(true);
+        setError('');
+        try {
+          const res = await joinGroup(groupIdParam);
+          // Set joined group as selected group by default
+          localStorage.setItem('groupId', String(groupIdParam));
+          // Refresh groups in App
+          onGroupChange?.();
+          
+          const isAlreadyMember = res.data?.message === 'Already member';
+          const msg = isAlreadyMember ? '✅ Ya sos miembro de este grupo.' : '✅ Te uniste al grupo exitosamente.';
+          
+          // Navigate to groups page with success message
+          navigate('/groups', { state: { success: msg } });
+        } catch (err) {
+          setError(err?.response?.data?.error || 'No se pudo unir al grupo automáticamente.');
+          setAutoJoining(false);
+        }
+      };
+      
+      performAutoJoin();
+    }
+  }, [groupIdParam, navigate, onGroupChange]);
 
   const handleAvatarSelect = (e) => {
     const file = e.target.files?.[0];
@@ -92,6 +116,18 @@ export default function JoinGroupPage({ onGroupChange }) {
       setLoading(false);
     }
   };
+
+  if (autoJoining) {
+    return (
+      <div className="card empty-state" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '300px', gap: '16px' }}>
+        <div className="match-detail-spinner" />
+        <h3 style={{ margin: 0 }}>Uniéndote al grupo...</h3>
+        <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)', margin: 0 }}>
+          Procesando tu invitación. Por favor, esperá un momento.
+        </p>
+      </div>
+    );
+  }
 
   return (
     <>

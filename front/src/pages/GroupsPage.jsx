@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import {
   getMyGroups,
   getGroupById,
@@ -33,10 +33,19 @@ export default function GroupsPage() {
   const [membersTotal, setMembersTotal] = useState(0);
   const [loadingMembers, setLoadingMembers] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
 
   useEffect(() => {
     getMe().then(res => setCurrentUserId(res.data.id)).catch(() => { });
   }, []);
+
+  useEffect(() => {
+    if (location.state?.success) {
+      setSuccess(location.state.success);
+      // Clear location state to prevent repeating message on reload
+      window.history.replaceState({}, document.title);
+    }
+  }, [location.state]);
 
   const load = async () => {
     setError('');
@@ -291,8 +300,8 @@ export default function GroupsPage() {
                   className="btn-secondary"
                   style={{ fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: 6, width: 'auto', padding: '6px 12px' }}
                   onClick={() => {
-                    const frontendUrl = window.location.origin + window.location.pathname;
-                    const inviteLink = `${frontendUrl}#/join-group?groupId=${selected.id}`;
+                    const base = (window.location.origin + window.location.pathname).replace(/\/+$/, '');
+                    const inviteLink = `${base}/#/join-group?groupId=${selected.id}`;
                     navigator.clipboard.writeText(inviteLink);
                     setSuccess('📋 ¡Enlace de invitación copiado al portapapeles!');
                     setTimeout(() => setSuccess(''), 3000);
