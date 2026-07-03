@@ -62,6 +62,30 @@ export default function Wordle() {
   const [currentStreak, setCurrentStreak] = useState(0);
   const [showCalendar, setShowCalendar] = useState(false);
 
+  // Valid player list and error toast states
+  const [validPlayers, setValidPlayers] = useState([]);
+  const [errorMessage, setErrorMessage] = useState('');
+
+  // Load valid player names from public folder
+  useEffect(() => {
+    fetch('/players.json')
+      .then((res) => res.json())
+      .then((data) => setValidPlayers(data))
+      .catch((err) => console.error('Error loading valid players list:', err));
+  }, []);
+
+  const showWordleError = useCallback((msg) => {
+    setErrorMessage(msg);
+    setShake(true);
+    setTimeout(() => setShake(false), 500);
+    if (window.wordleErrorTimer) {
+      clearTimeout(window.wordleErrorTimer);
+    }
+    window.wordleErrorTimer = setTimeout(() => {
+      setErrorMessage('');
+    }, 2500);
+  }, []);
+
   // Cargar historial al iniciar
   useEffect(() => {
     const loadHistory = async () => {
@@ -93,6 +117,20 @@ export default function Wordle() {
 
   const submitGuess = useCallback(async () => {
     if (current.length !== wordLen || gameState !== 'playing') return;
+
+    // Normalizar la guess para contrastar con la lista de jugadores
+    const normalizedGuess = current
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toUpperCase()
+      .replace(/Ñ/g, 'N')
+      .replace(/[^A-Z]/g, '');
+
+    // Validar si el jugador existe
+    if (validPlayers.length > 0 && !validPlayers.includes(normalizedGuess)) {
+      showWordleError('El jugador no existe');
+      return;
+    }
 
     const hints = computeHints(current, secret);
     const newGuesses = [...guesses, { word: current, hints }];
@@ -127,7 +165,7 @@ export default function Wordle() {
         }
       }
     }
-  }, [current, wordLen, gameState, guesses, secret]);
+  }, [current, wordLen, gameState, guesses, secret, validPlayers, showWordleError]);
 
   const handleKey = useCallback((key) => {
     if (gameState !== 'playing') return;
@@ -136,15 +174,14 @@ export default function Wordle() {
       setCurrent((c) => c.slice(0, -1));
     } else if (k === 'ENTER') {
       if (current.length < wordLen) {
-        setShake(true);
-        setTimeout(() => setShake(false), 500);
+        showWordleError('Faltan letras');
         return;
       }
       submitGuess();
     } else if (/^[A-ZÑ]$/.test(k) && current.length < wordLen) {
       setCurrent((c) => c + k);
     }
-  }, [gameState, current, wordLen, submitGuess]);
+  }, [gameState, current, wordLen, submitGuess, showWordleError]);
 
   // Teclado físico
   useEffect(() => {
@@ -206,6 +243,11 @@ export default function Wordle() {
 
   return (
     <div className="wordle-page">
+      {errorMessage && (
+        <div className="wordle-error-toast">
+          {errorMessage}
+        </div>
+      )}
       {/* Header */}
       <div className="wordle-header">
         <div className="wordle-title-row">
