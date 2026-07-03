@@ -63,15 +63,27 @@ export default function Wordle() {
   const [showCalendar, setShowCalendar] = useState(false);
 
   // Valid player list and error toast states
-  const [validPlayers, setValidPlayers] = useState([]);
+  const [validPlayers, setValidPlayers] = useState(null);
   const [errorMessage, setErrorMessage] = useState('');
 
   // Load valid player names from public folder
   useEffect(() => {
     fetch('/players.json')
-      .then((res) => res.json())
-      .then((data) => setValidPlayers(data))
-      .catch((err) => console.error('Error loading valid players list:', err));
+      .then((res) => {
+        if (!res.ok) throw new Error('Network response was not ok');
+        return res.json();
+      })
+      .then((data) => {
+        if (Array.isArray(data)) {
+          setValidPlayers(data);
+        } else {
+          throw new Error('Data is not a JSON array');
+        }
+      })
+      .catch((err) => {
+        console.error('Error loading valid players list, falling back to candidates list:', err);
+        setValidPlayers(PLAYERS);
+      });
   }, []);
 
   const showWordleError = useCallback((msg) => {
@@ -127,7 +139,12 @@ export default function Wordle() {
       .replace(/[^A-Z]/g, '');
 
     // Validar si el jugador existe
-    if (validPlayers.length > 0 && !validPlayers.includes(normalizedGuess)) {
+    if (validPlayers === null) {
+      showWordleError('Cargando lista de jugadores...');
+      return;
+    }
+
+    if (!validPlayers.includes(normalizedGuess)) {
       showWordleError('El jugador no existe');
       return;
     }
