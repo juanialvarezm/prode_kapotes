@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 const navItems = [
   { icon: '⚽', label: 'Partidos', path: '/matches', desc: 'Partidos del Mundial' },
   { icon: '🔮', label: 'Predicciones', path: '/predictions', desc: 'Tus pronósticos' },
-  { icon: '', label: 'FutWordle', path: '/futwordle', desc: '¿Quién es este jugador?' },
+  { icon: '🧩', label: 'FutWordle', path: '/futwordle', desc: '¿Quién es este jugador?' },
   { icon: '⚡', label: 'GolTexto', path: '/goltexto', desc: 'Adiviná por club y nac.' },
   { icon: '👕', label: 'FutLegacy', path: '/futlegacy', desc: 'Adiviná por camisetas' },
   { icon: '👤', label: 'Perfil', path: '/profile', desc: 'Tu cuenta' },
