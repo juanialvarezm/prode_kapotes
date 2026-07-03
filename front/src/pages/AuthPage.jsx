@@ -109,6 +109,12 @@ export default function AuthPage({ onSuccess }) {
 
     try {
       if (mode === 'register') {
+        const usernameRegex = /^[a-zA-Z0-9áéíóúÁÉÍÓÚñÑ_ .-]+$/;
+        if (!usernameRegex.test(form.username)) {
+          setError("El nombre de usuario solo puede contener letras, números, espacios, puntos, guiones y guiones bajos (sin '@').");
+          setLoading(false);
+          return;
+        }
         await register({ username: form.username, email: form.email, password: form.password });
         setRegistered(true);
       } else {

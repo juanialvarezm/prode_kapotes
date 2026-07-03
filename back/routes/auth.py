@@ -1,17 +1,21 @@
 import os
 import secrets
+import re
 from flask import jsonify, request, current_app, redirect
 from flask_jwt_extended import (
     create_access_token,
     get_jwt_identity,
     jwt_required,
 )
+# pyrefly: ignore [missing-import]
 import resend
 
 from db import db
 from models import User, GroupMember, Prediction
 from .blueprint import bp
 from .helpers import allowed_file, validate_image
+
+USERNAME_REGEX = re.compile(r'^[a-zA-Z0-9áéíóúÁÉÍÓÚñÑ_ .-]+$')
 
 @bp.route('/register', methods=['POST'])
 def register():
@@ -22,6 +26,9 @@ def register():
 
     if not all([username, email, password]):
         return jsonify({'error': 'username, email and password required'}), 400
+
+    if not USERNAME_REGEX.match(username):
+        return jsonify({'error': "El nombre de usuario solo puede contener letras, números, espacios, puntos, guiones y guiones bajos (sin '@')."}), 400
 
     if User.query.filter((User.username == username) | (User.email == email)).first():
         return jsonify({'error': 'username or email already exists'}), 409
@@ -159,6 +166,8 @@ def update_profile():
         existing_user = User.query.filter_by(username=username).first()
         if existing_user:
             return jsonify({'error': 'Username already taken'}), 409
+        if not USERNAME_REGEX.match(username):
+            return jsonify({'error': "El nombre de usuario solo puede contener letras, números, espacios, puntos, guiones y guiones bajos (sin '@')."}), 400
         user.username = username
 
     # Update email if provided

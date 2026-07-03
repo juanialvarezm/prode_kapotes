@@ -113,6 +113,15 @@ export default function ProfilePage() {
     setSuccessMessage('');
 
     try {
+      if (formData.username !== user.username) {
+        const usernameRegex = /^[a-zA-Z0-9áéíóúÁÉÍÓÚñÑ_ .-]+$/;
+        if (!usernameRegex.test(formData.username)) {
+          setError("El nombre de usuario solo puede contener letras, números, espacios, puntos, guiones y guiones bajos (sin '@').");
+          setLoading(false);
+          return;
+        }
+      }
+
       const data = new FormData();
 
       // Always include username and email so FormData is never empty
