@@ -103,7 +103,7 @@ export default function Wordle() {
     const loadHistory = async () => {
       const token = localStorage.getItem('token');
       if (!token) return;
-      
+
       try {
         const response = await getWordleHistory();
         setHistory(response.data.history || []);
