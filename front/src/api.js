@@ -157,10 +157,6 @@ export async function getMyPendingRequests() {
   return axios.get(`${API_URL}/my-requests`, { headers: authHeaders() });
 }
 
-export async function updateGroupPrizePool(groupId, prizePool) {
-  return axios.patch(`${API_URL}/groups/${groupId}/prize_pool`, { prize_pool: prizePool }, { headers: authHeaders() });
-}
-
 
 export async function getGroupPredictions(groupId, userId = null) {
   const params = {};

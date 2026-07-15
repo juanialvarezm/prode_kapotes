@@ -28,7 +28,6 @@ export default function MatchesPage() {
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
-  const [prizePool, setPrizePool] = useState(0);
   const [groupName, setGroupName] = useState('');
   const navigate = useNavigate();
   const selectedGroupId = localStorage.getItem('groupId');
@@ -55,11 +54,10 @@ export default function MatchesPage() {
 
   useEffect(() => {
     load(1);
-    // Load group info for prize pool
+    // Load group info for group name
     if (selectedGroupId) {
       getGroupById(selectedGroupId)
         .then((res) => {
-          setPrizePool(res.data.prize_pool || 0);
           setGroupName(res.data.name || '');
         })
         .catch(() => { });
@@ -157,17 +155,6 @@ export default function MatchesPage() {
     <>
       <h2 className="page-title"><span className="icon">⚽</span> Partidos</h2>
 
-      {/* Prize pool banner */}
-      {prizePool > 0 && (
-        <div className="prize-banner">
-          <div className="prize-banner-icon">💰</div>
-          <div className="prize-banner-content">
-            <span className="prize-label">Pozo acumulado</span>
-            <span className="prize-amount">${prizePool.toLocaleString('es-AR')}</span>
-          </div>
-          <div className="prize-banner-sparkle">🏆</div>
-        </div>
-      )}
 
       {/* Actions bar */}
       <div className="matches-actions-bar">
