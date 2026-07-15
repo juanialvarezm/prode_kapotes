@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, lazy, Suspense } from 'react';
 import { Navigate, Route, Routes, useNavigate, useLocation } from 'react-router-dom';
 import AuthPage from './pages/AuthPage';
 import GroupsPage from './pages/GroupsPage';
@@ -18,6 +18,8 @@ import VerifyEmailPage from './pages/VerifyEmailPage';
 import { getMyGroups, getMyPendingRequests } from './api';
 import Wordle from './pages/Wordle';
 import LeaguePage from './pages/LeaguePage';
+
+const UserProfilePage = lazy(() => import('./pages/UserProfilePage'));
 
 // Protected Route Component - redirects to /auth if no token
 function ProtectedRoute({ children }) {
@@ -115,6 +117,18 @@ function App() {
               {/* Protected routes - redirect to /auth if not logged in */}
               <Route path="/join-group" element={<ProtectedRoute><JoinGroupPage onGroupChange={refreshGroups} /></ProtectedRoute>} />
               <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
+              <Route path="/profile/:userId" element={
+                <ProtectedRoute>
+                  <Suspense fallback={
+                    <div className="card empty-state">
+                      <span className="empty-icon">⏳</span>
+                      <p>Cargando perfil...</p>
+                    </div>
+                  }>
+                    <UserProfilePage />
+                  </Suspense>
+                </ProtectedRoute>
+              } />
               <Route path="/requests" element={<ProtectedRoute><RequestsPage /></ProtectedRoute>} />
               <Route path="/groups" element={<ProtectedRoute><GroupsPage /></ProtectedRoute>} />
               <Route path="/matches" element={<ProtectedRoute><MatchesPage /></ProtectedRoute>} />

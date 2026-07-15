@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { getGroupPredictions } from '../api';
 
 const STATUS_LABELS = {
@@ -10,6 +11,7 @@ const STATUS_LABELS = {
 };
 
 export default function PredictionsPage() {
+  const navigate = useNavigate();
   const groupId = localStorage.getItem('groupId');
   const [predictions, setPredictions] = useState([]);
   const [members, setMembers] = useState([]);
@@ -203,7 +205,12 @@ export default function PredictionsPage() {
                         className={`prediction-card ${p.is_exact ? 'exact' : p.is_winner ? 'winner' : ''}`}
                         id={`prediction-${p.id}`}
                       >
-                        <div className="prediction-card-user">
+                        <div
+                          className="prediction-card-user"
+                          onClick={() => navigate(`/profile/${p.user_id}`)}
+                          style={{ cursor: 'pointer' }}
+                          title={`Ver perfil de ${p.username}`}
+                        >
                           <div className="prediction-user-avatar">
                             {p.username.charAt(0).toUpperCase()}
                           </div>

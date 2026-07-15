@@ -41,6 +41,14 @@ export async function getMe() {
   return axios.get(`${API_URL}/me`, { headers: authHeaders() });
 }
 
+export async function getUserProfile(userId, page = 1, perPage = 10) {
+  return axios.get(`${API_URL}/users/${userId}`, {
+    params: { page, per_page: perPage },
+    headers: authHeaders(),
+  });
+}
+
+
 export async function updateProfile(formData) {
   // formData is a FormData object (for file upload support)
   const token = localStorage.getItem('token');
