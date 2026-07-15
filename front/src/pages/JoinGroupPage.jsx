@@ -25,7 +25,7 @@ export default function JoinGroupPage({ onGroupChange }) {
   useEffect(() => {
     if (groupIdParam) {
       setJoinId(groupIdParam);
-      
+
       const performAutoJoin = async () => {
         setAutoJoining(true);
         setError('');
@@ -35,18 +35,19 @@ export default function JoinGroupPage({ onGroupChange }) {
           localStorage.setItem('groupId', String(groupIdParam));
           // Refresh groups in App
           onGroupChange?.();
-          
+
           const isAlreadyMember = res.data?.message === 'Already member';
           const msg = isAlreadyMember ? '✅ Ya sos miembro de este grupo.' : '✅ Te uniste al grupo exitosamente.';
-          
+
           // Navigate to groups page with success message
           navigate('/groups', { state: { success: msg } });
         } catch (err) {
+          if (err?.response?.status === 401) return;
           setError(err?.response?.data?.error || 'No se pudo unir al grupo automáticamente.');
           setAutoJoining(false);
         }
       };
-      
+
       performAutoJoin();
     }
   }, [groupIdParam, navigate, onGroupChange]);
@@ -84,6 +85,7 @@ export default function JoinGroupPage({ onGroupChange }) {
       onGroupChange?.();
       navigate('/groups');
     } catch (err) {
+      if (err?.response?.status === 401) return;
       if (err?.response?.status === 409 && err?.response?.data?.error?.includes('Ya pertenecés')) {
         setAlreadyInGroup(true);
       } else {
@@ -111,7 +113,8 @@ export default function JoinGroupPage({ onGroupChange }) {
       }
       setJoinId('');
     } catch (err) {
-      setError(err?.response?.data?.error || 'No se pudo enviar la solicitud. Asegúrate de que el backend esté corriendo en http://localhost:5000');
+      if (err?.response?.status === 401) return;
+      setError(err?.response?.data?.error || 'No se pudo enviar la solicitud.');
     } finally {
       setLoading(false);
     }

@@ -2,6 +2,23 @@ import axios from 'axios';
 
 const API_URL = (import.meta.env.VITE_API_URL || 'https://prodekapotes-production.up.railway.app').replace(/\/$/, '');
 
+// Global response interceptor to handle expired JWT tokens (401 Unauthorized)
+axios.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response && error.response.status === 401) {
+      const isLoginRequest = error.config && error.config.url && error.config.url.endsWith('/login');
+      if (!isLoginRequest) {
+        localStorage.clear();
+        window.location.href = '/#/auth';
+        window.location.reload();
+      }
+    }
+    return Promise.reject(error);
+  }
+);
+
+
 function authHeaders() {
   const token = localStorage.getItem('token');
   if (!token) return {};

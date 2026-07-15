@@ -59,7 +59,8 @@ export default function GroupsPage() {
         onSelectGroup(defaultGroup.id);
       }
     } catch (err) {
-      setError('No se pudo cargar los grupos. Asegúrate de que el backend esté corriendo en http://localhost:5000');
+      if (err?.response?.status === 401) return;
+      setError('No se pudo cargar los grupos');
     }
   };
 
@@ -88,7 +89,8 @@ export default function GroupsPage() {
       } else {
         setRequests([]);
       }
-    } catch {
+    } catch (err) {
+      if (err?.response?.status === 401) return;
       setError('No se encontró el grupo');
     }
   };
