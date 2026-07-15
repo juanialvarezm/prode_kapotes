@@ -140,6 +140,7 @@ def get_join_requests(group_id):
             'username': r.user.username,
             'email': r.user.email,
             'created_at': r.created_at.isoformat() if r.created_at else None,
+            'profile_picture': r.user.profile_picture,
         })
 
     return jsonify({'requests': result}), 200
@@ -320,6 +321,7 @@ def group_predictions(group_id):
             'id': p.id,
             'user_id': p.user_id,
             'username': p.user.username,
+            'profile_picture': p.user.profile_picture,
             'match_id': p.match_id,
             'home_team': p.match.home_team,
             'away_team': p.match.away_team,
@@ -391,6 +393,7 @@ def get_group(group_id):
         'username': ms.user.username,
         'email': ms.user.email,
         'joined_at': ms.joined_at.isoformat(),
+        'profile_picture': ms.user.profile_picture,
     } for ms in memberships]
 
     # Get pending request count (for owner)

@@ -212,7 +212,11 @@ export default function PredictionsPage() {
                           title={`Ver perfil de ${p.username}`}
                         >
                           <div className="prediction-user-avatar">
-                            {p.username.charAt(0).toUpperCase()}
+                            {p.profile_picture ? (
+                              <img src={p.profile_picture} alt={p.username} style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} />
+                            ) : (
+                              p.username.charAt(0).toUpperCase()
+                            )}
                           </div>
                           <span className="prediction-username">{p.username}</span>
                         </div>

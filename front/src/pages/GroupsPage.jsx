@@ -379,7 +379,13 @@ export default function GroupsPage() {
                 {members.map((m) => (
                   <div key={m.id} className="member-row">
                     <div className="member-info" onClick={() => navigate(`/profile/${m.id}`)} style={{ cursor: 'pointer' }} title={`Ver perfil de ${m.username}`}>
-                      <div className="member-avatar">{m.username.charAt(0).toUpperCase()}</div>
+                      <div className="member-avatar">
+                        {m.profile_picture ? (
+                          <img src={m.profile_picture} alt={m.username} />
+                        ) : (
+                          m.username.charAt(0).toUpperCase()
+                        )}
+                      </div>
                       <div>
                         <span className="member-name">
                           {m.username}
@@ -422,7 +428,13 @@ export default function GroupsPage() {
                 {requests.map((r) => (
                   <div key={r.id} className="request-row">
                     <div className="member-info" onClick={() => navigate(`/profile/${r.user_id}`)} style={{ cursor: 'pointer' }} title={`Ver perfil de ${r.username}`}>
-                      <div className="member-avatar request">{r.username.charAt(0).toUpperCase()}</div>
+                      <div className="member-avatar request">
+                        {r.profile_picture ? (
+                          <img src={r.profile_picture} alt={r.username} />
+                        ) : (
+                          r.username.charAt(0).toUpperCase()
+                        )}
+                      </div>
                       <div>
                         <span className="member-name">{r.username}</span>
                         <span className="member-email">{r.email}</span>
