@@ -223,15 +223,38 @@ def update_profile():
 def search_users():
     q = request.args.get('q', '').strip()
     if len(q) < 2:
-        return jsonify({'users': []}), 200
+        return jsonify({'users': [], 'has_more': False, 'total': 0}), 200
 
-    users = User.query.filter(User.username.ilike(f'%{q}%')).limit(20).all()
-    current_user_id = get_jwt_identity()
+    page = request.args.get('page', 1, type=int)
+    per_page = request.args.get('per_page', 20, type=int)
+
+    try:
+        current_user_id = int(get_jwt_identity())
+    except (ValueError, TypeError):
+        current_user_id = None
+
+    # Base query filtering matching usernames and excluding current user
+    query = User.query.filter(User.username.ilike(f'%{q}%'))
+    if current_user_id is not None:
+        query = query.filter(User.id != current_user_id)
+
+    total = query.count()
+    users = query.offset((page - 1) * per_page).limit(per_page).all()
+
     result = [
-        {'id': u.id, 'username': u.username, 'email': u.email}
-        for u in users if u.id != current_user_id
+        {
+            'id': u.id,
+            'username': u.username,
+            'email': u.email,
+            'profile_picture': u.profile_picture
+        }
+        for u in users
     ]
-    return jsonify({'users': result}), 200
+    return jsonify({
+        'users': result,
+        'has_more': (page * per_page) < total,
+        'total': total
+    }), 200
 
 
 @bp.route('/users/<int:user_id>', methods=['GET'])

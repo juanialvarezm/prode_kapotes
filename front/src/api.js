@@ -102,8 +102,8 @@ export async function getGroupById(groupId, membersPage = 1) {
   });
 }
 
-export async function searchUsers(query) {
-  return axios.get(`${API_URL}/users/search`, { params: { q: query }, headers: authHeaders() });
+export async function searchUsers(query, page = 1) {
+  return axios.get(`${API_URL}/users/search`, { params: { q: query, page }, headers: authHeaders() });
 }
 
 export async function addMemberToGroup(groupId, userId) {

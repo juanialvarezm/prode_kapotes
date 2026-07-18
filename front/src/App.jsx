@@ -20,6 +20,7 @@ import Wordle from './pages/Wordle';
 import LeaguePage from './pages/LeaguePage';
 
 const UserProfilePage = lazy(() => import('./pages/UserProfilePage'));
+const UsersSearchPage = lazy(() => import('./pages/UsersSearchPage'));
 
 // Protected Route Component - redirects to /auth if no token
 function ProtectedRoute({ children }) {
@@ -126,6 +127,18 @@ function App() {
                     </div>
                   }>
                     <UserProfilePage />
+                  </Suspense>
+                </ProtectedRoute>
+              } />
+              <Route path="/users" element={
+                <ProtectedRoute>
+                  <Suspense fallback={
+                    <div className="card empty-state">
+                      <span className="empty-icon">⏳</span>
+                      <p>Cargando buscador...</p>
+                    </div>
+                  }>
+                    <UsersSearchPage />
                   </Suspense>
                 </ProtectedRoute>
               } />
