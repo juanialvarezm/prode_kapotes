@@ -338,6 +338,7 @@ def group_predictions(group_id):
 
     return jsonify({
         'group': group.name,
+        'group_avatar_url': group.avatar_url,
         'predictions': result,
         'members': members_list,
     }), 200
@@ -465,9 +466,11 @@ def my_pending_requests():
             'id': r.id,
             'group_id': r.group_id,
             'group_name': r.group.name,
+            'group_avatar_url': r.group.avatar_url,
             'user_id': r.user.id,
             'username': r.user.username,
             'email': r.user.email,
+            'profile_picture': r.user.profile_picture,
             'created_at': r.created_at.isoformat() if r.created_at else None,
         })
 

@@ -7369,4 +7369,29 @@ body {
   .profile-pred-badge-container {
     width: auto;
   }
+}
+
+/* Groups page grid layout */
+.groups-container-grid {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  gap: 24px;
+  align-items: start;
+}
+
+.groups-sidebar-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.groups-main-panel {
+  min-width: 0; /* Prevents overflow in grid items */
+}
+
+@media (max-width: 768px) {
+  .groups-container-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
 }

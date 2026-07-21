@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getGroupPredictions } from '../api';
+import { getGroupPredictions, getAvatarUrl } from '../api';
 
 const STATUS_LABELS = {
   SCHEDULED: { label: 'Programado', emoji: '📅' },
@@ -16,6 +16,7 @@ export default function PredictionsPage() {
   const [predictions, setPredictions] = useState([]);
   const [members, setMembers] = useState([]);
   const [groupName, setGroupName] = useState('');
+  const [groupAvatar, setGroupAvatar] = useState('');
   const [selectedUser, setSelectedUser] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(true);
@@ -30,6 +31,7 @@ export default function PredictionsPage() {
       setPredictions(res.data.predictions || []);
       setMembers(res.data.members || []);
       setGroupName(res.data.group || '');
+      setGroupAvatar(res.data.group_avatar_url || '');
     } catch (err) {
       setError(err?.response?.data?.error || 'Error cargando predicciones');
     } finally {
@@ -85,8 +87,19 @@ export default function PredictionsPage() {
       <h2 className="page-title"><span className="icon">🔮</span> Predicciones</h2>
 
       {/* Group badge */}
-      <div className="predictions-header">
-        <div className="selected-group-badge">🏆 Grupo: {groupName || groupId}</div>
+      <div className="predictions-header" style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 20 }}>
+        {groupAvatar ? (
+          <img
+            src={getAvatarUrl(groupAvatar)}
+            alt={groupName}
+            style={{ width: 36, height: 36, borderRadius: '50%', objectFit: 'cover', border: '2px solid var(--accent)' }}
+          />
+        ) : (
+          <div style={{ width: 36, height: 36, borderRadius: '50%', background: 'linear-gradient(135deg, var(--accent-dark), var(--accent))', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.9rem', fontWeight: 'bold', color: '#fff', border: '2px solid var(--accent)' }}>
+            {groupName ? groupName.charAt(0).toUpperCase() : '🏆'}
+          </div>
+        )}
+        <div className="selected-group-badge" style={{ margin: 0 }}>🏆 Grupo: {groupName || groupId}</div>
       </div>
 
       {/* Search & Filter Section */}

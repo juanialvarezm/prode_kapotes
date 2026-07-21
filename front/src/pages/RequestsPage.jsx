@@ -92,9 +92,18 @@ export default function RequestsPage() {
         <div className="requests-page-list">
           {requests.map((r) => (
             <div key={r.id} className="request-card">
-              <div className="request-card-header">
-                <div className="request-card-group-badge">
-                  🏆 {r.group_name}
+              <div className="request-card-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+                <div className="request-card-group-badge" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, margin: 0 }}>
+                  {r.group_avatar_url ? (
+                    <img
+                      src={getAvatarUrl(r.group_avatar_url)}
+                      alt={r.group_name}
+                      style={{ width: 18, height: 18, borderRadius: '50%', objectFit: 'cover' }}
+                    />
+                  ) : (
+                    <span>🏆</span>
+                  )}
+                  <span>{r.group_name}</span>
                 </div>
                 <span className="request-time">
                   {r.created_at ? new Date(r.created_at).toLocaleDateString('es-AR', {
@@ -105,7 +114,11 @@ export default function RequestsPage() {
               <div className="request-card-body">
                 <div className="member-info">
                   <div className="member-avatar request">
-                    {r.username.charAt(0).toUpperCase()}
+                    {r.profile_picture ? (
+                      <img src={r.profile_picture} alt={r.username} />
+                    ) : (
+                      r.username.charAt(0).toUpperCase()
+                    )}
                   </div>
                   <div>
                     <span className="member-name">{r.username}</span>

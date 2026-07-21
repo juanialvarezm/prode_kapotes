@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getMatches, fetchApiMatches, getGroupById } from '../api';
+import { getMatches, fetchApiMatches, getGroupById, getAvatarUrl } from '../api';
 
 function getUTCOffsetLabel() {
   const offset = -new Date().getTimezoneOffset();
@@ -29,6 +29,7 @@ export default function MatchesPage() {
   const [hasMore, setHasMore] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
   const [groupName, setGroupName] = useState('');
+  const [groupAvatar, setGroupAvatar] = useState('');
   const navigate = useNavigate();
   const selectedGroupId = localStorage.getItem('groupId');
 
@@ -59,6 +60,7 @@ export default function MatchesPage() {
       getGroupById(selectedGroupId)
         .then((res) => {
           setGroupName(res.data.name || '');
+          setGroupAvatar(res.data.avatar_url || '');
         })
         .catch(() => { });
     }
@@ -157,9 +159,18 @@ export default function MatchesPage() {
 
 
       {/* Actions bar */}
-      <div className="matches-actions-bar">
-        <div className="selected-group-badge">
-          🏆 Grupo: {groupName ? selectedGroupId : 'Ninguno'}
+      <div className="matches-actions-bar" style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+        <div className="selected-group-badge" style={{ display: 'inline-flex', alignItems: 'center', gap: 8, margin: 0 }}>
+          {groupAvatar ? (
+            <img
+              src={getAvatarUrl(groupAvatar)}
+              alt={groupName}
+              style={{ width: 24, height: 24, borderRadius: '50%', objectFit: 'cover' }}
+            />
+          ) : (
+            <span>🏆</span>
+          )}
+          <span>Grupo: {groupName || 'Ninguno'}</span>
         </div>
         <button
           className="btn-sync"

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { getMatches, submitPrediction } from '../api';
+import { getMatches, submitPrediction, getGroupById, getAvatarUrl } from '../api';
 
 // Country flag emoji helper (ISO 3166-1 alpha-2 → flag)
 const FLAG_MAP = {
@@ -53,6 +53,8 @@ export default function MatchDetail() {
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [groupName, setGroupName] = useState('');
+  const [groupAvatar, setGroupAvatar] = useState('');
 
   const selectedGroupId = localStorage.getItem('groupId');
 
@@ -73,6 +75,17 @@ export default function MatchDetail() {
       }
     })();
   }, [matchId]);
+
+  useEffect(() => {
+    if (selectedGroupId) {
+      getGroupById(selectedGroupId)
+        .then((res) => {
+          setGroupName(res.data.name || '');
+          setGroupAvatar(res.data.avatar_url || '');
+        })
+        .catch(() => { });
+    }
+  }, [selectedGroupId]);
 
   const canPredict = match &&
     ['SCHEDULED', 'TIMED', 'POSTPONED'].includes(match.status);
@@ -207,8 +220,17 @@ export default function MatchDetail() {
         )}
 
         {selectedGroupId && (
-          <div className="selected-group-badge" style={{ marginBottom: 16 }}>
-            🏆 Grupo seleccionado: {selectedGroupId}
+          <div className="selected-group-badge" style={{ marginBottom: 16, display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+            {groupAvatar ? (
+              <img
+                src={getAvatarUrl(groupAvatar)}
+                alt={groupName}
+                style={{ width: 24, height: 24, borderRadius: '50%', objectFit: 'cover' }}
+              />
+            ) : (
+              <span>🏆</span>
+            )}
+            <span>Grupo seleccionado: {groupName || selectedGroupId}</span>
           </div>
         )}
 

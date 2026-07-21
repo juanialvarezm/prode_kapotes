@@ -333,35 +333,7 @@ export default function GroupsPage() {
   return (
     <>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24, gap: 16, flexWrap: 'wrap' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
-          <h2 className="page-title" style={{ marginBottom: 0 }}><span className="icon">🏆</span> Mis Grupos</h2>
-          {groups.length > 0 && (
-            <select
-              value={selected?.id || ''}
-              onChange={(e) => onSelectGroup(Number(e.target.value))}
-              className="predictions-search-input"
-              style={{
-                width: 'auto',
-                minWidth: '180px',
-                height: '38px',
-                padding: '0 10px',
-                fontSize: '0.85rem',
-                borderRadius: 'var(--radius-sm)',
-                background: 'var(--bg-card-solid)',
-                border: '1px solid var(--border)',
-                color: 'var(--text-primary)',
-                cursor: 'pointer',
-                margin: 0
-              }}
-            >
-              {groups.map((g) => (
-                <option key={g.id} value={g.id}>
-                  {g.name}
-                </option>
-              ))}
-            </select>
-          )}
-        </div>
+        <h2 className="page-title" style={{ marginBottom: 0 }}><span className="icon">🏆</span> Mis Grupos</h2>
         <button className="btn-primary" style={{ width: 'auto', padding: '8px 20px' }} onClick={() => navigate('/join-group')}>
           ➕ Nuevo grupo
         </button>
@@ -377,8 +349,36 @@ export default function GroupsPage() {
         </div>
       )}
 
-      {selected && (
-        <div className="group-info-card" style={{ marginTop: 16 }}>
+      {groups.length > 0 && (
+        <div className="groups-container-grid">
+          {/* Sidebar Panel with group list */}
+          <div className="groups-sidebar-panel">
+            <ul className="group-list">
+              {groups.map((g) => (
+                <li
+                  key={g.id}
+                  className={selected?.id === g.id ? 'active' : ''}
+                  onClick={() => onSelectGroup(g.id)}
+                >
+                  <div className="group-list-item-content">
+                    <div className="group-list-avatar">
+                      {g.avatar_url ? (
+                        <img src={getAvatarUrl(g.avatar_url)} alt={g.name} />
+                      ) : (
+                        g.name.charAt(0).toUpperCase()
+                      )}
+                    </div>
+                    <span>{g.name}</span>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Main info panel */}
+          <div className="groups-main-panel">
+            {selected ? (
+              <div className="group-info-card" style={{ marginTop: 0 }}>
           {/* Group header with avatar */}
           <div className="group-detail-header">
             <div className="group-detail-avatar">
@@ -990,16 +990,24 @@ export default function GroupsPage() {
             </div>
           )}
 
-          {/* Leave Group Button */}
-          <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 24 }}>
-            <button
-              className="btn-danger-leave"
-              onClick={handleLeave}
-              disabled={loadingAction}
-              style={{ width: 'auto', padding: '6px 12px', fontSize: '0.8rem', margin: 0 }}
-            >
-              🚪 Salir del grupo
-            </button>
+                {/* Leave Group Button */}
+                <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 24 }}>
+                  <button
+                    className="btn-danger-leave"
+                    onClick={handleLeave}
+                    disabled={loadingAction}
+                    style={{ width: 'auto', padding: '6px 12px', fontSize: '0.8rem', margin: 0 }}
+                  >
+                    🚪 Salir del grupo
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className="card empty-state" style={{ margin: 0 }}>
+                <span className="empty-icon">👈</span>
+                <p>Seleccioná un grupo de la lista para ver los detalles.</p>
+              </div>
+            )}
           </div>
         </div>
       )}
