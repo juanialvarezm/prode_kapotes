@@ -7,5 +7,6 @@ from . import groups
 # from . import matches
 # from . import predictions
 from . import wordle
+from . import minigames
 # from . import leagues
 from . import fields

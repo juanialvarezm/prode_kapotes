@@ -801,11 +801,31 @@ def upload_organized_match_photo(group_id, match_id):
         
         match.match_photo = result.get('secure_url')
         match.match_photo_id = result.get('public_id')
+
+        # Award 50 points to all confirmed participants and creator if not already awarded for this match
+        points_awarded = False
+        if not getattr(match, 'photo_points_awarded', False):
+            confirmed_participants = GroupMatchParticipant.query.filter_by(group_match_id=match.id, confirmed=True).all()
+            user_ids_to_reward = {p.user_id for p in confirmed_participants}
+            user_ids_to_reward.add(match.creator_id)
+
+            for u_id in user_ids_to_reward:
+                u = User.query.get(u_id)
+                if u:
+                    u.points = (u.points or 0) + 50
+
+            match.photo_points_awarded = True
+            points_awarded = True
+
         db.session.commit()
 
+        msg = '¡Foto subida con éxito! Se otorgaron +50 puntos a los participantes.' if points_awarded else 'Foto del partido actualizada con éxito.'
+
         return jsonify({
-            'message': 'Foto del partido subida con éxito.',
-            'match_photo': match.match_photo
+            'message': msg,
+            'match_photo': match.match_photo,
+            'points_awarded': points_awarded,
+            'points_granted': 50 if points_awarded else 0
         }), 200
     except Exception as e:
         return jsonify({'error': f'Error al subir la imagen: {str(e)}'}), 500

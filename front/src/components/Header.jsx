@@ -1,6 +1,6 @@
 import { useNavigate, useLocation } from 'react-router-dom';
 
-export default function Header({ hasGroups, pendingRequestsCount = 0 }) {
+export default function Header({ hasGroups, pendingRequestsCount = 0, userPoints = 0 }) {
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -21,6 +21,30 @@ export default function Header({ hasGroups, pendingRequestsCount = 0 }) {
         </a>
 
         <nav className="header-nav">
+          {userPoints > 0 && (
+            <div
+              className="header-points-chip"
+              title="Puntos acumulados"
+              onClick={() => navigate('/profile')}
+              style={{
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 4,
+                background: 'rgba(245, 158, 11, 0.15)',
+                border: '1px solid rgba(245, 158, 11, 0.3)',
+                color: 'var(--gold-light)',
+                padding: '4px 10px',
+                borderRadius: '20px',
+                fontSize: '0.8rem',
+                fontWeight: '700'
+              }}
+            >
+              <span>⭐</span>
+              <span>{userPoints} pts</span>
+            </div>
+          )}
+
           {hasGroups && (
             <>
               <button

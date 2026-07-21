@@ -170,8 +170,8 @@ export default function GroupsPage() {
     setError('');
     setSuccess('');
     try {
-      await uploadMatchPhoto(selected.id, matchId, formData);
-      setSuccess('¡Foto del recuerdo subida con éxito!');
+      const res = await uploadMatchPhoto(selected.id, matchId, formData);
+      setSuccess(res.data?.message || '¡Foto del recuerdo subida con éxito!');
       loadMatches(selected.id);
     } catch (err) {
       setError(err?.response?.data?.error || 'Error al subir la foto.');

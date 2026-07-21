@@ -12,7 +12,7 @@ import PrivacyPage from './pages/PrivacyPage';
 import Header from './components/Header';
 import Footer from './components/Footer';
 import VerifyEmailPage from './pages/VerifyEmailPage';
-import { getMyGroups, getMyPendingRequests } from './api';
+import { getMyGroups, getMyPendingRequests, getMe } from './api';
 import Wordle from './pages/Wordle';
 
 const UserProfilePage = lazy(() => import('./pages/UserProfilePage'));
@@ -39,6 +39,7 @@ function App() {
   const [groups, setGroups] = useState([]);
   const [loadingGroups, setLoadingGroups] = useState(false);
   const [pendingRequestsCount, setPendingRequestsCount] = useState(0);
+  const [userPoints, setUserPoints] = useState(0);
 
   const hasGroups = groups.length > 0;
 
@@ -65,17 +66,31 @@ function App() {
     }
   };
 
+  const refreshUserPoints = async () => {
+    if (!token) return;
+    try {
+      const res = await getMe();
+      setUserPoints(res.data.points || 0);
+    } catch {
+      setUserPoints(0);
+    }
+  };
+
   useEffect(() => {
     if (token) {
       refreshGroups();
       refreshPendingRequests();
+      refreshUserPoints();
     }
   }, [token]);
 
-  // Poll pending requests every 15 seconds
+  // Poll pending requests & points every 15 seconds
   useEffect(() => {
     if (!token) return;
-    const interval = setInterval(refreshPendingRequests, 15000);
+    const interval = setInterval(() => {
+      refreshPendingRequests();
+      refreshUserPoints();
+    }, 15000);
     return () => clearInterval(interval);
   }, [token]);
 
@@ -99,7 +114,7 @@ function App() {
   return (
     <div className="app-container">
       <div className="app-layout">
-        <Header hasGroups={token ? hasGroups : false} pendingRequestsCount={pendingRequestsCount} />
+        <Header hasGroups={token ? hasGroups : false} pendingRequestsCount={pendingRequestsCount} userPoints={userPoints} />
         <main className="app-main">
           {loadingGroups ? (
             <div className="card empty-state">

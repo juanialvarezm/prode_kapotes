@@ -16,6 +16,7 @@ class User(db.Model):
     profile_picture_id = db.Column(db.String(255), nullable=True)
     is_verified = db.Column(db.Boolean, nullable=False, default=False)
     verification_token = db.Column(db.String(64), nullable=True, unique=True)
+    points = db.Column(db.Integer, nullable=False, default=0)
 
     groups = db.relationship('Group', backref='owner', lazy=True)
     group_memberships = db.relationship('GroupMember', back_populates='user', lazy=True)
@@ -219,6 +220,7 @@ class GroupMatch(db.Model):
     price = db.Column(db.Integer, nullable=False, default=0)
     match_photo = db.Column(db.String(500), nullable=True)
     match_photo_id = db.Column(db.String(100), nullable=True)
+    photo_points_awarded = db.Column(db.Boolean, nullable=False, default=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     group = db.relationship('Group', backref=db.backref('matches_organized', lazy=True, cascade='all, delete-orphan'))
@@ -273,5 +275,21 @@ class GroupMatchMvpVote(db.Model):
     group_match = db.relationship('GroupMatch', backref=db.backref('mvp_votes', lazy=True, cascade='all, delete-orphan'))
     voter = db.relationship('User', foreign_keys=[voter_id], backref=db.backref('mvp_votes_cast', lazy=True))
     voted = db.relationship('User', foreign_keys=[voted_id], backref=db.backref('mvp_votes_received', lazy=True))
+
+
+class MinigameReward(db.Model):
+    __tablename__ = 'minigame_rewards'
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='CASCADE'), nullable=False)
+    game_name = db.Column(db.String(50), nullable=False)  # 'wordle' | 'goltexto' | 'futlegacy'
+    date = db.Column(db.Date, nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    __table_args__ = (
+        db.UniqueConstraint('user_id', 'game_name', 'date', name='unique_user_game_daily_reward'),
+    )
+
+    user = db.relationship('User', backref=db.backref('minigame_rewards', lazy=True))
+
 
 

@@ -184,6 +184,10 @@ export async function getWordleHistory() {
   return axios.get(`${API_URL}/wordle/history`, { headers: authHeaders() });
 }
 
+export async function claimMinigameReward(gameName) {
+  return axios.post(`${API_URL}/minigames/claim-reward`, { game_name: gameName }, { headers: authHeaders() });
+}
+
 // --- Leagues ---
 
 export async function createLeague(payload) {

@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, useMemo } from 'react';
+import { claimMinigameReward } from '../api';
 
 // ── Player database ────────────────────────────────────────────────────────
 // Each player: { name, club, nationality, position }
@@ -137,6 +138,7 @@ export default function GolTexto() {
   const [guesses, setGuesses] = useState([]); // [{player, score}]
   const [gameState, setGameState] = useState('playing'); // 'playing'|'won'|'lost'
   const [shake, setShake] = useState(false);
+  const [rewardMsg, setRewardMsg] = useState('');
   const inputRef = useRef(null);
 
   // Filter suggestions
@@ -161,6 +163,13 @@ export default function GolTexto() {
 
     if (isCorrect) {
       setGameState('won');
+      claimMinigameReward('goltexto')
+        .then(res => {
+          if (res.data?.points_granted > 0) {
+            setRewardMsg(`+${res.data.points_granted} pts otorgados ⭐`);
+          }
+        })
+        .catch(() => {});
     } else if (newGuesses.length >= MAX_GUESSES) {
       setGameState('lost');
     }
@@ -226,7 +235,7 @@ export default function GolTexto() {
       {gameState !== 'playing' && (
         <div className={`gt-result-banner ${gameState}`}>
           {gameState === 'won'
-            ? `🎉 ¡Correcto! Era ${secret.name} — ${guesses.length} intento${guesses.length > 1 ? 's' : ''}`
+            ? `🎉 ¡Correcto! Era ${secret.name} — ${guesses.length} intento${guesses.length > 1 ? 's' : ''}${rewardMsg ? ` — ${rewardMsg}` : ''}`
             : `Era: ${secret.name} (${secret.club} · ${secret.nationality}) — ¡Mejor suerte mañana!`}
         </div>
       )}

@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, useMemo } from 'react';
+import { claimMinigameReward } from '../api';
 
 // ── Club colours for shirt rendering ──────────────────────────────────────
 const CLUB_COLORS = {
@@ -407,6 +408,7 @@ export default function FutLegacy() {
   const [suggestions, setSugg]    = useState([]);
   const [gameState, setGameState] = useState('playing');
   const [shake, setShake]         = useState(false);
+  const [rewardMsg, setRewardMsg] = useState('');
   const inputRef = useRef(null);
 
   // How many clubs are revealed = number of wrong guesses + 1 (start with 1)
@@ -434,6 +436,13 @@ export default function FutLegacy() {
 
     if (correct) {
       setGameState('won');
+      claimMinigameReward('futlegacy')
+        .then(res => {
+          if (res.data?.points_granted > 0) {
+            setRewardMsg(`+${res.data.points_granted} pts otorgados ⭐`);
+          }
+        })
+        .catch(() => {});
     } else if (wrongs >= MAX_GUESSES) {
       setGameState('lost');
     } else {
@@ -502,7 +511,7 @@ export default function FutLegacy() {
       {gameState !== 'playing' && (
         <div className={`fl-result-banner ${gameState}`}>
           {gameState === 'won'
-            ? `🎉 ¡Correcto! Era ${secret.name} (${secret.nationality}) — ${wrongGuesses + 1} intento${wrongGuesses + 1 > 1 ? 's' : ''}`
+            ? `🎉 ¡Correcto! Era ${secret.name} (${secret.nationality}) — ${wrongGuesses + 1} intento${wrongGuesses + 1 > 1 ? 's' : ''}${rewardMsg ? ` — ${rewardMsg}` : ''}`
             : `Era: ${secret.name} (${secret.nationality}) — ¡Mejor suerte mañana!`}
         </div>
       )}

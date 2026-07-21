@@ -172,7 +172,10 @@ export default function Wordle() {
       const token = localStorage.getItem('token');
       if (token) {
         try {
-          await saveWordleResult(won, newGuesses.length, secret);
+          const res = await saveWordleResult(won, newGuesses.length, secret);
+          if (res.data?.points_granted > 0) {
+            setRewardMsg(`+${res.data.points_granted} pts otorgados ⭐`);
+          }
           // Recargar historial
           const response = await getWordleHistory();
           setHistory(response.data.history || []);
@@ -329,7 +332,7 @@ export default function Wordle() {
       {gameState !== 'playing' && (
         <div className={`wordle-result-banner ${gameState}`}>
           {gameState === 'won'
-            ? `🎉 ¡Correcto! Era ${secret} — en ${guesses.length} intento${guesses.length > 1 ? 's' : ''}`
+            ? `🎉 ¡Correcto! Era ${secret} — en ${guesses.length} intento${guesses.length > 1 ? 's' : ''}${rewardMsg ? ` — ${rewardMsg}` : ''}`
             : `Era: ${secret} — ¡Mejor suerte la próxima!`}
         </div>
       )}

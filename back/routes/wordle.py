@@ -3,7 +3,7 @@ from flask import jsonify, request
 from flask_jwt_extended import get_jwt_identity, jwt_required
 
 from db import db
-from models import WordleHistory
+from models import WordleHistory, User, MinigameReward
 from .blueprint import bp
 
 @bp.route('/wordle/save', methods=['POST'])
@@ -46,9 +46,35 @@ def save_wordle_result():
         )
         db.session.add(record)
         msg = 'Resultado guardado'
-    
+
+    # Check if win reward for today should be awarded (+15 pts)
+    points_granted = 0
+    if won:
+        reward_claimed = MinigameReward.query.filter_by(
+            user_id=current_user_id,
+            game_name='wordle',
+            date=today
+        ).first()
+        if not reward_claimed:
+            reward = MinigameReward(
+                user_id=current_user_id,
+                game_name='wordle',
+                date=today
+            )
+            db.session.add(reward)
+            user = User.query.get(current_user_id)
+            if user:
+                user.points = (user.points or 0) + 15
+                points_granted = 15
+
     db.session.commit()
-    return jsonify({'message': msg}), 200
+    user = User.query.get(current_user_id)
+    new_total_points = user.points if user else 0
+    return jsonify({
+        'message': msg,
+        'points_granted': points_granted,
+        'points': new_total_points
+    }), 200
 
 
 @bp.route('/wordle/history', methods=['GET'])

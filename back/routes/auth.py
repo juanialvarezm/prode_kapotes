@@ -144,6 +144,7 @@ def get_name():
         'username': user.username,
         'email': user.email,
         'profile_picture': user.profile_picture,
+        'points': getattr(user, 'points', 0) or 0,
         'created_at': user.created_at.isoformat() if user.created_at else None,
         'groups_count': groups_count,
         'played_matches_count': played_matches_count,
@@ -220,7 +221,8 @@ def update_profile():
         'user': {
             'username': user.username,
             'email': user.email,
-            'profile_picture': user.profile_picture
+            'profile_picture': user.profile_picture,
+            'points': getattr(user, 'points', 0) or 0
         }
     }), 200
 
@@ -336,6 +338,7 @@ def get_user_profile(user_id):
             'id': user.id,
             'username': user.username,
             'profile_picture': user.profile_picture,
+            'points': getattr(user, 'points', 0) or 0,
             'created_at': user.created_at.isoformat() if user.created_at else None,
         },
         'stats': {

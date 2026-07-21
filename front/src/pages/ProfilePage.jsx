@@ -233,6 +233,10 @@ export default function ProfilePage() {
             </button>
 
             <div className="profile-stats">
+              <div className="stat-item" style={{ background: 'rgba(245, 158, 11, 0.08)', border: '1px solid rgba(245, 158, 11, 0.2)', borderRadius: 'var(--radius-sm)', padding: '8px 16px' }}>
+                <span className="stat-value" style={{ color: 'var(--gold-light)' }}>⭐ {user.points || 0}</span>
+                <span className="stat-label">Puntos</span>
+              </div>
               <div className="stat-item">
                 <span className="stat-value">{user.groups_count}</span>
                 <span className="stat-label">Grupos</span>
