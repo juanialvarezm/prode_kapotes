@@ -745,9 +745,9 @@ export default function GroupsPage() {
                                       </span>
                                     </div>
 
-                                    {/* Payment Toggle (Only editable by owner) */}
+                                    {/* Payment Toggle (Editable by owner or match creator) */}
                                     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                                      {selected.is_owner ? (
+                                      {(selected.is_owner || String(m.creator_id) === String(currentUserId)) ? (
                                         <button
                                           onClick={() => handleTogglePayment(m.id, p.user_id, p.paid)}
                                           style={{

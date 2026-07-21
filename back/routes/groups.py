@@ -651,12 +651,12 @@ def toggle_organized_match_attendance(group_id, match_id):
 def toggle_participant_payment(group_id, match_id, user_id):
     current_user_id = get_jwt_identity()
     group = Group.query.get_or_404(group_id)
-
-    # Check if owner
-    if str(group.owner_id) != str(current_user_id):
-        return jsonify({'error': 'Solo el dueño del grupo puede registrar pagos.'}), 403
-
     match = GroupMatch.query.filter_by(id=match_id, group_id=group.id).first_or_404()
+
+    # Check if owner of the group or creator of the match
+    if str(group.owner_id) != str(current_user_id) and str(match.creator_id) != str(current_user_id):
+        return jsonify({'error': 'Solo el administrador del grupo o el creador del partido pueden registrar pagos.'}), 403
+
     participant = GroupMatchParticipant.query.filter_by(group_match_id=match.id, user_id=user_id).first_or_404()
 
     json_data = request.get_json(silent=True) or {}
