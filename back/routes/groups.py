@@ -6,7 +6,7 @@ from flask import jsonify, request, current_app
 from flask_jwt_extended import get_jwt_identity, jwt_required
 
 from db import db
-from models import User, Group, GroupMember, JoinRequest, Prediction, Match, GroupMatch, GroupMatchParticipant
+from models import User, Group, GroupMember, JoinRequest, Prediction, Match, GroupMatch, GroupMatchParticipant, GroupMatchMvpVote
 from .blueprint import bp
 from .helpers import allowed_file, validate_image
 
@@ -516,7 +516,31 @@ def get_organized_matches(group_id):
     matches = GroupMatch.query.filter_by(group_id=group.id).order_by(GroupMatch.match_date.desc()).all()
     
     result = []
+    from collections import Counter
+    now = datetime.utcnow()
+    
     for m in matches:
+        is_past = m.match_date < now
+        
+        # Count MVP votes for past matches
+        vote_counts = Counter()
+        my_vote = None
+        if is_past:
+            votes = [v.voted_id for v in m.mvp_votes]
+            vote_counts = Counter(votes)
+            for v in m.mvp_votes:
+                if v.voter_id == current_user_id:
+                    my_vote = v.voted_id
+                    break
+
+        # Calculate winner MVP ID
+        winner_mvp_id = None
+        if is_past and vote_counts:
+            max_votes = max(vote_counts.values())
+            if max_votes > 0:
+                candidates = [uid for uid, count in vote_counts.items() if count == max_votes]
+                winner_mvp_id = candidates[0]
+
         participants_list = []
         user_confirmed = False
         user_paid = False
@@ -527,7 +551,8 @@ def get_organized_matches(group_id):
                 'username': p.user.username,
                 'profile_picture': p.user.profile_picture,
                 'confirmed': p.confirmed,
-                'paid': p.paid
+                'paid': p.paid,
+                'votes_count': vote_counts.get(p.user.id, 0) if is_past else 0
             })
             if p.user_id == current_user_id:
                 user_confirmed = p.confirmed
@@ -543,7 +568,11 @@ def get_organized_matches(group_id):
             'creator_id': m.creator_id,
             'participants': participants_list,
             'is_confirmed': user_confirmed,
-            'is_paid': user_paid
+            'is_paid': user_paid,
+            'is_past': is_past,
+            'match_photo': m.match_photo,
+            'my_vote': my_vote,
+            'winner_mvp_id': winner_mvp_id
         })
         
     return jsonify({'matches': result}), 200
@@ -666,3 +695,114 @@ def toggle_participant_payment(group_id, match_id, user_id):
     db.session.commit()
 
     return jsonify({'message': 'Estado de pago actualizado con éxito.', 'paid': participant.paid}), 200
+
+
+@bp.route('/groups/<group_id>/organized-matches/<int:match_id>/vote-mvp', methods=['POST'])
+@jwt_required()
+def vote_organized_match_mvp(group_id, match_id):
+    current_user_id = get_jwt_identity()
+    group = Group.query.get_or_404(group_id)
+
+    # Check if user is member
+    membership = GroupMember.query.filter_by(group_id=group.id, user_id=current_user_id).first()
+    if not membership:
+        return jsonify({'error': 'No pertenecés a este grupo.'}), 403
+
+    match = GroupMatch.query.filter_by(id=match_id, group_id=group.id).first_or_404()
+
+    # Validate that match has finished
+    if match.match_date > datetime.utcnow():
+        return jsonify({'error': 'No podés votar antes de que termine el partido.'}), 400
+
+    # Read voted user id
+    json_data = request.get_json(silent=True) or {}
+    voted_id = json_data.get('voted_id')
+    if not voted_id:
+        return jsonify({'error': 'Debés especificar a quién votar.'}), 400
+
+    # Ensure current user is a confirmed participant of the match
+    voter_participant = GroupMatchParticipant.query.filter_by(group_match_id=match.id, user_id=current_user_id, confirmed=True).first()
+    if not voter_participant:
+        return jsonify({'error': 'Solo los jugadores confirmados que participaron del partido pueden votar.'}), 403
+
+    # Ensure voted user is a confirmed participant of the match
+    voted_participant = GroupMatchParticipant.query.filter_by(group_match_id=match.id, user_id=voted_id, confirmed=True).first()
+    if not voted_participant:
+        return jsonify({'error': 'El jugador votado debe ser un participante confirmado del partido.'}), 400
+
+    # Create or update vote
+    vote = GroupMatchMvpVote.query.filter_by(group_match_id=match.id, voter_id=current_user_id).first()
+    if not vote:
+        vote = GroupMatchMvpVote(group_match_id=match.id, voter_id=current_user_id, voted_id=voted_id)
+        db.session.add(vote)
+    else:
+        vote.voted_id = voted_id
+
+    db.session.commit()
+    return jsonify({'message': 'Voto registrado con éxito.'}), 200
+
+
+@bp.route('/groups/<group_id>/organized-matches/<int:match_id>/photo', methods=['POST'])
+@jwt_required()
+def upload_organized_match_photo(group_id, match_id):
+    current_user_id = get_jwt_identity()
+    group = Group.query.get_or_404(group_id)
+
+    # Check if user is member
+    membership = GroupMember.query.filter_by(group_id=group.id, user_id=current_user_id).first()
+    if not membership:
+        return jsonify({'error': 'No pertenecés a este grupo.'}), 403
+
+    match = GroupMatch.query.filter_by(id=match_id, group_id=group.id).first_or_404()
+
+    # Validate that match has finished
+    if match.match_date > datetime.utcnow():
+        return jsonify({'error': 'No podés subir fotos antes de que termine el partido.'}), 400
+
+    # Ensure uploader is confirmed participant or group owner
+    participant = GroupMatchParticipant.query.filter_by(group_match_id=match.id, user_id=current_user_id, confirmed=True).first()
+    is_owner = str(group.owner_id) == str(current_user_id)
+    if not participant and not is_owner:
+        return jsonify({'error': 'Solo los jugadores que participaron o el administrador pueden subir fotos.'}), 403
+
+    if 'photo' not in request.files:
+        return jsonify({'error': 'No file uploaded'}), 400
+
+    file = request.files['photo']
+    if file.filename == '':
+        return jsonify({'error': 'No selected file'}), 400
+
+    if not allowed_file(file.filename):
+        return jsonify({'error': 'Formato de imagen no permitido. Usa JPG, JPEG o PNG.'}), 400
+
+    # Upload to Cloudinary
+    try:
+        import cloudinary.uploader
+        
+        # If there is an existing photo, delete it first
+        if match.match_photo_id:
+            try:
+                cloudinary.uploader.destroy(match.match_photo_id)
+            except Exception as e:
+                print("Failed to delete old photo:", e)
+
+        # Upload new photo
+        result = cloudinary.uploader.upload(
+            file, 
+            folder='match_photos',
+            transformation=[
+                {"width": 800, "height": 600, "crop": "limit"},
+                {"quality": "auto:good"}
+            ]
+        )
+        
+        match.match_photo = result.get('secure_url')
+        match.match_photo_id = result.get('public_id')
+        db.session.commit()
+
+        return jsonify({
+            'message': 'Foto del partido subida con éxito.',
+            'match_photo': match.match_photo
+        }), 200
+    except Exception as e:
+        return jsonify({'error': f'Error al subir la imagen: {str(e)}'}), 500

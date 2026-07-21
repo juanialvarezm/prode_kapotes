@@ -17,6 +17,8 @@ import {
   deleteOrganizedMatch,
   toggleMatchAttendance,
   toggleParticipantPayment,
+  voteMatchMvp,
+  uploadMatchPhoto,
 } from '../api';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
@@ -146,6 +148,35 @@ export default function GroupsPage() {
       loadMatches(selected.id);
     } catch (err) {
       setError(err?.response?.data?.error || 'Error al actualizar pago.');
+    }
+  };
+
+  const handleVoteMvp = async (matchId, votedId) => {
+    if (!selected) return;
+    try {
+      await voteMatchMvp(selected.id, matchId, votedId);
+      setSuccess('¡Voto registrado con éxito!');
+      loadMatches(selected.id);
+    } catch (err) {
+      setError(err?.response?.data?.error || 'Error al registrar el voto.');
+    }
+  };
+
+  const handleUploadPhoto = async (matchId, file) => {
+    if (!selected || !file) return;
+    const formData = new FormData();
+    formData.append('photo', file);
+    setLoadingAction(true);
+    setError('');
+    setSuccess('');
+    try {
+      await uploadMatchPhoto(selected.id, matchId, formData);
+      setSuccess('¡Foto del recuerdo subida con éxito!');
+      loadMatches(selected.id);
+    } catch (err) {
+      setError(err?.response?.data?.error || 'Error al subir la foto.');
+    } finally {
+      setLoadingAction(false);
     }
   };
 
@@ -646,14 +677,20 @@ export default function GroupsPage() {
                     const dateFormatted = matchDateObj.toLocaleDateString('es-AR', { weekday: 'long', day: 'numeric', month: 'long' });
                     const timeFormatted = matchDateObj.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' });
                     
-                    const confirmedCount = m.participants.filter(p => p.confirmed).length;
-                    const costPerPerson = confirmedCount > 0 ? Math.round(m.price / confirmedCount) : m.price;
+                    const isPast = m.is_past;
                     
                     return (
                       <div key={m.id} className="card" style={{ padding: 18, border: '1px solid var(--border)', background: 'rgba(255,255,255,0.02)' }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 10, marginBottom: 14 }}>
                           <div>
-                            <h5 style={{ margin: 0, fontSize: '1.05rem', color: 'var(--text-primary)' }}>{m.title || 'Partido de fútbol'}</h5>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                              <h5 style={{ margin: 0, fontSize: '1.05rem', color: 'var(--text-primary)' }}>{m.title || 'Partido de fútbol'}</h5>
+                              {isPast && (
+                                <span style={{ fontSize: '0.65rem', background: 'rgba(16, 185, 129, 0.15)', color: 'var(--accent-light)', border: '1px solid rgba(16,185,129,0.25)', padding: '2px 8px', borderRadius: '12px', fontWeight: '700' }}>
+                                  🏆 Finalizado
+                                </span>
+                              )}
+                            </div>
                             <span style={{ fontSize: '0.8rem', color: 'var(--accent)', fontWeight: '600', textTransform: 'capitalize' }}>
                               📅 {dateFormatted} · ⏰ {timeFormatted} hs
                             </span>
@@ -693,28 +730,151 @@ export default function GroupsPage() {
                           </div>
                         </div>
 
-                        {/* Attend Button */}
-                        <div style={{ marginBottom: 14 }}>
-                          <button
-                            className={m.is_confirmed ? 'btn-danger-leave' : 'btn-primary'}
-                            onClick={() => handleToggleAttendance(m.id, m.is_confirmed)}
-                            style={{
-                              width: '100%',
-                              padding: '8px 16px',
-                              fontWeight: '600',
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              gap: 8,
-                              margin: 0,
-                              background: m.is_confirmed ? 'rgba(239, 68, 68, 0.15)' : '',
-                              border: m.is_confirmed ? '1px solid var(--danger)' : '',
-                              color: m.is_confirmed ? 'var(--danger-light)' : ''
-                            }}
-                          >
-                            {m.is_confirmed ? '❌ Cancelar mi Asistencia' : '🙋‍♂️ Confirmar mi Asistencia'}
-                          </button>
-                        </div>
+                        {/* Attend Button / Polaroid Memory & MVP voting for Past matches */}
+                        {!isPast ? (
+                          <div style={{ marginBottom: 14 }}>
+                            <button
+                              className={m.is_confirmed ? 'btn-danger-leave' : 'btn-primary'}
+                              onClick={() => handleToggleAttendance(m.id, m.is_confirmed)}
+                              style={{
+                                width: '100%',
+                                padding: '8px 16px',
+                                fontWeight: '600',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                gap: 8,
+                                margin: 0,
+                                background: m.is_confirmed ? 'rgba(239, 68, 68, 0.15)' : '',
+                                border: m.is_confirmed ? '1px solid var(--danger)' : '',
+                                color: m.is_confirmed ? 'var(--danger-light)' : ''
+                              }}
+                            >
+                              {m.is_confirmed ? '❌ Cancelar mi Asistencia' : '🙋‍♂️ Confirmar mi Asistencia'}
+                            </button>
+                          </div>
+                        ) : (
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: 16, marginBottom: 16, padding: 14, background: 'rgba(0,0,0,0.15)', borderRadius: 'var(--radius-sm)', border: '1px solid rgba(255,255,255,0.03)' }}>
+                            {/* Polaroid Memory Photo */}
+                            <div>
+                              <h6 style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: 10, display: 'flex', alignItems: 'center', gap: 6 }}>
+                                📸 Foto del Recuerdo del Partido
+                              </h6>
+                              {m.match_photo ? (
+                                <div style={{ 
+                                  background: '#fff', 
+                                  padding: '10px 10px 24px 10px', 
+                                  boxShadow: '0 8px 16px rgba(0,0,0,0.5)', 
+                                  transform: 'rotate(-1deg)',
+                                  maxWidth: '300px',
+                                  margin: '10px auto',
+                                  border: '1px solid #ddd'
+                                }}>
+                                  <div style={{ width: '100%', height: '180px', overflow: 'hidden', background: '#eee' }}>
+                                    <img 
+                                      src={m.match_photo} 
+                                      alt="Recuerdo del partido" 
+                                      style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+                                    />
+                                  </div>
+                                  <p style={{ 
+                                    margin: '10px 0 0 0', 
+                                    fontFamily: 'system-ui, sans-serif', 
+                                    fontSize: '0.85rem', 
+                                    color: '#222', 
+                                    textAlign: 'center',
+                                    fontWeight: 'bold',
+                                    textTransform: 'uppercase',
+                                    letterSpacing: '1px'
+                                  }}>
+                                    ⚽ {m.field_name}
+                                  </p>
+                                  
+                                  {/* Replace photo option */}
+                                  {(m.is_confirmed || selected.is_owner) && (
+                                    <div style={{ textAlign: 'center', marginTop: 10 }}>
+                                      <label style={{ fontSize: '0.7rem', color: 'var(--accent)', cursor: 'pointer', textDecoration: 'underline' }}>
+                                        Cambiar foto
+                                        <input
+                                          type="file"
+                                          accept="image/*"
+                                          style={{ display: 'none' }}
+                                          onChange={(e) => {
+                                            if (e.target.files && e.target.files[0]) {
+                                              handleUploadPhoto(m.id, e.target.files[0]);
+                                            }
+                                          }}
+                                        />
+                                      </label>
+                                    </div>
+                                  )}
+                                </div>
+                              ) : (
+                                <div>
+                                  {(m.is_confirmed || selected.is_owner) ? (
+                                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, padding: '16px', border: '1px dashed var(--border)', borderRadius: 'var(--radius-sm)', background: 'rgba(255,255,255,0.01)', textAlign: 'center' }}>
+                                      <span style={{ fontSize: '1.5rem' }}>📷</span>
+                                      <p style={{ margin: 0, fontSize: '0.75rem', color: 'var(--text-secondary)' }}>¡Inmortalizá el partido subiendo una foto del recuerdo!</p>
+                                      <label className="btn btn-secondary" style={{ width: 'auto', margin: 0, padding: '4px 10px', fontSize: '0.75rem', cursor: 'pointer' }}>
+                                        Subir Foto
+                                        <input
+                                          type="file"
+                                          accept="image/*"
+                                          style={{ display: 'none' }}
+                                          onChange={(e) => {
+                                            if (e.target.files && e.target.files[0]) {
+                                              handleUploadPhoto(m.id, e.target.files[0]);
+                                            }
+                                          }}
+                                        />
+                                      </label>
+                                    </div>
+                                  ) : (
+                                    <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontStyle: 'italic', textAlign: 'center', padding: '12px' }}>
+                                      Aún no se subió una foto del recuerdo de este partido.
+                                    </div>
+                                  )}
+                                </div>
+                              )}
+                            </div>
+
+                            {/* MVP Voting section */}
+                            {m.is_confirmed && (
+                              <div style={{ borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: 12 }}>
+                                <h6 style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 6 }}>
+                                  🗳️ Elegí al MVP (Jugador del Partido)
+                                </h6>
+                                <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+                                  <select
+                                    value={m.my_vote || ''}
+                                    onChange={(e) => handleVoteMvp(m.id, e.target.value)}
+                                    style={{
+                                      flex: 1,
+                                      padding: '8px 12px',
+                                      background: 'var(--bg-card)',
+                                      border: '1px solid var(--border)',
+                                      borderRadius: 'var(--radius-sm)',
+                                      color: 'var(--text-primary)',
+                                      fontSize: '0.8rem',
+                                      outline: 'none',
+                                      cursor: 'pointer'
+                                    }}
+                                  >
+                                    <option value="" disabled>Seleccioná al mejor jugador del partido...</option>
+                                    {m.participants
+                                      .filter(p => p.confirmed)
+                                      .map(p => (
+                                        <option key={p.user_id} value={p.user_id}>
+                                          {p.username} {p.user_id === currentUserId && '(Vos)'}
+                                        </option>
+                                      ))
+                                    }
+                                  </select>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        )}
 
                         {/* Participants list */}
                         <div>
@@ -730,6 +890,8 @@ export default function GroupsPage() {
                             <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                               {m.participants.map((p) => {
                                 const isCurrentUser = p.user_id === currentUserId;
+                                const isMvp = isPast && m.winner_mvp_id && p.user_id === m.winner_mvp_id;
+                                
                                 return (
                                   <div key={p.user_id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '6px 8px', borderRadius: 'var(--radius-sm)', background: 'rgba(255,255,255,0.01)', border: '1px solid rgba(255,255,255,0.02)' }}>
                                     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -740,13 +902,38 @@ export default function GroupsPage() {
                                           p.username.charAt(0).toUpperCase()
                                         )}
                                       </div>
-                                      <span style={{ fontSize: '0.85rem', fontWeight: isCurrentUser ? '600' : '400' }}>
+                                      <span style={{ fontSize: '0.85rem', fontWeight: isCurrentUser ? '600' : '400', display: 'flex', alignItems: 'center', gap: 6 }}>
                                         {p.username} {isCurrentUser && '(Vos)'}
+                                        {isMvp && (
+                                          <span 
+                                            style={{ 
+                                              fontSize: '0.65rem', 
+                                              background: 'rgba(245, 158, 11, 0.15)', 
+                                              color: 'var(--gold-light)', 
+                                              border: '1px solid rgba(245,158,11,0.25)', 
+                                              padding: '1px 6px', 
+                                              borderRadius: '10px', 
+                                              fontWeight: 'bold',
+                                              display: 'flex',
+                                              alignItems: 'center',
+                                              gap: 2
+                                            }}
+                                            title="Jugador del Partido (MVP) 🏆"
+                                          >
+                                            👑 MVP
+                                          </span>
+                                        )}
                                       </span>
                                     </div>
 
-                                    {/* Payment Toggle (Editable by owner or match creator) */}
+                                    {/* Payment Toggle or MVP Votes count */}
                                     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                                      {isPast && p.votes_count > 0 && (
+                                        <span style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', background: 'rgba(255,255,255,0.05)', padding: '2px 8px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.08)', marginRight: 4, fontWeight: '600' }}>
+                                          🗳️ {p.votes_count} {p.votes_count === 1 ? 'voto' : 'votos'}
+                                        </span>
+                                      )}
+                                      
                                       {(selected.is_owner || String(m.creator_id) === String(currentUserId)) ? (
                                         <button
                                           onClick={() => handleTogglePayment(m.id, p.user_id, p.paid)}

@@ -217,6 +217,8 @@ class GroupMatch(db.Model):
     match_date = db.Column(db.DateTime, nullable=False)
     field_name = db.Column(db.String(120), nullable=False)
     price = db.Column(db.Integer, nullable=False, default=0)
+    match_photo = db.Column(db.String(500), nullable=True)
+    match_photo_id = db.Column(db.String(100), nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     group = db.relationship('Group', backref=db.backref('matches_organized', lazy=True, cascade='all, delete-orphan'))
@@ -254,5 +256,22 @@ class FootballField(db.Model):
     image_url = db.Column(db.String(500), nullable=True)
     description = db.Column(db.Text, nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+
+class GroupMatchMvpVote(db.Model):
+    __tablename__ = 'group_match_mvp_votes'
+    id = db.Column(db.Integer, primary_key=True)
+    group_match_id = db.Column(db.Integer, db.ForeignKey('group_matches.id', ondelete='CASCADE'), nullable=False)
+    voter_id = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='CASCADE'), nullable=False)
+    voted_id = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='CASCADE'), nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    __table_args__ = (
+        db.UniqueConstraint('group_match_id', 'voter_id', name='unique_match_mvp_vote'),
+    )
+
+    group_match = db.relationship('GroupMatch', backref=db.backref('mvp_votes', lazy=True, cascade='all, delete-orphan'))
+    voter = db.relationship('User', foreign_keys=[voter_id], backref=db.backref('mvp_votes_cast', lazy=True))
+    voted = db.relationship('User', foreign_keys=[voted_id], backref=db.backref('mvp_votes_received', lazy=True))
 
 

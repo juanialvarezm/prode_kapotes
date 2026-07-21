@@ -253,6 +253,20 @@ export async function toggleParticipantPayment(groupId, matchId, userId, paid) {
   return axios.post(`${API_URL}/groups/${groupId}/organized-matches/${matchId}/participants/${userId}/pay`, { paid }, { headers: authHeaders() });
 }
 
+export async function voteMatchMvp(groupId, matchId, votedId) {
+  return axios.post(`${API_URL}/groups/${groupId}/organized-matches/${matchId}/vote-mvp`, { voted_id: votedId }, { headers: authHeaders() });
+}
+
+export async function uploadMatchPhoto(groupId, matchId, formData) {
+  const token = localStorage.getItem('token');
+  return axios.post(`${API_URL}/groups/${groupId}/organized-matches/${matchId}/photo`, formData, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'multipart/form-data',
+    },
+  });
+}
+
 
 // --- Football Fields ---
 
