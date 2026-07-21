@@ -4,8 +4,8 @@ from .blueprint import bp
 from . import general
 from . import auth
 from . import groups
-from . import matches
-from . import predictions
+# from . import matches
+# from . import predictions
 from . import wordle
-from . import leagues
+# from . import leagues
 from . import fields

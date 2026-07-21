@@ -130,7 +130,14 @@ def get_name():
         return jsonify({'error': 'User not found'}), 404
 
     groups_count = GroupMember.query.filter_by(user_id=user_id).count()
-    total_predictions = Prediction.query.filter_by(user_id=user_id).count()
+    
+    from datetime import datetime
+    from models import GroupMatch, GroupMatchParticipant
+    now = datetime.utcnow()
+    played_matches_count = GroupMatchParticipant.query.filter_by(user_id=user_id, confirmed=True)\
+        .join(GroupMatch)\
+        .filter(GroupMatch.match_date < now)\
+        .count()
 
     return jsonify({
         'id': user.id,
@@ -139,7 +146,7 @@ def get_name():
         'profile_picture': user.profile_picture,
         'created_at': user.created_at.isoformat() if user.created_at else None,
         'groups_count': groups_count,
-        'total_predictions': total_predictions,
+        'played_matches_count': played_matches_count,
     }), 200
 
 
@@ -260,50 +267,69 @@ def search_users():
 @bp.route('/users/<int:user_id>', methods=['GET'])
 @jwt_required()
 def get_user_profile(user_id):
+    from datetime import datetime
+    from collections import Counter
+    from models import GroupMatch, GroupMatchParticipant
+
     user = User.query.get_or_404(user_id)
 
-    # Optional pagination for predictions to support lazy loading
     page = request.args.get('page', 1, type=int)
     per_page = request.args.get('per_page', 10, type=int)
 
-    # Calculate stats across all predictions
-    all_predictions = Prediction.query.filter_by(user_id=user.id).join(Match).all()
-    total_predictions = len(all_predictions)
+    # Calculate stats across all match participations
+    participations = GroupMatchParticipant.query.filter_by(user_id=user.id, confirmed=True).join(GroupMatch).all()
+    
+    now = datetime.utcnow()
+    played_participations = [p for p in participations if p.group_match.match_date < now]
+    played_count = len(played_participations)
+    
+    paid_count = sum(1 for p in played_participations if p.paid)
+    pending_payment_count = played_count - paid_count
+    
+    upcoming_participations = [p for p in participations if p.group_match.match_date >= now]
+    upcoming_count = len(upcoming_participations)
 
-    played_predictions = [p for p in all_predictions if p.match.home_score is not None and p.match.away_score is not None]
-    played_count = len(played_predictions)
+    # Calculate estimated spent
+    total_spent = 0
+    for p in played_participations:
+        m = p.group_match
+        part_count = GroupMatchParticipant.query.filter_by(group_match_id=m.id, confirmed=True).count()
+        if part_count > 0:
+            total_spent += m.price / part_count
+    total_spent = round(total_spent)
 
-    exact_hits = sum(1 for p in played_predictions if p.is_exact())
-    winner_hits = sum(1 for p in played_predictions if p.is_winner())
-    outcome_only_hits = winner_hits - exact_hits
-    incorrect = played_count - winner_hits
+    # Calculate favorite fields (top 3)
+    field_counts = Counter(p.group_match.field_name for p in played_participations)
+    favorite_fields = [field for field, count in field_counts.most_common(3)]
 
-    effectiveness = round((winner_hits / played_count) * 100, 1) if played_count > 0 else 0
-
-    # Get paginated predictions
-    paginated_predictions = Prediction.query.filter_by(user_id=user.id)\
-        .join(Match)\
-        .order_by(Match.match_time.desc())\
+    # Get paginated matches
+    paginated_parts = GroupMatchParticipant.query.filter_by(user_id=user.id, confirmed=True)\
+        .join(GroupMatch)\
+        .order_by(GroupMatch.match_date.desc())\
         .offset((page - 1) * per_page)\
         .limit(per_page)\
         .all()
 
-    predictions_data = []
-    for p in paginated_predictions:
-        predictions_data.append({
-            'id': p.id,
-            'match_id': p.match_id,
-            'home_team': p.match.home_team,
-            'away_team': p.match.away_team,
-            'match_time': p.match.match_time.isoformat() + 'Z',
-            'match_status': p.match.status,
-            'home_score': p.match.home_score,
-            'away_score': p.match.away_score,
-            'predicted_home': p.predicted_home,
-            'predicted_away': p.predicted_away,
-            'is_exact': p.is_exact(),
-            'is_winner': p.is_winner()
+    matches_data = []
+    for p in paginated_parts:
+        m = p.group_match
+        part_count = GroupMatchParticipant.query.filter_by(group_match_id=m.id, confirmed=True).count()
+        cost_per_person = round(m.price / part_count) if part_count > 0 else m.price
+        
+        matches_data.append({
+            'id': m.id,
+            'title': m.title,
+            'match_date': m.match_date.isoformat() + 'Z',
+            'field_name': m.field_name,
+            'price': m.price,
+            'group_name': m.group.name if m.group else "Sin grupo",
+            'group_id': m.group_id,
+            'cost_per_person': cost_per_person,
+            'paid': p.paid,
+            'is_past': m.match_date < now
         })
+
+    total_matches = len(participations)
 
     return jsonify({
         'user': {
@@ -313,14 +339,13 @@ def get_user_profile(user_id):
             'created_at': user.created_at.isoformat() if user.created_at else None,
         },
         'stats': {
-            'total_predictions': total_predictions,
             'played_count': played_count,
-            'exact_hits': exact_hits,
-            'winner_hits': winner_hits,
-            'outcome_only_hits': outcome_only_hits,
-            'incorrect': incorrect,
-            'effectiveness': effectiveness
+            'paid_count': paid_count,
+            'pending_payment_count': pending_payment_count,
+            'upcoming_count': upcoming_count,
+            'total_spent': total_spent,
+            'favorite_fields': favorite_fields
         },
-        'predictions': predictions_data,
-        'has_more': (page * per_page) < total_predictions
+        'matches': matches_data,
+        'has_more': (page * per_page) < total_matches
     }), 200

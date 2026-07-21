@@ -574,6 +574,64 @@ fields_data = [
     }
 ]
 
+# Programmatic generation of 100 extra fields to reach 150 total fields
+import random
+random.seed(42)
+
+extra_names_prefixes = ["Complejo", "Fútbol", "Predio", "Club", "Arena", "La Canchita de", "Punto Gol", "Estación", "El Portón de", "Marangoni", "Doble Cinco", "La Catedral de"]
+extra_names_suffixes = ["Madero", "Palermo", "Belgrano", "Caballito", "San Isidro", "Vicente López", "Lanús", "Avellaneda", "Morón", "Ramos", "Devoto", "Urquiza", "Flores", "San Martín", "Quilmes", "Lomas", "Banfield", "Tigre", "Olivos", "Pilar", "Caseros", "San Miguel", "Moreno", "Haedo", "San Justo", "Escobar"]
+
+streets = ["Av. del Libertador", "Av. Rivadavia", "Av. Santa Fe", "Av. Cabildo", "Av. San Martín", "Av. Juan B. Justo", "Av. Corrientes", "Av. Córdoba", "Av. Triunvirato", "Av. de Mayo", "Av. Belgrano", "Av. Callao", "Av. Entre Ríos", "Av. Directorio", "Av. Asamblea", "Av. Beiró", "Av. Mitre", "Av. Hipólito Yrigoyen", "Calle Florida", "Calle San Martín", "Calle Paraná", "Calle Chacabuco", "Calle Maipú"]
+
+zones_list = ["CABA", "GBA Norte", "GBA Sur", "GBA Oeste"]
+surfaces_list = ["Césped Sintético", "Césped Natural", "Parquet", "Cemento"]
+field_types_list = ["F5", "F5, F7", "F5, F8", "F7, F9", "F8, F11", "F5, F7, F11"]
+
+features_pool = ["Techado", "Bar", "Vestuarios", "Parrilla", "Estacionamiento", "Iluminación LED", "Seguridad", "Wifi", "Cafetería", "Pantallas Gigantes", "Duchas", "Tribuna"]
+
+generated = 0
+used_combos = set()
+
+while generated < 100:
+    prefix = random.choice(extra_names_prefixes)
+    suffix = random.choice(extra_names_suffixes)
+    name = f"{prefix} {suffix}"
+    
+    # Avoid duplicate name
+    if name in [f["name"] for f in fields_data] or name in used_combos:
+        continue
+        
+    used_combos.add(name)
+    
+    zone = random.choice(zones_list)
+    street = random.choice(streets)
+    number = random.randint(100, 6500)
+    address = f"{street} {number}, {suffix}"
+    
+    phone = f"+54 11 {random.randint(4000, 4999)}-{random.randint(1000, 9999)}"
+    field_types = random.choice(field_types_list)
+    surface = random.choice(surfaces_list)
+    
+    num_features = random.randint(3, 5)
+    selected_features = ", ".join(random.sample(features_pool, num_features))
+    
+    image_url = random.choice(images)
+    description = f"Vení a jugar al fútbol en {name}. Contamos con excelentes canchas de {surface} y todos los servicios para tu grupo de amigos."
+    
+    fields_data.append({
+        "name": name,
+        "address": address,
+        "zone": zone,
+        "phone": phone,
+        "field_types": field_types,
+        "surface": surface,
+        "features": selected_features,
+        "description": description,
+        "image_url": image_url
+    })
+    generated += 1
+
+
 def seed():
     print(f"Starting seeding of {len(fields_data)} football fields...")
     count_added = 0

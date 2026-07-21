@@ -4,9 +4,6 @@ import AuthPage from './pages/AuthPage';
 import GroupsPage from './pages/GroupsPage';
 import JoinGroupPage from './pages/JoinGroupPage';
 import ProfilePage from './pages/ProfilePage';
-import MatchesPage from './pages/MatchesPage';
-import MatchDetail from './pages/MatchDetail';
-import PredictionsPage from './pages/PredictionsPage';
 import RequestsPage from './pages/RequestsPage';
 import GolTexto from './pages/GolTexto';
 import FutLegacy from './pages/FutLegacy';
@@ -17,7 +14,6 @@ import Footer from './components/Footer';
 import VerifyEmailPage from './pages/VerifyEmailPage';
 import { getMyGroups, getMyPendingRequests } from './api';
 import Wordle from './pages/Wordle';
-import LeaguePage from './pages/LeaguePage';
 
 const UserProfilePage = lazy(() => import('./pages/UserProfilePage'));
 const UsersSearchPage = lazy(() => import('./pages/UsersSearchPage'));
@@ -145,13 +141,9 @@ function App() {
               } />
               <Route path="/requests" element={<ProtectedRoute><RequestsPage /></ProtectedRoute>} />
               <Route path="/groups" element={<ProtectedRoute><GroupsPage /></ProtectedRoute>} />
-              <Route path="/matches" element={<ProtectedRoute><MatchesPage /></ProtectedRoute>} />
-              <Route path="/matches/:matchId" element={<ProtectedRoute><MatchDetail /></ProtectedRoute>} />
-              <Route path="/predictions" element={<ProtectedRoute><PredictionsPage /></ProtectedRoute>} />
               <Route path="/futwordle" element={<ProtectedRoute><Wordle /></ProtectedRoute>} />
               <Route path="/goltexto" element={<ProtectedRoute><GolTexto /></ProtectedRoute>} />
               <Route path="/futlegacy" element={<ProtectedRoute><FutLegacy /></ProtectedRoute>} />
-              <Route path="/leagues" element={<ProtectedRoute><LeaguePage /></ProtectedRoute>} />
               <Route path="/canchas" element={
                 <ProtectedRoute>
                   <Suspense fallback={

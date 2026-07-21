@@ -1,8 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 
 const navItems = [
-  { icon: '⚽', label: 'Partidos', path: '/matches', desc: 'Partidos del Mundial' },
-  { icon: '🔮', label: 'Predicciones', path: '/predictions', desc: 'Tus pronósticos' },
   { icon: '🧩', label: 'FutWordle', path: '/futwordle', desc: '¿Quién es este jugador?' },
   { icon: '⚡', label: 'GolTexto', path: '/goltexto', desc: 'Adiviná por club y nac.' },
   { icon: '👕', label: 'FutLegacy', path: '/futlegacy', desc: 'Adiviná por camisetas' },
@@ -43,7 +41,7 @@ export default function HomePage() {
         </nav>
 
         <div className="sidebar-footer">
-          <span>🏆 Mundial 2026</span>
+          <span>⚽ Organiza & Juega</span>
         </div>
       </aside>
 
@@ -66,24 +64,24 @@ export default function HomePage() {
 
             <p className="home-hero-subtitle">
               <span className="home-hero-brand"></span>{' '}
-              El prode más fácil para jugar con tus amigos.
+              La forma más fácil de organizar partidos de fútbol y encontrar canchas con tus amigos.
               <br />
             </p>
 
             <div className="home-hero-actions">
               <button
                 className="home-btn-primary"
-                onClick={() => navigate('/matches')}
-                id="btn-home-matches"
+                onClick={() => navigate('/canchas')}
+                id="btn-home-canchas"
               >
-                ⚽ Ver Partidos
+                🏟️ Buscar Canchas
               </button>
               <button
                 className="home-btn-secondary"
-                onClick={() => navigate('/predictions')}
-                id="btn-home-predictions"
+                onClick={() => navigate('/groups')}
+                id="btn-home-groups"
               >
-                🔮 Mis Predicciones
+                👥 Mis Grupos
               </button>
             </div>
           </div>
@@ -91,20 +89,20 @@ export default function HomePage() {
 
         {/* Quick stats / info cards */}
         <section className="home-cards-grid">
-          <div className="home-info-card" onClick={() => navigate('/matches')} role="button" tabIndex={0}>
-            <div className="home-info-card-icon">📅</div>
+          <div className="home-info-card" onClick={() => navigate('/canchas')} role="button" tabIndex={0}>
+            <div className="home-info-card-icon">🏟️</div>
             <div className="home-info-card-body">
-              <h3>Próximos Partidos</h3>
-              <p>Mirá el fixture y pronósticá antes de que arranquen.</p>
+              <h3>Buscar Canchas</h3>
+              <p>Explorá más de 150 complejos en CABA y alrededores.</p>
             </div>
             <span className="home-info-card-arrow">→</span>
           </div>
 
           <div className="home-info-card" onClick={() => navigate('/groups')} role="button" tabIndex={0}>
-            <div className="home-info-card-icon">🏆</div>
+            <div className="home-info-card-icon">👥</div>
             <div className="home-info-card-body">
-              <h3>Grupo</h3>
-              <p>Gestioná tus grupos y competí con amigos.</p>
+              <h3>Organizar Partidos</h3>
+              <p>Confirmá asistencia, gestioná pagos y jugá en grupo.</p>
             </div>
             <span className="home-info-card-arrow">→</span>
           </div>
