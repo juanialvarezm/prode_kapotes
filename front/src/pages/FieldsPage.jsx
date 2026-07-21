@@ -8,18 +8,18 @@ export default function FieldsPage() {
   const [fields, setFields] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  
+
   // Filter states
   const [search, setSearch] = useState('');
   const [selectedZone, setSelectedZone] = useState('Todos');
   const [selectedType, setSelectedType] = useState('Todos');
-  
+
   // Pagination states
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
   const [total, setTotal] = useState(0);
-  
+
   // Modal state
   const [selectedField, setSelectedField] = useState(null);
 
@@ -35,10 +35,10 @@ export default function FieldsPage() {
       if (search) filters.q = search;
       if (selectedZone !== 'Todos') filters.zone = selectedZone;
       if (selectedType !== 'Todos') filters.type = selectedType;
-      
+
       const res = await getFootballFields(filters);
       const data = res.data;
-      
+
       if (append) {
         setFields((prev) => [...prev, ...data.fields]);
       } else {
@@ -86,7 +86,7 @@ export default function FieldsPage() {
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
         <h2 className="page-title" style={{ marginBottom: 0 }}><span className="icon">🏟️</span> Canchas de Fútbol</h2>
         <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
-          {total} complexes encontrados
+          {total} complejos encontrados
         </span>
       </div>
 
@@ -504,7 +504,7 @@ export default function FieldsPage() {
           </div>
         </div>
       )}
-      
+
       {/* CSS injection for modal zoom */}
       <style>{`
         @keyframes modal-zoom {
