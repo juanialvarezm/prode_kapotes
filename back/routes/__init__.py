@@ -8,3 +8,4 @@ from . import matches
 from . import predictions
 from . import wordle
 from . import leagues
+from . import fields

@@ -240,3 +240,19 @@ class GroupMatchParticipant(db.Model):
         db.UniqueConstraint('group_match_id', 'user_id', name='unique_match_participant'),
     )
 
+
+class FootballField(db.Model):
+    __tablename__ = 'football_fields'
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(120), nullable=False)
+    address = db.Column(db.String(255), nullable=False)
+    zone = db.Column(db.String(60), nullable=False)  # e.g. "CABA", "GBA Norte", etc.
+    phone = db.Column(db.String(60), nullable=True)
+    field_types = db.Column(db.String(120), nullable=False)  # e.g. "F5, F7, F8"
+    surface = db.Column(db.String(60), nullable=False)  # e.g. "Césped Sintético", "Natural"
+    features = db.Column(db.String(255), nullable=True)  # e.g. "Estacionamiento, Buffet, Vestuarios"
+    image_url = db.Column(db.String(500), nullable=True)
+    description = db.Column(db.Text, nullable=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+

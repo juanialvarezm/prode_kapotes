@@ -254,3 +254,15 @@ export async function toggleParticipantPayment(groupId, matchId, userId, paid) {
 }
 
 
+// --- Football Fields ---
+
+export async function getFootballFields(filters = {}) {
+  return axios.get(`${API_URL}/fields`, { params: filters, headers: authHeaders() });
+}
+
+export async function getFootballFieldById(fieldId) {
+  return axios.get(`${API_URL}/fields/${fieldId}`, { headers: authHeaders() });
+}
+
+
+

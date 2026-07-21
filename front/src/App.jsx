@@ -21,6 +21,7 @@ import LeaguePage from './pages/LeaguePage';
 
 const UserProfilePage = lazy(() => import('./pages/UserProfilePage'));
 const UsersSearchPage = lazy(() => import('./pages/UsersSearchPage'));
+const FieldsPage = lazy(() => import('./pages/FieldsPage'));
 
 // Protected Route Component - redirects to /auth if no token
 function ProtectedRoute({ children }) {
@@ -151,6 +152,18 @@ function App() {
               <Route path="/goltexto" element={<ProtectedRoute><GolTexto /></ProtectedRoute>} />
               <Route path="/futlegacy" element={<ProtectedRoute><FutLegacy /></ProtectedRoute>} />
               <Route path="/leagues" element={<ProtectedRoute><LeaguePage /></ProtectedRoute>} />
+              <Route path="/canchas" element={
+                <ProtectedRoute>
+                  <Suspense fallback={
+                    <div className="card empty-state">
+                      <span className="empty-icon">⏳</span>
+                      <p>Cargando canchas...</p>
+                    </div>
+                  }>
+                    <FieldsPage />
+                  </Suspense>
+                </ProtectedRoute>
+              } />
               {/* Fallback */}
               <Route path="*" element={<Navigate to="/" />} />
             </Routes>

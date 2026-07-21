@@ -6,6 +6,7 @@ const navItems = [
   { icon: '🧩', label: 'FutWordle', path: '/futwordle', desc: '¿Quién es este jugador?' },
   { icon: '⚡', label: 'GolTexto', path: '/goltexto', desc: 'Adiviná por club y nac.' },
   { icon: '👕', label: 'FutLegacy', path: '/futlegacy', desc: 'Adiviná por camisetas' },
+  { icon: '🏟️', label: 'Canchas', path: '/canchas', desc: 'Alquiler de complejos reales' },
   { icon: '👤', label: 'Perfil', path: '/profile', desc: 'Tu cuenta' },
 ];
 
