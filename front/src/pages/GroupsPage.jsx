@@ -350,35 +350,44 @@ export default function GroupsPage() {
       )}
 
       {groups.length > 0 && (
-        <div className="groups-container-grid">
-          {/* Sidebar Panel with group list */}
-          <div className="groups-sidebar-panel">
-            <ul className="group-list">
-              {groups.map((g) => (
-                <li
-                  key={g.id}
-                  className={selected?.id === g.id ? 'active' : ''}
-                  onClick={() => onSelectGroup(g.id)}
-                >
-                  <div className="group-list-item-content">
-                    <div className="group-list-avatar">
-                      {g.avatar_url ? (
-                        <img src={getAvatarUrl(g.avatar_url)} alt={g.name} />
-                      ) : (
-                        g.name.charAt(0).toUpperCase()
-                      )}
-                    </div>
-                    <span>{g.name}</span>
-                  </div>
-                </li>
-              ))}
-            </ul>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+          {/* Horizontal selector chips */}
+          <div style={{ display: 'flex', gap: 12, overflowX: 'auto', paddingBottom: 8, marginBottom: 8, scrollbarWidth: 'thin' }}>
+            {groups.map((g) => (
+              <button
+                key={g.id}
+                onClick={() => onSelectGroup(g.id)}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 10,
+                  padding: '8px 16px',
+                  borderRadius: '30px',
+                  border: selected?.id === g.id ? '2px solid var(--accent)' : '1px solid var(--border)',
+                  background: selected?.id === g.id ? 'rgba(16, 185, 129, 0.1)' : 'var(--bg-card-solid)',
+                  color: selected?.id === g.id ? 'var(--accent-light)' : 'var(--text-primary)',
+                  cursor: 'pointer',
+                  fontWeight: '600',
+                  whiteSpace: 'nowrap',
+                  transition: 'all 0.2s',
+                  boxShadow: selected?.id === g.id ? '0 0 12px rgba(16, 185, 129, 0.2)' : 'none'
+                }}
+              >
+                <div style={{ width: 26, height: 26, borderRadius: '50%', overflow: 'hidden', background: 'var(--accent-dark)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.8rem', fontWeight: 'bold', color: '#fff', flexShrink: 0 }}>
+                  {g.avatar_url ? (
+                    <img src={getAvatarUrl(g.avatar_url)} alt={g.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  ) : (
+                    g.name.charAt(0).toUpperCase()
+                  )}
+                </div>
+                <span>{g.name}</span>
+              </button>
+            ))}
           </div>
 
-          {/* Main info panel */}
-          <div className="groups-main-panel">
-            {selected ? (
-              <div className="group-info-card" style={{ marginTop: 0 }}>
+          {/* Active Group Details Card */}
+          {selected ? (
+            <div className="group-info-card" style={{ marginTop: 0 }}>
           {/* Group header with avatar */}
           <div className="group-detail-header">
             <div className="group-detail-avatar">
@@ -1008,7 +1017,6 @@ export default function GroupsPage() {
                 <p>Seleccioná un grupo de la lista para ver los detalles.</p>
               </div>
             )}
-          </div>
         </div>
       )}
     </>
