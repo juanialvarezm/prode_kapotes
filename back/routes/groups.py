@@ -505,7 +505,7 @@ def invite_wpp(group_id):
 @bp.route('/groups/<int:group_id>/organized-matches', methods=['GET'])
 @jwt_required()
 def get_organized_matches(group_id):
-    current_user_id = get_jwt_identity()
+    current_user_id = int(get_jwt_identity())
     group = Group.query.get_or_404(group_id)
 
     # Check if user is member
@@ -581,7 +581,7 @@ def get_organized_matches(group_id):
 @bp.route('/groups/<int:group_id>/organized-matches', methods=['POST'])
 @jwt_required()
 def create_organized_match(group_id):
-    current_user_id = get_jwt_identity()
+    current_user_id = int(get_jwt_identity())
     group = Group.query.get_or_404(group_id)
 
     # Check if member
@@ -628,7 +628,7 @@ def create_organized_match(group_id):
 @bp.route('/groups/<int:group_id>/organized-matches/<int:match_id>', methods=['DELETE'])
 @jwt_required()
 def delete_organized_match(group_id, match_id):
-    current_user_id = get_jwt_identity()
+    current_user_id = int(get_jwt_identity())
     group = Group.query.get_or_404(group_id)
 
     match = GroupMatch.query.filter_by(id=match_id, group_id=group.id).first_or_404()
@@ -646,7 +646,7 @@ def delete_organized_match(group_id, match_id):
 @bp.route('/groups/<int:group_id>/organized-matches/<int:match_id>/attend', methods=['POST'])
 @jwt_required()
 def toggle_organized_match_attendance(group_id, match_id):
-    current_user_id = get_jwt_identity()
+    current_user_id = int(get_jwt_identity())
     group = Group.query.get_or_404(group_id)
 
     # Check if user is member
@@ -678,7 +678,7 @@ def toggle_organized_match_attendance(group_id, match_id):
 @bp.route('/groups/<int:group_id>/organized-matches/<int:match_id>/participants/<int:user_id>/pay', methods=['POST'])
 @jwt_required()
 def toggle_participant_payment(group_id, match_id, user_id):
-    current_user_id = get_jwt_identity()
+    current_user_id = int(get_jwt_identity())
     group = Group.query.get_or_404(group_id)
     match = GroupMatch.query.filter_by(id=match_id, group_id=group.id).first_or_404()
 
@@ -700,7 +700,7 @@ def toggle_participant_payment(group_id, match_id, user_id):
 @bp.route('/groups/<group_id>/organized-matches/<int:match_id>/vote-mvp', methods=['POST'])
 @jwt_required()
 def vote_organized_match_mvp(group_id, match_id):
-    current_user_id = get_jwt_identity()
+    current_user_id = int(get_jwt_identity())
     group = Group.query.get_or_404(group_id)
 
     # Check if user is member
@@ -745,7 +745,7 @@ def vote_organized_match_mvp(group_id, match_id):
 @bp.route('/groups/<group_id>/organized-matches/<int:match_id>/photo', methods=['POST'])
 @jwt_required()
 def upload_organized_match_photo(group_id, match_id):
-    current_user_id = get_jwt_identity()
+    current_user_id = int(get_jwt_identity())
     group = Group.query.get_or_404(group_id)
 
     # Check if user is member
