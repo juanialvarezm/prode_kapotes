@@ -230,3 +230,27 @@ export async function removeLeagueMember(leagueId, userId) {
   return axios.delete(`${API_URL}/leagues/${leagueId}/members/${userId}`, { headers: authHeaders() });
 }
 
+
+// --- Organized Matches ---
+
+export async function getOrganizedMatches(groupId) {
+  return axios.get(`${API_URL}/groups/${groupId}/organized-matches`, { headers: authHeaders() });
+}
+
+export async function createOrganizedMatch(groupId, matchData) {
+  return axios.post(`${API_URL}/groups/${groupId}/organized-matches`, matchData, { headers: authHeaders() });
+}
+
+export async function deleteOrganizedMatch(groupId, matchId) {
+  return axios.delete(`${API_URL}/groups/${groupId}/organized-matches/${matchId}`, { headers: authHeaders() });
+}
+
+export async function toggleMatchAttendance(groupId, matchId, confirmed) {
+  return axios.post(`${API_URL}/groups/${groupId}/organized-matches/${matchId}/attend`, { confirmed }, { headers: authHeaders() });
+}
+
+export async function toggleParticipantPayment(groupId, matchId, userId, paid) {
+  return axios.post(`${API_URL}/groups/${groupId}/organized-matches/${matchId}/participants/${userId}/pay`, { paid }, { headers: authHeaders() });
+}
+
+

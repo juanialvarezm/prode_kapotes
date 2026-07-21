@@ -202,3 +202,41 @@ class LeagueMember(db.Model):
     __table_args__ = (
         db.UniqueConstraint('league_id', 'user_id', name='unique_league_member'),
     )
+
+
+# ============================================================
+#  ORGANIZED MATCHES FEATURE
+# ============================================================
+
+class GroupMatch(db.Model):
+    __tablename__ = 'group_matches'
+    id = db.Column(db.Integer, primary_key=True)
+    group_id = db.Column(db.Integer, db.ForeignKey('groups.id'), nullable=False)
+    creator_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    title = db.Column(db.String(120), nullable=False, default="Partido de fútbol")
+    match_date = db.Column(db.DateTime, nullable=False)
+    field_name = db.Column(db.String(120), nullable=False)
+    price = db.Column(db.Integer, nullable=False, default=0)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    group = db.relationship('Group', backref=db.backref('matches_organized', lazy=True, cascade='all, delete-orphan'))
+    creator = db.relationship('User', backref=db.backref('matches_created', lazy=True))
+    participants = db.relationship('GroupMatchParticipant', back_populates='group_match', lazy=True, cascade='all, delete-orphan')
+
+
+class GroupMatchParticipant(db.Model):
+    __tablename__ = 'group_match_participants'
+    id = db.Column(db.Integer, primary_key=True)
+    group_match_id = db.Column(db.Integer, db.ForeignKey('group_matches.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    confirmed = db.Column(db.Boolean, nullable=False, default=True)
+    paid = db.Column(db.Boolean, nullable=False, default=False)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    group_match = db.relationship('GroupMatch', back_populates='participants')
+    user = db.relationship('User', backref=db.backref('match_participations', lazy=True))
+
+    __table_args__ = (
+        db.UniqueConstraint('group_match_id', 'user_id', name='unique_match_participant'),
+    )
+

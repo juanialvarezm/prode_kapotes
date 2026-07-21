@@ -6,7 +6,7 @@ from flask import jsonify, request, current_app
 from flask_jwt_extended import get_jwt_identity, jwt_required
 
 from db import db
-from models import User, Group, GroupMember, JoinRequest, Prediction, Match
+from models import User, Group, GroupMember, JoinRequest, Prediction, Match, GroupMatch, GroupMatchParticipant
 from .blueprint import bp
 from .helpers import allowed_file, validate_image
 
@@ -496,3 +496,171 @@ def invite_wpp(group_id):
     whatsapp_url = f"https://api.whatsapp.com/send?text={encoded_message}"
     
     return jsonify({'whatsapp_url': whatsapp_url}), 200
+
+
+# ============================================================
+#  ORGANIZED MATCHES ENDPOINTS
+# ============================================================
+
+@bp.route('/groups/<int:group_id>/organized-matches', methods=['GET'])
+@jwt_required()
+def get_organized_matches(group_id):
+    current_user_id = get_jwt_identity()
+    group = Group.query.get_or_404(group_id)
+
+    # Check if user is member
+    membership = GroupMember.query.filter_by(group_id=group.id, user_id=current_user_id).first()
+    if not membership:
+        return jsonify({'error': 'No pertenecés a este grupo.'}), 403
+
+    matches = GroupMatch.query.filter_by(group_id=group.id).order_by(GroupMatch.match_date.desc()).all()
+    
+    result = []
+    for m in matches:
+        participants_list = []
+        user_confirmed = False
+        user_paid = False
+        
+        for p in m.participants:
+            participants_list.append({
+                'user_id': p.user.id,
+                'username': p.user.username,
+                'profile_picture': p.user.profile_picture,
+                'confirmed': p.confirmed,
+                'paid': p.paid
+            })
+            if p.user_id == current_user_id:
+                user_confirmed = p.confirmed
+                user_paid = p.paid
+                
+        result.append({
+            'id': m.id,
+            'title': m.title,
+            'match_date': m.match_date.isoformat(),
+            'field_name': m.field_name,
+            'price': m.price,
+            'created_at': m.created_at.isoformat() if m.created_at else None,
+            'creator_id': m.creator_id,
+            'participants': participants_list,
+            'is_confirmed': user_confirmed,
+            'is_paid': user_paid
+        })
+        
+    return jsonify({'matches': result}), 200
+
+
+@bp.route('/groups/<int:group_id>/organized-matches', methods=['POST'])
+@jwt_required()
+def create_organized_match(group_id):
+    current_user_id = get_jwt_identity()
+    group = Group.query.get_or_404(group_id)
+
+    # Check if owner
+    if str(group.owner_id) != str(current_user_id):
+        return jsonify({'error': 'Solo el dueño del grupo puede organizar partidos.'}), 403
+
+    json_data = request.get_json(silent=True) or {}
+    title = json_data.get('title') or 'Partido de fútbol'
+    date_str = json_data.get('match_date')
+    field_name = json_data.get('field_name')
+    price = json_data.get('price', 0)
+
+    if not date_str or not field_name:
+        return jsonify({'error': 'La fecha y la cancha son obligatorias.'}), 400
+
+    try:
+        if date_str.endswith('Z'):
+            date_str = date_str[:-1]
+        match_date = datetime.fromisoformat(date_str)
+    except Exception:
+        return jsonify({'error': 'Formato de fecha inválido.'}), 400
+
+    try:
+        price = int(price)
+    except ValueError:
+        price = 0
+
+    match = GroupMatch(
+        group_id=group.id,
+        creator_id=current_user_id,
+        title=title,
+        match_date=match_date,
+        field_name=field_name,
+        price=price
+    )
+    db.session.add(match)
+    db.session.commit()
+
+    return jsonify({'message': 'Partido organizado con éxito.', 'match_id': match.id}), 201
+
+
+@bp.route('/groups/<int:group_id>/organized-matches/<int:match_id>', methods=['DELETE'])
+@jwt_required()
+def delete_organized_match(group_id, match_id):
+    current_user_id = get_jwt_identity()
+    group = Group.query.get_or_404(group_id)
+
+    # Check if owner
+    if str(group.owner_id) != str(current_user_id):
+        return jsonify({'error': 'Solo el dueño del grupo puede eliminar partidos.'}), 403
+
+    match = GroupMatch.query.filter_by(id=match_id, group_id=group.id).first_or_404()
+    
+    db.session.delete(match)
+    db.session.commit()
+
+    return jsonify({'message': 'Partido eliminado con éxito.'}), 200
+
+
+@bp.route('/groups/<int:group_id>/organized-matches/<int:match_id>/attend', methods=['POST'])
+@jwt_required()
+def toggle_organized_match_attendance(group_id, match_id):
+    current_user_id = get_jwt_identity()
+    group = Group.query.get_or_404(group_id)
+
+    # Check if user is member
+    membership = GroupMember.query.filter_by(group_id=group.id, user_id=current_user_id).first()
+    if not membership:
+        return jsonify({'error': 'No pertenecés a este grupo.'}), 403
+
+    match = GroupMatch.query.filter_by(id=match_id, group_id=group.id).first_or_404()
+
+    json_data = request.get_json(silent=True) or {}
+    confirmed = json_data.get('confirmed', True)
+
+    participant = GroupMatchParticipant.query.filter_by(group_match_id=match.id, user_id=current_user_id).first()
+
+    if confirmed:
+        if not participant:
+            participant = GroupMatchParticipant(group_match_id=match.id, user_id=current_user_id, confirmed=True, paid=False)
+            db.session.add(participant)
+        else:
+            participant.confirmed = True
+    else:
+        if participant:
+            db.session.delete(participant)
+
+    db.session.commit()
+    return jsonify({'message': 'Asistencia actualizada con éxito.'}), 200
+
+
+@bp.route('/groups/<int:group_id>/organized-matches/<int:match_id>/participants/<int:user_id>/pay', methods=['POST'])
+@jwt_required()
+def toggle_participant_payment(group_id, match_id, user_id):
+    current_user_id = get_jwt_identity()
+    group = Group.query.get_or_404(group_id)
+
+    # Check if owner
+    if str(group.owner_id) != str(current_user_id):
+        return jsonify({'error': 'Solo el dueño del grupo puede registrar pagos.'}), 403
+
+    match = GroupMatch.query.filter_by(id=match_id, group_id=group.id).first_or_404()
+    participant = GroupMatchParticipant.query.filter_by(group_match_id=match.id, user_id=user_id).first_or_404()
+
+    json_data = request.get_json(silent=True) or {}
+    paid = json_data.get('paid', True)
+
+    participant.paid = paid
+    db.session.commit()
+
+    return jsonify({'message': 'Estado de pago actualizado con éxito.', 'paid': participant.paid}), 200
