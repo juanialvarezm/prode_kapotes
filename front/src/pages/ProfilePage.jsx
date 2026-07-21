@@ -234,7 +234,7 @@ export default function ProfilePage() {
 
             <div className="profile-stats">
               <div className="stat-item" style={{ background: 'rgba(245, 158, 11, 0.08)', border: '1px solid rgba(245, 158, 11, 0.2)', borderRadius: 'var(--radius-sm)', padding: '8px 16px' }}>
-                <span className="stat-value" style={{ color: 'var(--gold-light)' }}>⭐ {user.points || 0}</span>
+                <span className="stat-value">⭐ {user.points || 0}</span>
                 <span className="stat-label">Puntos</span>
               </div>
               <div className="stat-item">
@@ -464,7 +464,7 @@ export default function ProfilePage() {
                               ${m.cost_per_person.toLocaleString('es-AR')}
                             </span>
                           </div>
-                          
+
                           <div>
                             {m.is_past ? (
                               m.paid ? (
