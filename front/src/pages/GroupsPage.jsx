@@ -678,6 +678,8 @@ export default function GroupsPage() {
                     const timeFormatted = matchDateObj.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' });
                     
                     const isPast = m.is_past;
+                    const confirmedCount = m.participants.filter(p => p.confirmed).length;
+                    const costPerPerson = confirmedCount > 0 ? Math.round(m.price / confirmedCount) : m.price;
                     
                     return (
                       <div key={m.id} className="card" style={{ padding: 18, border: '1px solid var(--border)', background: 'rgba(255,255,255,0.02)' }}>
