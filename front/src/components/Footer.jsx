@@ -7,10 +7,10 @@ export default function Footer() {
     <footer className="site-footer">
       <div className="footer-inner">
         <div className="footer-brand">
-          ⚽ <span>Prode Kapotes</span> — Mundial 2026
+          ⚽ <span>Prode Kapotes</span>
         </div>
         <div className="footer-sub">
-          Competí con tus amigos prediciendo los resultados. ¡Que gane el mejor!
+          Organizá el partido de los viernes sin volverte loco!
         </div>
         <div className="footer-links">
           <button
