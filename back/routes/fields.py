@@ -27,7 +27,14 @@ def get_fields():
             (FootballField.address.like(f"%{search}%"))
         )
         
-    fields = query.order_by(FootballField.name.asc()).all()
+    page = request.args.get('page', 1, type=int)
+    per_page = request.args.get('per_page', 12, type=int)
+    
+    total = query.count()
+    fields = query.order_by(FootballField.name.asc())\
+                  .offset((page - 1) * per_page)\
+                  .limit(per_page)\
+                  .all()
     
     result = []
     for f in fields:
@@ -44,7 +51,11 @@ def get_fields():
             'description': f.description
         })
         
-    return jsonify({'fields': result}), 200
+    return jsonify({
+        'fields': result,
+        'has_more': (page * per_page) < total,
+        'total': total
+    }), 200
 
 
 @bp.route('/fields/<int:field_id>', methods=['GET'])

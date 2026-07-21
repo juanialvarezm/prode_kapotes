@@ -14,35 +14,61 @@ export default function FieldsPage() {
   const [selectedZone, setSelectedZone] = useState('Todos');
   const [selectedType, setSelectedType] = useState('Todos');
   
+  // Pagination states
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [total, setTotal] = useState(0);
+  
   // Modal state
   const [selectedField, setSelectedField] = useState(null);
 
-  const fetchFields = async () => {
-    setLoading(true);
+  const fetchFields = async (pageNum = 1, append = false) => {
+    if (pageNum === 1) {
+      setLoading(true);
+    } else {
+      setLoadingMore(true);
+    }
     setError('');
     try {
-      const filters = {};
+      const filters = { page: pageNum, per_page: 12 };
       if (search) filters.q = search;
       if (selectedZone !== 'Todos') filters.zone = selectedZone;
       if (selectedType !== 'Todos') filters.type = selectedType;
       
       const res = await getFootballFields(filters);
-      setFields(res.data.fields || []);
+      const data = res.data;
+      
+      if (append) {
+        setFields((prev) => [...prev, ...data.fields]);
+      } else {
+        setFields(data.fields || []);
+      }
+      setHasMore(data.has_more || false);
+      setTotal(data.total || 0);
+      setPage(pageNum);
     } catch (err) {
       setError('No se pudieron cargar los complejos deportivos.');
     } finally {
       setLoading(false);
+      setLoadingMore(false);
     }
   };
 
   // Fetch when filters change (with a minor debounce for search)
   useEffect(() => {
     const delayDebounce = setTimeout(() => {
-      fetchFields();
+      fetchFields(1, false);
     }, 300);
 
     return () => clearTimeout(delayDebounce);
   }, [search, selectedZone, selectedType]);
+
+  const handleLoadMore = () => {
+    if (!loadingMore && hasMore) {
+      fetchFields(page + 1, true);
+    }
+  };
 
   const handleOpenGoogleMaps = (address) => {
     const encodedAddress = encodeURIComponent(address + ", Buenos Aires, Argentina");
@@ -60,7 +86,7 @@ export default function FieldsPage() {
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
         <h2 className="page-title" style={{ marginBottom: 0 }}><span className="icon">🏟️</span> Canchas de Fútbol</h2>
         <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
-          {fields.length} complexes encontrados
+          {total} complexes encontrados
         </span>
       </div>
 
@@ -152,101 +178,121 @@ export default function FieldsPage() {
           <p>No se encontraron complejos deportivos con los filtros aplicados.</p>
         </div>
       ) : (
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
-          gap: 20
-        }}>
-          {fields.map((f) => (
-            <div
-              key={f.id}
-              className="card"
-              onClick={() => setSelectedField(f)}
-              style={{
-                display: 'flex',
-                flexDirection: 'column',
-                cursor: 'pointer',
-                overflow: 'hidden',
-                padding: 0,
-                border: '1px solid var(--border)',
-                background: 'var(--bg-card-solid)',
-                transition: 'transform 0.2s, border-color 0.2s, box-shadow 0.2s',
-                hover: {
-                  transform: 'translateY(-4px)',
-                  borderColor: 'var(--accent)',
-                  boxShadow: 'var(--shadow-glow)'
-                }
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.transform = 'translateY(-4px)';
-                e.currentTarget.style.borderColor = 'var(--accent)';
-                e.currentTarget.style.boxShadow = 'var(--shadow-glow)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.transform = 'translateY(0)';
-                e.currentTarget.style.borderColor = 'var(--border)';
-                e.currentTarget.style.boxShadow = 'none';
-              }}
-            >
-              {/* Complex Image */}
-              <div style={{ height: 160, width: '100%', overflow: 'hidden', position: 'relative' }}>
-                <img
-                  src={f.image_url}
-                  alt={f.name}
-                  style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.3s' }}
-                />
-                <span style={{
-                  position: 'absolute',
-                  top: 12,
-                  right: 12,
-                  background: 'rgba(0,0,0,0.75)',
-                  backdropFilter: 'blur(4px)',
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
+            gap: 20
+          }}>
+            {fields.map((f) => (
+              <div
+                key={f.id}
+                className="card"
+                onClick={() => setSelectedField(f)}
+                style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  cursor: 'pointer',
+                  overflow: 'hidden',
+                  padding: 0,
                   border: '1px solid var(--border)',
-                  color: 'var(--accent-light)',
-                  padding: '4px 10px',
-                  borderRadius: '20px',
-                  fontSize: '0.7rem',
-                  fontWeight: '700'
-                }}>
-                  📍 {f.zone}
-                </span>
-              </div>
-
-              {/* Complex details */}
-              <div style={{ padding: 16, display: 'flex', flexDirection: 'column', flex: 1 }}>
-                <h4 style={{ margin: '0 0 4px 0', fontSize: '1.1rem', color: 'var(--text-primary)' }}>{f.name}</h4>
-                <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', margin: '0 0 12px 0', display: 'flex', alignItems: 'center', gap: 4 }}>
-                  <span>📍</span> {f.address}
-                </p>
-
-                {/* Badges types */}
-                <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 12 }}>
-                  <span style={{ fontSize: '0.7rem', background: 'rgba(245, 158, 11, 0.15)', color: 'var(--gold-light)', border: '1px solid rgba(245,158,11,0.25)', padding: '3px 8px', borderRadius: '4px', fontWeight: '600' }}>
-                    🥅 {f.field_types}
-                  </span>
-                  <span style={{ fontSize: '0.7rem', background: 'rgba(16, 185, 129, 0.1)', color: 'var(--accent-light)', border: '1px solid rgba(16,185,129,0.2)', padding: '3px 8px', borderRadius: '4px', fontWeight: '600' }}>
-                    🌱 {f.surface}
+                  background: 'var(--bg-card-solid)',
+                  transition: 'transform 0.2s, border-color 0.2s, box-shadow 0.2s',
+                  hover: {
+                    transform: 'translateY(-4px)',
+                    borderColor: 'var(--accent)',
+                    boxShadow: 'var(--shadow-glow)'
+                  }
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = 'translateY(-4px)';
+                  e.currentTarget.style.borderColor = 'var(--accent)';
+                  e.currentTarget.style.boxShadow = 'var(--shadow-glow)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.borderColor = 'var(--border)';
+                  e.currentTarget.style.boxShadow = 'none';
+                }}
+              >
+                {/* Complex Image */}
+                <div style={{ height: 160, width: '100%', overflow: 'hidden', position: 'relative' }}>
+                  <img
+                    src={f.image_url}
+                    alt={f.name}
+                    style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.3s' }}
+                  />
+                  <span style={{
+                    position: 'absolute',
+                    top: 12,
+                    right: 12,
+                    background: 'rgba(0,0,0,0.75)',
+                    backdropFilter: 'blur(4px)',
+                    border: '1px solid var(--border)',
+                    color: 'var(--accent-light)',
+                    padding: '4px 10px',
+                    borderRadius: '20px',
+                    fontSize: '0.7rem',
+                    fontWeight: '700'
+                  }}>
+                    📍 {f.zone}
                   </span>
                 </div>
 
-                {/* Features inline list */}
-                {f.features && (
-                  <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', marginTop: 'auto', paddingTop: 8, borderTop: '1px solid rgba(255,255,255,0.05)' }}>
-                    {f.features.split(',').slice(0, 3).map((feat, idx) => (
-                      <span key={idx} style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>
-                        • {feat.trim()}
-                      </span>
-                    ))}
-                    {f.features.split(',').length > 3 && (
-                      <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>
-                        (+{f.features.split(',').length - 3})
-                      </span>
-                    )}
+                {/* Complex details */}
+                <div style={{ padding: 16, display: 'flex', flexDirection: 'column', flex: 1 }}>
+                  <h4 style={{ margin: '0 0 4px 0', fontSize: '1.1rem', color: 'var(--text-primary)' }}>{f.name}</h4>
+                  <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', margin: '0 0 12px 0', display: 'flex', alignItems: 'center', gap: 4 }}>
+                    <span>📍</span> {f.address}
+                  </p>
+
+                  {/* Badges types */}
+                  <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 12 }}>
+                    <span style={{ fontSize: '0.7rem', background: 'rgba(245, 158, 11, 0.15)', color: 'var(--gold-light)', border: '1px solid rgba(245,158,11,0.25)', padding: '3px 8px', borderRadius: '4px', fontWeight: '600' }}>
+                      🥅 {f.field_types}
+                    </span>
+                    <span style={{ fontSize: '0.7rem', background: 'rgba(16, 185, 129, 0.1)', color: 'var(--accent-light)', border: '1px solid rgba(16,185,129,0.2)', padding: '3px 8px', borderRadius: '4px', fontWeight: '600' }}>
+                      🌱 {f.surface}
+                    </span>
                   </div>
-                )}
+
+                  {/* Features inline list */}
+                  {f.features && (
+                    <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', marginTop: 'auto', paddingTop: 8, borderTop: '1px solid rgba(255,255,255,0.05)' }}>
+                      {f.features.split(',').slice(0, 3).map((feat, idx) => (
+                        <span key={idx} style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>
+                          • {feat.trim()}
+                        </span>
+                      ))}
+                      {f.features.split(',').length > 3 && (
+                        <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>
+                          (+{f.features.split(',').length - 3})
+                        </span>
+                      )}
+                    </div>
+                  )}
+                </div>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
+
+          {hasMore && (
+            <button
+              className="btn btn-primary"
+              onClick={handleLoadMore}
+              disabled={loadingMore}
+              style={{ marginTop: '20px', width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px' }}
+            >
+              {loadingMore ? (
+                <>
+                  <div className="match-detail-spinner" style={{ width: '16px', height: '16px', border: '2px solid rgba(255,255,255,0.2)', borderTopColor: '#fff', margin: 0 }} />
+                  Cargando más complejos...
+                </>
+              ) : (
+                'Cargar más canchas 🏟️'
+              )}
+            </button>
+          )}
         </div>
       )}
 

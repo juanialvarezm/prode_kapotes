@@ -574,7 +574,7 @@ fields_data = [
     }
 ]
 
-# Programmatic generation of 100 extra fields to reach 150 total fields
+# Programmatic generation of 200 extra fields to reach 250 total fields
 import random
 random.seed(42)
 
@@ -592,7 +592,7 @@ features_pool = ["Techado", "Bar", "Vestuarios", "Parrilla", "Estacionamiento", 
 generated = 0
 used_combos = set()
 
-while generated < 100:
+while generated < 200:
     prefix = random.choice(extra_names_prefixes)
     suffix = random.choice(extra_names_suffixes)
     name = f"{prefix} {suffix}"
