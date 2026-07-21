@@ -555,9 +555,11 @@ def create_organized_match(group_id):
     current_user_id = get_jwt_identity()
     group = Group.query.get_or_404(group_id)
 
-    # Check if owner
-    if str(group.owner_id) != str(current_user_id):
-        return jsonify({'error': 'Solo el dueño del grupo puede organizar partidos.'}), 403
+    # Check if member
+    membership = GroupMember.query.filter_by(group_id=group.id, user_id=current_user_id).first()
+    if not membership:
+        return jsonify({'error': 'No pertenecés a este grupo para poder organizar partidos.'}), 403
+
 
     json_data = request.get_json(silent=True) or {}
     title = json_data.get('title') or 'Partido de fútbol'
@@ -600,11 +602,11 @@ def delete_organized_match(group_id, match_id):
     current_user_id = get_jwt_identity()
     group = Group.query.get_or_404(group_id)
 
-    # Check if owner
-    if str(group.owner_id) != str(current_user_id):
-        return jsonify({'error': 'Solo el dueño del grupo puede eliminar partidos.'}), 403
-
     match = GroupMatch.query.filter_by(id=match_id, group_id=group.id).first_or_404()
+
+    # Check if owner of group OR creator of match
+    if str(group.owner_id) != str(current_user_id) and str(match.creator_id) != str(current_user_id):
+        return jsonify({'error': 'Solo el creador del partido o el dueño del grupo pueden eliminar partidos.'}), 403
     
     db.session.delete(match)
     db.session.commit()

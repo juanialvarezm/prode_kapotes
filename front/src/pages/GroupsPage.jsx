@@ -301,8 +301,36 @@ export default function GroupsPage() {
 
   return (
     <>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
-        <h2 className="page-title" style={{ marginBottom: 0 }}><span className="icon">🏆</span> Mis Grupos</h2>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24, gap: 16, flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
+          <h2 className="page-title" style={{ marginBottom: 0 }}><span className="icon">🏆</span> Mis Grupos</h2>
+          {groups.length > 0 && (
+            <select
+              value={selected?.id || ''}
+              onChange={(e) => onSelectGroup(Number(e.target.value))}
+              className="predictions-search-input"
+              style={{
+                width: 'auto',
+                minWidth: '180px',
+                height: '38px',
+                padding: '0 10px',
+                fontSize: '0.85rem',
+                borderRadius: 'var(--radius-sm)',
+                background: 'var(--bg-card-solid)',
+                border: '1px solid var(--border)',
+                color: 'var(--text-primary)',
+                cursor: 'pointer',
+                margin: 0
+              }}
+            >
+              {groups.map((g) => (
+                <option key={g.id} value={g.id}>
+                  {g.name}
+                </option>
+              ))}
+            </select>
+          )}
+        </div>
         <button className="btn-primary" style={{ width: 'auto', padding: '8px 20px' }} onClick={() => navigate('/join-group')}>
           ➕ Nuevo grupo
         </button>
@@ -311,30 +339,7 @@ export default function GroupsPage() {
       {error && <div className="error">{error}</div>}
       {success && <div className="success">{success}</div>}
 
-      {groups.length > 0 ? (
-        <div className="card">
-          <ul className="group-list">
-            {groups.map((g) => (
-              <li
-                key={g.id}
-                className={selected?.id === g.id ? 'active' : ''}
-                onClick={() => onSelectGroup(g.id)}
-              >
-                <div className="group-list-item-content">
-                  <div className="group-list-avatar">
-                    {g.avatar_url ? (
-                      <img src={getAvatarUrl(g.avatar_url)} alt={g.name} />
-                    ) : (
-                      <span>{g.name.charAt(0).toUpperCase()}</span>
-                    )}
-                  </div>
-                  <span>{g.name}</span>
-                </div>
-              </li>
-            ))}
-          </ul>
-        </div>
-      ) : (
+      {groups.length === 0 && (
         <div className="card empty-state">
           <span className="empty-icon">📋</span>
           <p>No tenés grupos todavía.</p>
@@ -547,19 +552,17 @@ export default function GroupsPage() {
             <div style={{ marginTop: 16 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
                 <h4 style={{ fontSize: '1rem', margin: 0 }}>⚽ Partidos Organizados</h4>
-                {selected.is_owner && (
-                  <button
-                    className="btn-primary"
-                    style={{ width: 'auto', padding: '6px 12px', fontSize: '0.85rem' }}
-                    onClick={() => setShowCreateForm(!showCreateForm)}
-                  >
-                    {showCreateForm ? 'Cancelar' : '➕ Organizar Partido'}
-                  </button>
-                )}
+                <button
+                  className="btn-primary"
+                  style={{ width: 'auto', padding: '6px 12px', fontSize: '0.85rem' }}
+                  onClick={() => setShowCreateForm(!showCreateForm)}
+                >
+                  {showCreateForm ? 'Cancelar' : '➕ Organizar Partido'}
+                </button>
               </div>
 
               {/* Create Match Form */}
-              {selected.is_owner && showCreateForm && (
+              {showCreateForm && (
                 <form onSubmit={handleCreateMatch} className="card" style={{ padding: 16, marginBottom: 20, background: 'var(--bg-card-solid)', border: '1px solid var(--border)' }}>
                   <h5 style={{ marginBottom: 12, fontSize: '0.95rem' }}>Organizar Nuevo Partido</h5>
                   
@@ -634,7 +637,7 @@ export default function GroupsPage() {
                 <div className="card empty-state" style={{ padding: 32 }}>
                   <span className="empty-icon">⚽</span>
                   <p>No hay partidos organizados para este grupo aún.</p>
-                  {selected.is_owner && <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>¡Organizá el primero usando el botón de arriba!</p>}
+                  <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>¡Organizá el primero usando el botón de arriba!</p>
                 </div>
               ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
@@ -656,7 +659,7 @@ export default function GroupsPage() {
                             </span>
                           </div>
                           
-                          {selected.is_owner && (
+                          {(selected.is_owner || String(m.creator_id) === String(currentUserId)) && (
                             <button
                               onClick={() => handleDeleteMatch(m.id)}
                               className="btn-danger-leave"
@@ -799,13 +802,16 @@ export default function GroupsPage() {
           )}
 
           {/* Leave Group Button */}
-          <button
-            className="btn-danger-leave"
-            onClick={handleLeave}
-            disabled={loadingAction}
-          >
-            🚪 Salir del grupo
-          </button>
+          <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 24 }}>
+            <button
+              className="btn-danger-leave"
+              onClick={handleLeave}
+              disabled={loadingAction}
+              style={{ width: 'auto', padding: '6px 12px', fontSize: '0.8rem', margin: 0 }}
+            >
+              🚪 Salir del grupo
+            </button>
+          </div>
         </div>
       )}
     </>
