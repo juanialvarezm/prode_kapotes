@@ -30,13 +30,13 @@ export default function UserProfilePage() {
       setUser(data.user);
       setStats(data.stats);
       setHasMore(data.has_more);
-      
+
       if (append) {
         setMatches((prev) => [...prev, ...data.matches]);
       } else {
         setMatches(data.matches);
       }
-      
+
       setPage(pageNum);
     } catch (err) {
       if (err?.response?.status === 401) return;
@@ -174,7 +174,7 @@ export default function UserProfilePage() {
           </div>
 
           <div className="metric-card" style={{ background: 'rgba(245, 158, 11, 0.05)', borderColor: 'rgba(245, 158, 11, 0.2)' }}>
-            <div className="metric-value" style={{ color: 'var(--gold-light)' }}>
+            <div className="metric-value" >
               ⭐ {user.points || 0}
             </div>
             <div className="metric-label">Puntos Acumulados</div>
@@ -262,7 +262,7 @@ export default function UserProfilePage() {
                           ${m.cost_per_person.toLocaleString('es-AR')}
                         </span>
                       </div>
-                      
+
                       <div>
                         {m.is_past ? (
                           m.paid ? (
