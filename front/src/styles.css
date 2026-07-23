@@ -8219,4 +8219,22 @@ body {
   }
 }
 
+/* Enforce border-radius on active group elements */
+.group-list li.active {
+  border-radius: var(--radius-md) !important;
+  background: rgba(16, 185, 129, 0.15) !important;
+  border-color: rgba(16, 185, 129, 0.35) !important;
+}
+
+.group-tab-btn.active {
+  border-radius: var(--radius-md) !important;
+  background: rgba(16, 185, 129, 0.15) !important;
+  border-color: rgba(16, 185, 129, 0.35) !important;
+}
+
+.group-info-card {
+  border-radius: var(--radius-lg) !important;
+}
+
+
 

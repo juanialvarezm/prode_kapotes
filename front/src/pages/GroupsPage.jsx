@@ -361,16 +361,16 @@ export default function GroupsPage() {
                   display: 'flex',
                   alignItems: 'center',
                   gap: 10,
-                  padding: '8px 16px',
-                  borderRadius: '30px',
+                  padding: '8px 18px',
+                  borderRadius: '24px',
                   border: selected?.id === g.id ? '2px solid var(--accent)' : '1px solid var(--border)',
-                  background: selected?.id === g.id ? 'rgba(16, 185, 129, 0.1)' : 'var(--bg-card-solid)',
+                  background: selected?.id === g.id ? 'rgba(16, 185, 129, 0.15)' : 'var(--bg-card-solid)',
                   color: selected?.id === g.id ? 'var(--accent-light)' : 'var(--text-primary)',
                   cursor: 'pointer',
                   fontWeight: '600',
                   whiteSpace: 'nowrap',
                   transition: 'all 0.2s',
-                  boxShadow: selected?.id === g.id ? '0 0 12px rgba(16, 185, 129, 0.2)' : 'none'
+                  boxShadow: selected?.id === g.id ? '0 0 12px rgba(16, 185, 129, 0.25)' : 'none'
                 }}
               >
                 <div style={{ width: 26, height: 26, borderRadius: '50%', overflow: 'hidden', background: 'var(--accent-dark)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.8rem', fontWeight: 'bold', color: '#fff', flexShrink: 0 }}>
@@ -387,7 +387,7 @@ export default function GroupsPage() {
 
           {/* Active Group Details Card */}
           {selected ? (
-            <div className="group-info-card" style={{ marginTop: 0 }}>
+            <div className="group-info-card" style={{ marginTop: 0, borderRadius: 'var(--radius-lg)' }}>
           {/* Group header with avatar */}
           <div className="group-detail-header">
             <div className="group-detail-avatar">
@@ -448,21 +448,22 @@ export default function GroupsPage() {
 
 
           {/* Tabs Navigation */}
-          <div className="group-tabs" style={{ display: 'flex', gap: 12, borderBottom: '1px solid var(--border)', margin: '20px 0' }}>
+          <div className="group-tabs" style={{ display: 'flex', gap: 10, margin: '20px 0 16px 0', borderBottom: '1px solid var(--border)', paddingBottom: 8 }}>
             <button
               className={`group-tab-btn ${activeTab === 'members' ? 'active' : ''}`}
               onClick={() => setActiveTab('members')}
               style={{
-                background: 'none',
-                border: 'none',
-                borderBottom: activeTab === 'members' ? '2px solid var(--accent)' : '2px solid transparent',
-                color: activeTab === 'members' ? 'var(--text-primary)' : 'var(--text-secondary)',
-                padding: '10px 16px',
+                background: activeTab === 'members' ? 'rgba(16, 185, 129, 0.15)' : 'var(--glass-bg)',
+                border: activeTab === 'members' ? '1px solid rgba(16, 185, 129, 0.35)' : '1px solid var(--border)',
+                borderRadius: 'var(--radius-md)',
+                color: activeTab === 'members' ? 'var(--accent-light)' : 'var(--text-secondary)',
+                padding: '8px 18px',
                 cursor: 'pointer',
                 fontWeight: '600',
-                fontSize: '0.95rem',
+                fontSize: '0.92rem',
                 transition: 'all 0.2s',
-                outline: 'none'
+                outline: 'none',
+                boxShadow: activeTab === 'members' ? '0 2px 8px rgba(16, 185, 129, 0.15)' : 'none'
               }}
             >
               👥 Miembros
@@ -471,16 +472,17 @@ export default function GroupsPage() {
               className={`group-tab-btn ${activeTab === 'matches' ? 'active' : ''}`}
               onClick={() => setActiveTab('matches')}
               style={{
-                background: 'none',
-                border: 'none',
-                borderBottom: activeTab === 'matches' ? '2px solid var(--accent)' : '2px solid transparent',
-                color: activeTab === 'matches' ? 'var(--text-primary)' : 'var(--text-secondary)',
-                padding: '10px 16px',
+                background: activeTab === 'matches' ? 'rgba(16, 185, 129, 0.15)' : 'var(--glass-bg)',
+                border: activeTab === 'matches' ? '1px solid rgba(16, 185, 129, 0.35)' : '1px solid var(--border)',
+                borderRadius: 'var(--radius-md)',
+                color: activeTab === 'matches' ? 'var(--accent-light)' : 'var(--text-secondary)',
+                padding: '8px 18px',
                 cursor: 'pointer',
                 fontWeight: '600',
-                fontSize: '0.95rem',
+                fontSize: '0.92rem',
                 transition: 'all 0.2s',
-                outline: 'none'
+                outline: 'none',
+                boxShadow: activeTab === 'matches' ? '0 2px 8px rgba(16, 185, 129, 0.15)' : 'none'
               }}
             >
               ⚽ Organizar Partido
