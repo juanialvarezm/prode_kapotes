@@ -20,10 +20,6 @@ const faqsData = [
     a: 'Sí. Todas las funciones para organizar partidos, llevar estadísticas, unirse a grupos y jugar los minijuegos son 100% gratuitas.',
   },
   {
-    q: '¿Reemplaza los grupos de WhatsApp?',
-    a: '¡Totalmente! En lugar de listas desordenadas en chats, ProdeKapotes ofrece botones claros de asistencia (Confirmar/No Puedo), cola de suplentes automatizada y registro transparente de pagos.',
-  },
-  {
     q: '¿Necesito instalar alguna app en mi celular?',
     a: 'No requiere descarga desde tiendas de aplicaciones. ProdeKapotes es una aplicación web responsiva de alta velocidad que funciona directo en el navegador de cualquier teléfono inteligente o computadora.',
   },
@@ -31,12 +27,15 @@ const faqsData = [
     q: '¿Cómo funcionan los minijuegos de fútbol?',
     a: 'Todos los días se habilitan desafíos en FutWordle, GolTexto y FutLegacy. Al adivinar futbolistas por pistas, sumás puntos que alimentan el ranking de tu grupo y la tabla global.',
   },
+  {
+    q: '¿Cómo puedo buscar complejos de canchas?',
+    a: 'Ingresá a la sección Canchas en el menú para explorar más de 150 complejos en CABA y GBA con direcciones, imágenes, servicios y mapa de ubicación.',
+  },
 ];
 
 export default function HomePage() {
   const navigate = useNavigate();
   const token = localStorage.getItem('token');
-  const username = localStorage.getItem('username') || 'Jugador';
   const [openFaq, setOpenFaq] = useState(null);
 
   useSEO({
@@ -236,44 +235,6 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* PRODEKAPOTES VS WHATSAPP COMPARISON */}
-        <section className="seo-section">
-          <h2 className="seo-section-title">Ventajas frente a organizar por WhatsApp</h2>
-          <div className="comparison-table-wrapper">
-            <table className="comparison-table">
-              <thead>
-                <tr>
-                  <th scope="col">Problema habitual</th>
-                  <th scope="col">Organizar por WhatsApp</th>
-                  <th scope="col">Solución en ProdeKapotes</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td>Confirmación de 10 jugadores</td>
-                  <td>Lista de texto que se pierde entre 200 stickers y audios</td>
-                  <td>Botón de RSVP con estado claro y cola de suplentes en orden</td>
-                </tr>
-                <tr>
-                  <td>Faltazos a último momento</td>
-                  <td>Alguien avisa 10 min antes y hay que llamar desesperado</td>
-                  <td>El primer suplente de la lista ocupa el lugar automáticamente</td>
-                </tr>
-                <tr>
-                  <td>Desequilibrio en los equipos</td>
-                  <td>Equipos armados a ojo que terminan 12 - 2</td>
-                  <td>Generador equilibrado según el rendimiento real de cada uno</td>
-                </tr>
-                <tr>
-                  <td>Historial del grupo</td>
-                  <td>Nadie se acuerda quién ganó la semana pasada</td>
-                  <td>Historial permanente de partidos, goles, asistencias y premios MVP</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </section>
-
         {/* MINIGAMES SHOWCASE */}
         <section className="seo-section">
           <h2 className="seo-section-title">Minijuegos para los Amantes del Fútbol</h2>
@@ -320,18 +281,6 @@ export default function HomePage() {
               </details>
             ))}
           </div>
-        </section>
-
-        {/* FINAL CTA BANNER */}
-        <section className="seo-cta-banner">
-          <h2>¿Listo para vivir el fútbol amateur como se debe?</h2>
-          <p>Unite gratis a miles de jugadores que ya organizan sus partidos con ProdeKapotes.</p>
-          <button
-            className="home-btn-primary"
-            onClick={() => navigate(token ? '/groups' : '/auth')}
-          >
-            🚀 {token ? 'Ir a Mis Grupos' : 'Crear mi Cuenta Gratis'}
-          </button>
         </section>
       </main>
     </div>

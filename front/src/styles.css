@@ -8210,4 +8210,41 @@ body {
   padding: 6px 16px !important;
   margin-left: 8px;
 }
+
+/* Fix 1: Home Sidebar height & alignment */
+.home-layout-seo {
+  display: flex;
+  align-items: flex-start;
+  gap: 24px;
+}
+.home-sidebar {
+  align-self: flex-start;
+  position: sticky;
+  top: 90px;
+  width: 260px;
+  flex-shrink: 0;
+  height: auto;
+  max-height: calc(100vh - 110px);
+  overflow-y: auto;
+}
+
+/* Fix 2: Hide mobile menu toggle button on desktop */
+.mobile-menu-btn {
+  display: none !important;
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--text-primary);
+  font-size: 1.4rem;
+  padding: 6px 12px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+}
+@media (max-width: 768px) {
+  .mobile-menu-btn {
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+  }
+}
+
 

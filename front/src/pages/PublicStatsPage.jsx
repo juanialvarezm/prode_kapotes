@@ -4,6 +4,7 @@ import Breadcrumbs from '../components/Breadcrumbs';
 
 export default function PublicStatsPage() {
   const navigate = useNavigate();
+  const token = localStorage.getItem('token');
 
   useSEO({
     title: 'Estadísticas de Jugadores de Fútbol Amateur',
@@ -26,11 +27,14 @@ export default function PublicStatsPage() {
           efectividad de triunfos y medallas de MVP como si jugaras en primera división.
         </p>
         <div className="seo-header-actions">
-          <button className="btn-primary-lg" onClick={() => navigate('/auth')}>
-            📊 Ver mis Estadísticas
+          <button
+            className="btn-primary-lg"
+            onClick={() => navigate(token ? '/profile' : '/auth')}
+          >
+            {token ? '👤 Ver Mi Perfil y Estadísticas' : '🚀 Registrarse para Medir Estadísticas'}
           </button>
-          <button className="btn-secondary-lg" onClick={() => navigate('/grupos')}>
-            👥 Ver Grupos de Amigos
+          <button className="btn-secondary-lg" onClick={() => navigate(token ? '/groups' : '/grupos')}>
+            👥 {token ? 'Ir a Mis Grupos' : 'Ver Grupos de Amigos'}
           </button>
         </div>
       </header>
@@ -120,8 +124,11 @@ export default function PublicStatsPage() {
       <div className="seo-cta-banner">
         <h2>¿Querés saber quién es el mejor jugador de tu grupo?</h2>
         <p>Registren su próximo partido en ProdeKapotes y comiencen a medir estadísticas reales.</p>
-        <button className="btn-primary-lg" onClick={() => navigate('/auth')}>
-          Registrar mis Estadísticas
+        <button
+          className="btn-primary-lg"
+          onClick={() => navigate(token ? '/profile' : '/auth')}
+        >
+          {token ? '👤 Ver Mi Perfil' : 'Comenzar a Registrar Estadísticas'}
         </button>
       </div>
     </div>
