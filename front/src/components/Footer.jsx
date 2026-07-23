@@ -10,64 +10,27 @@ export default function Footer() {
 
   return (
     <footer className="site-footer" role="contentinfo">
-      <div className="footer-container">
-        <div className="footer-grid">
-          {/* Col 1: Brand & Mission */}
-          <div className="footer-col footer-col-brand">
-            <div className="footer-logo">
-              <span className="footer-logo-icon" aria-hidden="true">⚽</span>
-              <span>Prode <span className="logo-highlight">Kapotes</span></span>
-            </div>
-            <p className="footer-description">
-              Plataforma integral para organizar partidos de fútbol amateur entre amigos,
-              confirmar asistencias, alquilar canchas, registrar estadísticas y competir en minijuegos futboleros.
-            </p>
-            <div className="footer-badge-tag">
-              🇦🇷 Hecho para el fútbol amateur argentino
-            </div>
-          </div>
-
-          {/* Col 2: Funcionalidades */}
-          <div className="footer-col">
-            <h3 className="footer-col-title">Funcionalidades</h3>
-            <ul className="footer-links-list">
-              <li><button type="button" onClick={() => navTo('/grupos')}>👥 Grupos de Amigos</button></li>
-              <li><button type="button" onClick={() => navTo('/partidos')}>⚽ Organizar Partidos</button></li>
-              <li><button type="button" onClick={() => navTo('/canchas')}>🏟️ Alquiler de Canchas</button></li>
-              <li><button type="button" onClick={() => navTo('/minijuegos')}>🎮 Minijuegos de Fútbol</button></li>
-              <li><button type="button" onClick={() => navTo('/estadisticas')}>📊 Estadísticas de Jugadores</button></li>
-              <li><button type="button" onClick={() => navTo('/ranking')}>🏆 Ranking y Puntuación</button></li>
-              <li><button type="button" onClick={() => navTo('/como-funciona')}>💡 ¿Cómo Funciona?</button></li>
-            </ul>
-          </div>
-
-          {/* Col 3: Centro de Ayuda */}
-          <div className="footer-col">
-            <h3 className="footer-col-title">Centro de Ayuda</h3>
-            <ul className="footer-links-list">
-              <li><button type="button" onClick={() => navTo('/ayuda')}>❓ Preguntas Frecuentes</button></li>
-              <li><button type="button" onClick={() => navTo('/ayuda/crear-grupo')}>📖 Cómo Crear un Grupo</button></li>
-              <li><button type="button" onClick={() => navTo('/ayuda/organizar-partido')}>📖 Cómo Organizar un Partido</button></li>
-              <li><button type="button" onClick={() => navTo('/ayuda/confirmar-asistencia')}>📖 Confirmar Asistencia</button></li>
-              <li><button type="button" onClick={() => navTo('/ayuda/encontrar-cancha')}>📖 Encontrar una Cancha</button></li>
-            </ul>
-          </div>
-
-          {/* Col 4: Legales e Institucional */}
-          <div className="footer-col">
-            <h3 className="footer-col-title">Institucional</h3>
-            <ul className="footer-links-list">
-              <li><button type="button" onClick={() => navTo('/sobre-nosotros')}>🏢 Sobre Nosotros</button></li>
-              <li><button type="button" onClick={() => navTo('/contacto')}>📬 Contacto y Soporte</button></li>
-              <li><button type="button" onClick={() => navTo('/politica-de-privacidad')}>🔐 Política de Privacidad</button></li>
-              <li><button type="button" onClick={() => navTo('/terminos-y-condiciones')}>📜 Términos y Condiciones</button></li>
-              <li><button type="button" onClick={() => navTo('/politica-de-cookies')}>🍪 Política de Cookies</button></li>
-            </ul>
-          </div>
+      <div className="footer-inner-compact">
+        <div className="footer-brand-compact">
+          <span className="footer-logo-icon" aria-hidden="true">⚽</span>
+          <span className="footer-brand-text">Prode <span className="logo-highlight">Kapotes</span></span>
+          <span className="footer-tagline">— Organizá tu fútbol entre amigos</span>
         </div>
 
-        <div className="footer-bottom">
-          <p>© {new Date().getFullYear()} ProdeKapotes. Todos los derechos reservados. El sistema definitivo para tu partido de los viernes.</p>
+        <nav className="footer-nav-compact" aria-label="Navegación del pie de página">
+          <button type="button" onClick={() => navTo('/ayuda')}>Ayuda</button>
+          <span className="footer-sep">•</span>
+          <button type="button" onClick={() => navTo('/sobre-nosotros')}>Sobre Nosotros</button>
+          <span className="footer-sep">•</span>
+          <button type="button" onClick={() => navTo('/contacto')}>Contacto</button>
+          <span className="footer-sep">•</span>
+          <button type="button" onClick={() => navTo('/politica-de-privacidad')}>Privacidad</button>
+          <span className="footer-sep">•</span>
+          <button type="button" onClick={() => navTo('/terminos-y-condiciones')}>Términos</button>
+        </nav>
+
+        <div className="footer-copyright-compact">
+          © {new Date().getFullYear()} ProdeKapotes. Todos los derechos reservados.
         </div>
       </div>
     </footer>
