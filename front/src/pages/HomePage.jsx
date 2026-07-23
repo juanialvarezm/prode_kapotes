@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useSEO } from '../utils/useSEO';
 
@@ -10,51 +9,15 @@ const navItems = [
   { icon: '👤', label: 'Perfil', path: '/profile', desc: 'Tu cuenta' },
 ];
 
-const faqsData = [
-  {
-    q: '¿Qué es ProdeKapotes y para qué sirve?',
-    a: 'ProdeKapotes es una plataforma web integral diseñada para la organización de fútbol amateur. Permite crear grupos de amigos, publicar convocatorias de partidos, confirmar asistencias en tiempo real, armar equipos equilibrados, llevar tablas de estadísticas y competir en minijuegos futboleros.',
-  },
-  {
-    q: '¿Es totalmente gratuito para los usuarios?',
-    a: 'Sí. Todas las funciones para organizar partidos, llevar estadísticas, unirse a grupos y jugar los minijuegos son 100% gratuitas.',
-  },
-  {
-    q: '¿Necesito instalar alguna app en mi celular?',
-    a: 'No requiere descarga desde tiendas de aplicaciones. ProdeKapotes es una aplicación web responsiva de alta velocidad que funciona directo en el navegador de cualquier teléfono inteligente o computadora.',
-  },
-  {
-    q: '¿Cómo funcionan los minijuegos de fútbol?',
-    a: 'Todos los días se habilitan desafíos en FutWordle, GolTexto y FutLegacy. Al adivinar futbolistas por pistas, sumás puntos que alimentan el ranking de tu grupo y la tabla global.',
-  },
-  {
-    q: '¿Cómo puedo buscar complejos de canchas?',
-    a: 'Ingresá a la sección Canchas en el menú para explorar más de 150 complejos en CABA y GBA con direcciones, imágenes, servicios y mapa de ubicación.',
-  },
-];
-
 export default function HomePage() {
   const navigate = useNavigate();
   const token = localStorage.getItem('token');
-  const [openFaq, setOpenFaq] = useState(null);
 
   useSEO({
     title: 'ProdeKapotes | La Plataforma Definitiva para Organizar Fútbol Amateur',
     description: 'Organizá partidos de fútbol 5 con tus amigos, confirmá asistencias, encontrá canchas, llevá estadísticas de goleadores y jugá minijuegos diarios gratis.',
     keywords: 'futbol amateur, organizar partido futbol, futbol 5 amigos, buscar canchas futbol, wordle futbol, prodekapotes, estadisticas futbol 5',
     canonicalUrl: '/',
-    jsonLd: {
-      '@context': 'https://schema.org',
-      '@type': 'FAQPage',
-      'mainEntity': faqsData.map(item => ({
-        '@type': 'Question',
-        'name': item.q,
-        'acceptedAnswer': {
-          '@type': 'Answer',
-          'text': item.a,
-        },
-      })),
-    },
   });
 
   return (
@@ -245,32 +208,6 @@ export default function HomePage() {
               <h3>FutLegacy</h3>
               <p>Demostrá tu memoria futbolera reconociendo camisetas legendarias.</p>
             </div>
-          </div>
-        </section>
-
-        {/* FREQUENTLY ASKED QUESTIONS (FAQ) */}
-        <section className="seo-section">
-          <h2 className="seo-section-title">Preguntas Frecuentes (FAQ)</h2>
-          <div className="faq-grid">
-            {faqsData.map((faq, idx) => (
-              <details
-                key={idx}
-                className="faq-item"
-                open={openFaq === idx}
-                onClick={(e) => {
-                  e.preventDefault();
-                  setOpenFaq(openFaq === idx ? null : idx);
-                }}
-              >
-                <summary className="faq-question">
-                  <span>{faq.q}</span>
-                  <span className="faq-icon">{openFaq === idx ? '−' : '+'}</span>
-                </summary>
-                <div className="faq-answer">
-                  <p>{faq.a}</p>
-                </div>
-              </details>
-            ))}
           </div>
         </section>
       </main>

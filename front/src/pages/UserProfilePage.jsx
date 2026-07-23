@@ -173,8 +173,8 @@ export default function UserProfilePage() {
             <div className="metric-desc">Falta abonar al admin</div>
           </div>
 
-          <div className="metric-card" style={{ background: 'rgba(245, 158, 11, 0.05)', borderColor: 'rgba(245, 158, 11, 0.2)' }}>
-            <div className="metric-value" >
+          <div className="metric-card">
+            <div className="metric-value">
               ⭐ {user.points || 0}
             </div>
             <div className="metric-label">Puntos Acumulados</div>
