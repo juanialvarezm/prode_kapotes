@@ -1,6 +1,8 @@
 import { useNavigate } from 'react-router-dom';
+import { useSEO } from '../utils/useSEO';
+import Breadcrumbs from '../components/Breadcrumbs';
 
-const LAST_UPDATED = '21 de abril de 2025';
+const LAST_UPDATED = '21 de mayo de 2025';
 
 const sections = [
   {
@@ -124,8 +126,15 @@ const sections = [
 export default function PrivacyPage() {
   const navigate = useNavigate();
 
+  useSEO({
+    title: 'Política de Privacidad y Protección de Datos',
+    description: 'Conocé nuestras políticas de privacidad y protección de datos en ProdeKapotes.',
+    canonicalUrl: '/politica-de-privacidad',
+  });
+
   return (
-    <div className="privacy-page">
+    <div className="privacy-page seo-page-container">
+      <Breadcrumbs items={[{ label: 'Política de Privacidad' }]} />
       {/* Hero */}
       <div className="privacy-hero">
         <div className="privacy-hero-orb orb-1" />

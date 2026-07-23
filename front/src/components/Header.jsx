@@ -1,8 +1,11 @@
+import { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 
 export default function Header({ hasGroups, pendingRequestsCount = 0, userPoints = 0 }) {
   const navigate = useNavigate();
   const location = useLocation();
+  const token = localStorage.getItem('token');
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const isActive = (path) => location.pathname === path;
 
@@ -12,93 +15,162 @@ export default function Header({ hasGroups, pendingRequestsCount = 0, userPoints
     window.location.reload();
   };
 
+  const navTo = (path) => {
+    navigate(path);
+    setMobileMenuOpen(false);
+  };
+
   return (
-    <header className="site-header">
+    <header className="site-header" role="banner">
       <div className="header-inner">
-        <a className="header-logo" href="/" onClick={(e) => { e.preventDefault(); navigate('/'); }}>
-          <span className="logo-icon">⚽</span>
+        <a
+          className="header-logo"
+          href="/"
+          onClick={(e) => { e.preventDefault(); navTo('/'); }}
+          aria-label="Ir a la página principal de ProdeKapotes"
+        >
+          <span className="logo-icon" aria-hidden="true">⚽</span>
           <span>Prode <span className="logo-highlight">Kapotes</span></span>
         </a>
 
-        <nav className="header-nav">
-          {userPoints > 0 && (
-            <div
-              className="header-points-chip"
-              title="Puntos acumulados"
-              onClick={() => navigate('/profile')}
-              style={{
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: 4,
-                background: 'rgba(245, 158, 11, 0.15)',
-                border: '1px solid rgba(245, 158, 11, 0.3)',
-                color: 'var(--gold-light)',
-                padding: '4px 10px',
-                borderRadius: '20px',
-                fontSize: '0.8rem',
-                fontWeight: '700'
-              }}
-            >
-              <span>⭐</span>
-              <span>{userPoints} pts</span>
-            </div>
-          )}
+        {/* Mobile menu toggle button */}
+        <button
+          className="mobile-menu-btn"
+          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+          aria-label={mobileMenuOpen ? "Cerrar menú de navegación" : "Abrir menú de navegación"}
+          aria-expanded={mobileMenuOpen}
+        >
+          {mobileMenuOpen ? '✕' : '☰'}
+        </button>
 
-          {hasGroups && (
+        <nav className={`header-nav ${mobileMenuOpen ? 'open' : ''}`} role="navigation" aria-label="Navegación principal">
+          {token ? (
+            /* Logged-in Header Nav */
             <>
+              {userPoints > 0 && (
+                <div
+                  className="header-points-chip"
+                  title="Puntos acumulados en ProdeKapotes"
+                  onClick={() => navTo('/profile')}
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={(e) => e.key === 'Enter' && navTo('/profile')}
+                >
+                  <span aria-hidden="true">⭐</span>
+                  <span>{userPoints} pts</span>
+                </div>
+              )}
+
               <button
                 className={`nav-link ${isActive('/groups') || isActive('/') ? 'active' : ''}`}
-                onClick={() => navigate('/groups')}
+                onClick={() => navTo('/groups')}
               >
-                🏠 Grupos
+                🏠 Mis Grupos
+              </button>
+
+              <button
+                className={`nav-link nav-link-requests ${isActive('/requests') ? 'active' : ''}`}
+                onClick={() => navTo('/requests')}
+              >
+                📨 Solicitudes
+                {pendingRequestsCount > 0 && (
+                  <span className="nav-badge" aria-label={`${pendingRequestsCount} solicitudes pendientes`}>{pendingRequestsCount}</span>
+                )}
+              </button>
+
+              <button
+                className={`nav-link ${isActive('/canchas') ? 'active' : ''}`}
+                onClick={() => navTo('/canchas')}
+              >
+                🏟️ Canchas
+              </button>
+
+              <button
+                className={`nav-link ${isActive('/users') ? 'active' : ''}`}
+                onClick={() => navTo('/users')}
+              >
+                🔍 Buscar
+              </button>
+
+              <button
+                className={`nav-link ${isActive('/profile') ? 'active' : ''}`}
+                onClick={() => navTo('/profile')}
+              >
+                👤 Perfil
+              </button>
+
+              <button className="nav-link logout" onClick={handleLogout} aria-label="Cerrar sesión de usuario">
+                Salir
+              </button>
+            </>
+          ) : (
+            /* Public Guest Header Nav */
+            <>
+              <button
+                className={`nav-link ${isActive('/') ? 'active' : ''}`}
+                onClick={() => navTo('/')}
+              >
+                🏠 Inicio
+              </button>
+
+              <button
+                className={`nav-link ${isActive('/grupos') ? 'active' : ''}`}
+                onClick={() => navTo('/grupos')}
+              >
+                👥 Grupos
+              </button>
+
+              <button
+                className={`nav-link ${isActive('/partidos') ? 'active' : ''}`}
+                onClick={() => navTo('/partidos')}
+              >
+                ⚽ Partidos
+              </button>
+
+              <button
+                className={`nav-link ${isActive('/canchas') ? 'active' : ''}`}
+                onClick={() => navTo('/canchas')}
+              >
+                🏟️ Canchas
+              </button>
+
+              <button
+                className={`nav-link ${isActive('/minijuegos') ? 'active' : ''}`}
+                onClick={() => navTo('/minijuegos')}
+              >
+                🎮 Minijuegos
+              </button>
+
+              <button
+                className={`nav-link ${isActive('/estadisticas') ? 'active' : ''}`}
+                onClick={() => navTo('/estadisticas')}
+              >
+                📊 Estadísticas
+              </button>
+
+              <button
+                className={`nav-link ${isActive('/ranking') ? 'active' : ''}`}
+                onClick={() => navTo('/ranking')}
+              >
+                🏆 Ranking
+              </button>
+
+              <button
+                className={`nav-link ${isActive('/ayuda') ? 'active' : ''}`}
+                onClick={() => navTo('/ayuda')}
+              >
+                ❓ Ayuda
+              </button>
+
+              <button
+                className="nav-link btn-header-cta"
+                onClick={() => navTo('/auth')}
+                aria-label="Ingresar o crear cuenta"
+              >
+                🔑 Ingresar
               </button>
             </>
           )}
-
-          {!hasGroups && (
-            <button
-              className={`nav-link ${isActive('/join-group') ? 'active' : ''}`}
-              onClick={() => navigate('/join-group')}
-            >
-              ➕ Grupos
-            </button>
-          )}
-
-          <button
-            className={`nav-link nav-link-requests ${isActive('/requests') ? 'active' : ''}`}
-            onClick={() => navigate('/requests')}
-          >
-            📨 Solicitudes
-            {pendingRequestsCount > 0 && (
-              <span className="nav-badge">{pendingRequestsCount}</span>
-            )}
-          </button>
-
-          <button
-            className={`nav-link ${isActive('/canchas') ? 'active' : ''}`}
-            onClick={() => navigate('/canchas')}
-          >
-            🏟️ Canchas
-          </button>
-
-          <button
-            className={`nav-link ${isActive('/users') ? 'active' : ''}`}
-            onClick={() => navigate('/users')}
-          >
-            🔍 Buscar
-          </button>
-
-          <button
-            className={`nav-link ${isActive('/profile') ? 'active' : ''}`}
-            onClick={() => navigate('/profile')}
-          >
-            👤 Perfil
-          </button>
-
-          <button className="nav-link logout" onClick={handleLogout}>
-            Salir
-          </button>
         </nav>
       </div>
     </header>

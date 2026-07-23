@@ -1,10 +1,19 @@
 import { useEffect, useState } from 'react';
 import { getFootballFields } from '../api';
+import { useSEO } from '../utils/useSEO';
+import Breadcrumbs from '../components/Breadcrumbs';
 
 const ZONES = ['Todos', 'CABA', 'GBA Norte', 'GBA Sur', 'GBA Oeste'];
 const TYPES = ['Todos', 'F5', 'F7', 'F8', 'F11'];
 
 export default function FieldsPage() {
+  useSEO({
+    title: 'Buscador de Canchas y Complejos de Fútbol Amateur',
+    description: 'Encontrá canchas de fútbol 5, 7, 8 y 11 en CABA y GBA. Consultá teléfonos, direcciones, fotos y tipos de césped para reservar con tus amigos.',
+    keywords: 'canchas futbol 5, alquiler canchas futbol, complejos deportivos futbol 5, canchas caba, canchas futbol sintetico',
+    canonicalUrl: '/canchas',
+  });
+
   const [fields, setFields] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');

@@ -15,6 +15,20 @@ import VerifyEmailPage from './pages/VerifyEmailPage';
 import { getMyGroups, getMyPendingRequests, getMe } from './api';
 import Wordle from './pages/Wordle';
 
+// Public SEO Landing Pages
+import PublicGroupsPage from './pages/PublicGroupsPage';
+import PublicMatchesPage from './pages/PublicMatchesPage';
+import PublicGamesPage from './pages/PublicGamesPage';
+import PublicStatsPage from './pages/PublicStatsPage';
+import PublicRankingPage from './pages/PublicRankingPage';
+import HowItWorksPage from './pages/HowItWorksPage';
+import HelpPage from './pages/HelpPage';
+import HelpArticlePage from './pages/HelpArticlePage';
+import TermsPage from './pages/TermsPage';
+import CookiesPage from './pages/CookiesPage';
+import ContactPage from './pages/ContactPage';
+import AboutUsPage from './pages/AboutUsPage';
+
 const UserProfilePage = lazy(() => import('./pages/UserProfilePage'));
 const UsersSearchPage = lazy(() => import('./pages/UsersSearchPage'));
 const FieldsPage = lazy(() => import('./pages/FieldsPage'));
@@ -94,6 +108,11 @@ function App() {
     return () => clearInterval(interval);
   }, [token]);
 
+  // Scroll to top on route change
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [location.pathname]);
+
   // Auth/verify pages render without Header/Footer
   if (location.pathname === '/auth' || location.pathname === '/verify-email') {
     return (
@@ -123,9 +142,36 @@ function App() {
             </div>
           ) : (
             <Routes>
-              {/* Public routes - no authentication needed */}
+              {/* Public routes - no authentication needed for SEO & AdSense approval */}
               <Route path="/" element={<HomePage />} />
+              <Route path="/grupos" element={<PublicGroupsPage />} />
+              <Route path="/partidos" element={<PublicMatchesPage />} />
+              <Route path="/minijuegos" element={<PublicGamesPage />} />
+              <Route path="/estadisticas" element={<PublicStatsPage />} />
+              <Route path="/ranking" element={<PublicRankingPage />} />
+              <Route path="/como-funciona" element={<HowItWorksPage />} />
+              <Route path="/ayuda" element={<HelpPage />} />
+              <Route path="/ayuda/:slug" element={<HelpArticlePage />} />
+
+              {/* Public Fields Directory */}
+              <Route path="/canchas" element={
+                <Suspense fallback={
+                  <div className="card empty-state">
+                    <span className="empty-icon">⏳</span>
+                    <p>Cargando canchas...</p>
+                  </div>
+                }>
+                  <FieldsPage />
+                </Suspense>
+              } />
+
+              {/* Public Legal & Institutional Pages */}
               <Route path="/privacy" element={<PrivacyPage />} />
+              <Route path="/politica-de-privacidad" element={<PrivacyPage />} />
+              <Route path="/terminos-y-condiciones" element={<TermsPage />} />
+              <Route path="/politica-de-cookies" element={<CookiesPage />} />
+              <Route path="/contacto" element={<ContactPage />} />
+              <Route path="/sobre-nosotros" element={<AboutUsPage />} />
 
               {/* Protected routes - redirect to /auth if not logged in */}
               <Route path="/join-group" element={<ProtectedRoute><JoinGroupPage onGroupChange={refreshGroups} /></ProtectedRoute>} />
@@ -159,18 +205,7 @@ function App() {
               <Route path="/futwordle" element={<ProtectedRoute><Wordle /></ProtectedRoute>} />
               <Route path="/goltexto" element={<ProtectedRoute><GolTexto /></ProtectedRoute>} />
               <Route path="/futlegacy" element={<ProtectedRoute><FutLegacy /></ProtectedRoute>} />
-              <Route path="/canchas" element={
-                <ProtectedRoute>
-                  <Suspense fallback={
-                    <div className="card empty-state">
-                      <span className="empty-icon">⏳</span>
-                      <p>Cargando canchas...</p>
-                    </div>
-                  }>
-                    <FieldsPage />
-                  </Suspense>
-                </ProtectedRoute>
-              } />
+
               {/* Fallback */}
               <Route path="*" element={<Navigate to="/" />} />
             </Routes>

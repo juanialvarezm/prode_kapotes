@@ -5,7 +5,7 @@ from models import FootballField
 from .blueprint import bp
 
 @bp.route('/fields', methods=['GET'])
-@jwt_required()
+@jwt_required(optional=True)
 def get_fields():
     query = FootballField.query
     
@@ -59,7 +59,7 @@ def get_fields():
 
 
 @bp.route('/fields/<int:field_id>', methods=['GET'])
-@jwt_required()
+@jwt_required(optional=True)
 def get_field_by_id(field_id):
     f = FootballField.query.get_or_404(field_id)
     return jsonify({
