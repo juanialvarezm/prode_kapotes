@@ -150,15 +150,6 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* WHAT IS PRODEKAPOTES SECTION */}
-        <section className="seo-section home-about-section">
-          <h2 className="seo-section-title">¿Qué es ProdeKapotes?</h2>
-          <p className="seo-paragraph-lead">
-            ProdeKapotes es la plataforma web creada por y para jugadores de fútbol amateur en Argentina.
-            Reemplazamos las planillas manuales y los chats interminables por un sistema automatizado donde podés coordinar la fecha,
-            armar los equipos, medir el nivel de cada participante y guardar la historia de tus partidos.
-          </p>
-        </section>
 
         {/* HOW IT WORKS SECTION */}
         <section className="seo-section">
