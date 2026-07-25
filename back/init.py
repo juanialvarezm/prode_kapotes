@@ -11,7 +11,7 @@ import cloudinary
 
 from db import db
 
-app = Flask(__name__)   ##unc comentarion
+app = Flask(__name__)  
 
 
 uri = os.getenv("DB_URL") or os.getenv("DATABASE_URL")
@@ -35,12 +35,21 @@ cloudinary.config(
 )
 
 
+def add_security_policies(response):
+    response.headers["X-Frame-Options"] = "DENY"
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+    response.headers["Permissions-Policy"] = "camera=(),microphone=(),geolocation=()"
+    return response
+
 
 # Upload configuration
 UPLOAD_FOLDER = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'uploads')
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 app.config['MAX_CONTENT_LENGTH'] = 5 * 1024 * 1024  # 5 MB max
+
+
 
 # Inicialización de extensiones
 from flask_cors import CORS
