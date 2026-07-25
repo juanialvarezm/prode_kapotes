@@ -8200,7 +8200,7 @@ body {
   overflow-y: auto;
 }
 
-/* Fix 2: Hide mobile menu toggle button on desktop */
+/* Fix 2: Mobile menu toggle button & Navigation Dropdown */
 .mobile-menu-btn {
   display: none !important;
   background: none;
@@ -8210,13 +8210,7 @@ body {
   padding: 6px 12px;
   border-radius: var(--radius-sm);
   cursor: pointer;
-}
-@media (max-width: 768px) {
-  .mobile-menu-btn {
-    display: flex !important;
-    align-items: center;
-    justify-content: center;
-  }
+  line-height: 1;
 }
 
 /* Enforce border-radius on active group elements */
@@ -8235,6 +8229,272 @@ body {
 .group-info-card {
   border-radius: var(--radius-lg) !important;
 }
+
+/* ============================================
+   COMPREHENSIVE MOBILE RESPONSIVE SYSTEM
+   ============================================ */
+
+/* Global viewport overflow safeguard */
+html, body {
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+/* Tablet & Mobile (<= 900px) */
+@media (max-width: 900px) {
+  .home-layout-seo {
+    flex-direction: column !important;
+    gap: 16px !important;
+  }
+
+  .home-sidebar {
+    width: 100% !important;
+    position: static !important;
+    max-height: none !important;
+    margin-bottom: 16px;
+  }
+
+  .groups-layout,
+  .fields-layout {
+    grid-template-columns: 1fr !important;
+    gap: 16px !important;
+  }
+
+  .seo-grid-2,
+  .seo-grid-3,
+  .seo-grid-4 {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 16px !important;
+  }
+}
+
+/* Mobile (<= 768px) */
+@media (max-width: 768px) {
+  .app-main {
+    padding: 16px 12px !important;
+  }
+
+  .site-header {
+    position: relative;
+    padding: 0 16px;
+  }
+
+  .header-inner {
+    height: 60px;
+    padding: 0;
+  }
+
+  .mobile-menu-btn {
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* Collapsible mobile navigation menu */
+  .header-nav {
+    display: none;
+  }
+
+  .header-nav.open {
+    display: flex !important;
+    flex-direction: column !important;
+    position: absolute;
+    top: 60px;
+    left: 0;
+    right: 0;
+    width: 100%;
+    background: rgba(10, 15, 26, 0.98);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border-bottom: 1px solid var(--glass-border);
+    padding: 16px;
+    gap: 8px;
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.6);
+    z-index: 9999;
+  }
+
+  .header-nav .nav-link {
+    width: 100%;
+    justify-content: flex-start;
+    padding: 12px 16px;
+    font-size: 0.95rem;
+    border-radius: var(--radius-md);
+    white-space: normal;
+  }
+
+  .header-points-chip {
+    width: 100%;
+    justify-content: center;
+    padding: 10px;
+    margin-bottom: 4px;
+    border-radius: var(--radius-md);
+  }
+
+  .btn-header-cta {
+    margin-left: 0;
+    width: 100%;
+    text-align: center;
+    justify-content: center;
+  }
+
+  /* Hero section mobile tuning */
+  .home-hero-seo {
+    padding: 28px 16px !important;
+    margin-bottom: 24px !important;
+    border-radius: var(--radius-lg) !important;
+  }
+
+  .home-hero-title-seo {
+    font-size: 1.6rem !important;
+    line-height: 1.25 !important;
+  }
+
+  .home-hero-subtitle-seo {
+    font-size: 0.95rem !important;
+    margin-bottom: 24px !important;
+  }
+
+  .home-hero-actions-seo {
+    flex-direction: column;
+    width: 100%;
+    gap: 12px;
+  }
+
+  .home-hero-actions-seo button {
+    width: 100% !important;
+    justify-content: center;
+  }
+
+  .hero-stats-bar {
+    flex-direction: column;
+    gap: 12px;
+    padding: 16px 12px;
+    width: 100%;
+  }
+
+  .stat-divider {
+    display: none;
+  }
+
+  /* All Grid Layouts on Mobile */
+  .seo-grid-2,
+  .seo-grid-3,
+  .seo-grid-4,
+  .fields-grid,
+  .matches-grid,
+  .metrics-grid,
+  .game-showcase-grid {
+    grid-template-columns: 1fr !important;
+    gap: 14px !important;
+  }
+
+  .group-header,
+  .match-header,
+  .group-detail-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+
+  .group-tabs {
+    display: flex;
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 6px;
+    gap: 8px;
+    width: 100%;
+  }
+
+  .group-tab-btn {
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  /* Responsive Tables */
+  .table-responsive,
+  .ranking-table-container,
+  .stats-table-container,
+  .matches-table-container {
+    display: block;
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  table {
+    min-width: 520px;
+  }
+
+  /* Profile page responsive */
+  .profile-header {
+    flex-direction: column;
+    text-align: center;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .profile-stats {
+    flex-direction: column;
+    width: 100%;
+    gap: 8px;
+  }
+
+  .profile-stats .stat-item {
+    width: 100%;
+  }
+}
+
+/* Small Phones (<= 480px) */
+@media (max-width: 480px) {
+  /* Prevent auto-zoom on iOS Safari inputs */
+  input, select, textarea {
+    font-size: 16px !important;
+  }
+
+  .page-title {
+    font-size: 1.25rem;
+  }
+
+  .card,
+  .action-card,
+  .profile-card,
+  .group-info-card,
+  .seo-card {
+    padding: 14px 12px;
+  }
+
+  /* Modals */
+  .modal-content,
+  .me-modal,
+  .card.modal {
+    width: 95% !important;
+    max-width: 100% !important;
+    padding: 16px 12px !important;
+    margin: 10px auto !important;
+  }
+
+  /* Minigames responsive sizing */
+  .wordle-container,
+  .game-container {
+    padding: 8px 4px !important;
+  }
+
+  .letter-box,
+  .tile {
+    width: 40px !important;
+    height: 40px !important;
+    font-size: 1.1rem !important;
+    line-height: 40px !important;
+  }
+
+  .key-btn {
+    padding: 10px 2px !important;
+    font-size: 0.72rem !important;
+    min-width: 22px !important;
+  }
+}
+
 
 
 
