@@ -34,6 +34,7 @@ const UsersSearchPage = lazy(() => import('./pages/UsersSearchPage'));
 const FieldsPage = lazy(() => import('./pages/FieldsPage'));
 
 // Protected Route Component - redirects to /auth if no token
+//comment
 function ProtectedRoute({ children }) {
   const token = localStorage.getItem('token');
   const location = useLocation();

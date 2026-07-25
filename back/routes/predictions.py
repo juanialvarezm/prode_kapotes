@@ -6,6 +6,8 @@ from db import db
 from models import GroupMember, Match, Prediction
 from .blueprint import bp
 
+###comment
+
 @bp.route('/predictions', methods=['POST'])
 @jwt_required()
 def create_prediction():
