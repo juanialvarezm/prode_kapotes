@@ -61,6 +61,17 @@ fields_data = [
         "image_url": "https://images.unsplash.com/photo-1575361204480-aadea2559ee2?w=800&auto=format&fit=crop&q=80"
     },
     {
+        "name": "Club Caballito",
+        "address": "Av. Avellaneda 1423, Caballito",
+        "zone": "CABA",
+        "phone": "+54 11 2345-6789",
+        "field_types": "F5, F8",
+        "surface": "Césped Sintético",
+        "features": "Techado, Vestuarios, Buffet, Climatizado",
+        "description": "Gran club de fútbol en el corazón del barrio de Caballito, CABA.",
+        "image_url": "https://images.unsplash.com/photo-1575361204480-aadea2559ee2?w=800&auto=format&fit=crop&q=80"
+    },
+    {
         "name": "Fútbol Retiro",
         "address": "Av. Ramos Mejía 1350, Retiro",
         "zone": "CABA",
@@ -412,6 +423,17 @@ fields_data = [
         "surface": "Césped Sintético",
         "features": "Estacionamiento, Bar, Vestuarios",
         "description": "Canchas de rápido acceso en Vicente López y con buffet equipado con pantallas gigantes.",
+        "image_url": "https://images.unsplash.com/photo-1531415074968-036ba1b575da?w=800&auto=format&fit=crop&q=80"
+    },
+    {
+        "name": "Arena Vicente López",
+        "address": "Carlos Francisco Melo 460, Vicente López",
+        "zone": "GBA Norte",
+        "phone": "+54 11 4791-3344",
+        "field_types": "F5, F7",
+        "surface": "Césped Sintético",
+        "features": "Estacionamiento, Bar, Vestuarios",
+        "description": "Complejo deportivo premium de fútbol en Vicente López, GBA Norte.",
         "image_url": "https://images.unsplash.com/photo-1531415074968-036ba1b575da?w=800&auto=format&fit=crop&q=80"
     },
     {

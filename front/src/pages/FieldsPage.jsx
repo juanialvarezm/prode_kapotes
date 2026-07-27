@@ -58,6 +58,8 @@ const SPECIFIC_FIELD_IMAGES = {
   'Ramos Mejía Fútbol Club': 'https://images.unsplash.com/photo-1560272564-c83b66b1ad12?w=800&auto=format&fit=crop&q=80',
   'Morón Predio Fútbol 5': 'https://images.unsplash.com/photo-1508098682722-e99c43a406b2?w=800&auto=format&fit=crop&q=80',
   'Ituzaingó Soccer Club': 'https://images.unsplash.com/photo-1431324155629-1a6edd1d2224?w=800&auto=format&fit=crop&q=80',
+  'Arena Vicente López': 'https://images.unsplash.com/photo-1531415074968-036ba1b575da?w=800&auto=format&fit=crop&q=80',
+  'Club Caballito': 'https://images.unsplash.com/photo-1575361204480-aadea2559ee2?w=800&auto=format&fit=crop&q=80',
   'Castelar Fútbol 5': 'https://images.unsplash.com/photo-1589487391730-58f20eb2c308?w=800&auto=format&fit=crop&q=80'
 };
 
@@ -69,6 +71,8 @@ function getFieldImageUrl(field) {
 }
 
 const SPECIFIC_FIELD_ADDRESSES = {
+  'Arena Vicente López': 'Carlos Francisco Melo 460, Vicente López',
+  'Club Caballito': 'Av. Avellaneda 1423, Caballito',
   'Fútbol Vieytes': 'Av. Vieytes 1134, Barracas',
   'Fútbol Madero': 'Av. Alicia Moreau de Justo 989, Puerto Madero',
   'Grün FC Núñez': 'Padre Canavery 1351, Núñez',
@@ -126,6 +130,92 @@ function getFieldAddress(field) {
     return SPECIFIC_FIELD_ADDRESSES[field.name];
   }
   return field ? field.address : '';
+}
+
+const SPECIFIC_FIELD_ZONES = {
+  'Fútbol Vieytes': 'CABA',
+  'Fútbol Madero': 'CABA',
+  'Grün FC Núñez': 'CABA',
+  'Caballito Norte': 'CABA',
+  'Club Caballito': 'CABA',
+  'Doble Cinco Caballito': 'CABA',
+  'Fútbol Retiro': 'CABA',
+  'Racket Club Palermo': 'CABA',
+  'Complejo Salguero Fútbol': 'CABA',
+  'Club Harrods Gath & Chaves': 'CABA',
+  'Parque Sarmiento Predio': 'CABA',
+  'Complejo El Portón': 'CABA',
+  'El Trébol de Parque Chacabuco': 'CABA',
+  'Pampa Fútbol Belgrano': 'CABA',
+  'El Duende de Floresta': 'CABA',
+  'Camp Nou Liniers': 'CABA',
+  'La Esquina Fútbol': 'CABA',
+  'Locos por el Fútbol Belgrano': 'CABA',
+  'El Barrilete de Almagro': 'CABA',
+  'Predio La Quemita (Huracán)': 'CABA',
+  'Solanas Fútbol Villa Urquiza': 'CABA',
+  'Complejo La Terraza Boedo': 'CABA',
+  'Club Sunderland Urquiza': 'CABA',
+  'Torneos y Complejo El Semillero': 'CABA',
+  'Club 17 de Agosto Pueyrredón': 'CABA',
+  'El Diego de San Telmo': 'CABA',
+  'Complejo Parque Patricios': 'CABA',
+  'Fútbol Palace Palermo': 'CABA',
+  'Complejo Open Gallo Abasto': 'CABA',
+  'La Bombonerita Predio Boca': 'CABA',
+  'Metegol Complejo Devoto': 'CABA',
+  'El Galpón de Colegiales': 'CABA',
+  'Fútbol Plaza Italia Palermo': 'CABA',
+  'Complejo La Rosadita Monserrat': 'CABA',
+  'Complejo Estación Congreso': 'CABA',
+
+  'Arena Vicente López': 'GBA Norte',
+  'Punto Gol Vicente López': 'GBA Norte',
+  'Doble 5 San Isidro': 'GBA Norte',
+  'San Isidro Club (SIC) Predio': 'GBA Norte',
+  'Centro Asturiano Vicente López': 'GBA Norte',
+  'Tigre Fútbol Club Predio': 'GBA Norte',
+  'Pilar Soccer Club': 'GBA Norte',
+
+  'Fútbol Total Avellaneda': 'GBA Sur',
+  'La Masía Lanús': 'GBA Sur',
+  'Club Atlético Lanús Predio F5': 'GBA Sur',
+  'Lomas Fútbol Complejo': 'GBA Sur',
+  'Quilmes Predio Fútbol': 'GBA Sur',
+
+  'Predio San Martín F5 y F7': 'GBA Oeste',
+  'Ramos Mejía Fútbol Club': 'GBA Oeste',
+  'Morón Predio Fútbol 5': 'GBA Oeste',
+  'Ituzaingó Soccer Club': 'GBA Oeste',
+  'Castelar Fútbol 5': 'GBA Oeste'
+};
+
+function getFieldZone(field) {
+  if (!field) return '';
+  if (SPECIFIC_FIELD_ZONES[field.name]) {
+    return SPECIFIC_FIELD_ZONES[field.name];
+  }
+  const name = (field.name || '').toLowerCase();
+  const address = (field.address || '').toLowerCase();
+
+  if (name.includes('caballito') || address.includes('caballito')) return 'CABA';
+  if (name.includes('vicente') || address.includes('vicente')) return 'GBA Norte';
+  if (name.includes('san isidro') || address.includes('san isidro')) return 'GBA Norte';
+  if (name.includes('tigre') || address.includes('tigre')) return 'GBA Norte';
+  if (name.includes('pilar') || address.includes('pilar')) return 'GBA Norte';
+
+  if (name.includes('lanús') || name.includes('lanus') || address.includes('lanús') || address.includes('lanus')) return 'GBA Sur';
+  if (name.includes('avellaneda') || address.includes('avellaneda')) return 'GBA Sur';
+  if (name.includes('lomas') || address.includes('lomas')) return 'GBA Sur';
+  if (name.includes('quilmes') || address.includes('quilmes')) return 'GBA Sur';
+
+  if (name.includes('san martín') || name.includes('san martin') || address.includes('san martín')) return 'GBA Oeste';
+  if (name.includes('ramos') || address.includes('ramos')) return 'GBA Oeste';
+  if (name.includes('morón') || name.includes('moron') || address.includes('morón')) return 'GBA Oeste';
+  if (name.includes('ituzaingó') || name.includes('ituzaingo')) return 'GBA Oeste';
+  if (name.includes('castelar') || address.includes('castelar')) return 'GBA Oeste';
+
+  return field.zone || 'CABA';
 }
 
 export default function FieldsPage() {
@@ -370,7 +460,7 @@ export default function FieldsPage() {
                     fontSize: '0.7rem',
                     fontWeight: '700'
                   }}>
-                    📍 {f.zone}
+                    📍 {getFieldZone(f)}
                   </span>
                 </div>
 
@@ -493,7 +583,7 @@ export default function FieldsPage() {
                   display: 'inline-block',
                   marginBottom: 6
                 }}>
-                  📍 {selectedField.zone}
+                  📍 {getFieldZone(selectedField)}
                 </span>
                 <h3 style={{ margin: 0, fontSize: '1.6rem', color: '#fff', fontWeight: '800' }}>{selectedField.name}</h3>
               </div>
