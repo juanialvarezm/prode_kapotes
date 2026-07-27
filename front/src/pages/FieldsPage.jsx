@@ -71,7 +71,7 @@ function getFieldImageUrl(field) {
 }
 
 const SPECIFIC_FIELD_ADDRESSES = {
-  'Arena Vicente López': 'Carlos Francisco Melo 460, Vicente López',
+  'Arena Vicente López': 'Juan Zufriategui 2021, Florida, Vicente López',
   'Club Caballito': 'Av. Avellaneda 1423, Caballito',
   'Fútbol Vieytes': 'Av. Vieytes 1134, Barracas',
   'Fútbol Madero': 'Av. Alicia Moreau de Justo 989, Puerto Madero',
