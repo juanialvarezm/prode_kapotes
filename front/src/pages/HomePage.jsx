@@ -63,7 +63,6 @@ export default function HomePage() {
           <div className="home-hero-bg-orb orb-2" aria-hidden="true" />
 
           <div className="home-hero-inner-seo">
-            <span className="hero-badge">⚽ Plataforma de Fútbol Amateur #1</span>
 
             <h1 className="home-hero-title-seo">
               Organizá el partido con tus amigos <br />
@@ -81,7 +80,7 @@ export default function HomePage() {
                 onClick={() => navigate(token ? '/groups' : '/auth')}
                 id="btn-hero-primary"
               >
-                🚀 {token ? 'Ir a Mis Grupos' : 'Empezar a Organizar Gratis'}
+                {token ? 'Ir a Mis Grupos' : 'Empezar a Organizar Gratis'}
               </button>
 
               <button
@@ -96,7 +95,7 @@ export default function HomePage() {
             {/* Quick Stats Bar */}
             <div className="hero-stats-bar">
               <div className="stat-item">
-                <span className="stat-value">+150</span>
+                <span className="stat-value">+250</span>
                 <span className="stat-label">Complejos de Canchas</span>
               </div>
               <div className="stat-divider" aria-hidden="true" />
@@ -114,32 +113,6 @@ export default function HomePage() {
         </section>
 
 
-        {/* HOW IT WORKS SECTION */}
-        <section className="seo-section">
-          <h2 className="seo-section-title">¿Cómo funciona? En 4 simples pasos</h2>
-          <div className="seo-grid-4">
-            <div className="seo-card step-card">
-              <div className="step-number">1</div>
-              <h3>Creá tu Grupo</h3>
-              <p>Generá un código de invitación y sumá a tus amigos del colegio, trabajo o facultad.</p>
-            </div>
-            <div className="seo-card step-card">
-              <div className="step-number">2</div>
-              <h3>Publicá el Partido</h3>
-              <p>Fijá el día, horario y cancha. Tus amigos confirman asistencia con un clic.</p>
-            </div>
-            <div className="seo-card step-card">
-              <div className="step-number">3</div>
-              <h3>Armá Equipos</h3>
-              <p>Generá planteles balanceados según las estadísticas acumuladas de cada jugador.</p>
-            </div>
-            <div className="seo-card step-card">
-              <div className="step-number">4</div>
-              <h3>Cargá Estadísticas</h3>
-              <p>Registrá el resultado final, goles, asistencias y elegí al MVP del partido.</p>
-            </div>
-          </div>
-        </section>
 
         {/* FEATURE BREAKDOWN */}
         <section className="seo-section">
@@ -189,27 +162,7 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* MINIGAMES SHOWCASE */}
-        <section className="seo-section">
-          <h2 className="seo-section-title">Minijuegos para los Amantes del Fútbol</h2>
-          <div className="seo-grid-3">
-            <div className="seo-card game-showcase-card">
-              <span className="game-badge">🧩 Juego Diario</span>
-              <h3>FutWordle</h3>
-              <p>Adiviná al jugador misterioso en 6 intentos usando pistas por liga, país y edad.</p>
-            </div>
-            <div className="seo-card game-showcase-card">
-              <span className="game-badge">⚡ Trivia</span>
-              <h3>GolTexto</h3>
-              <p>Descubrí al futbolista siguiendo el recorrido de los clubes de su carrera.</p>
-            </div>
-            <div className="seo-card game-showcase-card">
-              <span className="game-badge">👕 Camisetas</span>
-              <h3>FutLegacy</h3>
-              <p>Demostrá tu memoria futbolera reconociendo camisetas legendarias.</p>
-            </div>
-          </div>
-        </section>
+
       </main>
     </div>
   );
