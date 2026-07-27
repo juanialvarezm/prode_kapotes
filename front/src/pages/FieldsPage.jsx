@@ -125,11 +125,43 @@ const SPECIFIC_FIELD_ADDRESSES = {
   'Castelar Fútbol 5': 'Pte. Sarmiento 3391, Castelar'
 };
 
+const OLD_ADDRESS_CORRECTIONS = [
+  { match: 'Directorio', replace: 'Doblas 1043, Caballito' },
+  { match: 'Crisólogo Larralde', replace: 'Padre Canavery 1351, Núñez' },
+  { match: 'Elvira Rawson', replace: 'Av. Alicia Moreau de Justo 989, Puerto Madero' },
+  { match: 'Mugica', replace: 'Av. Ramos Mejía 1350, Retiro' },
+  { match: 'Asamblea', replace: 'Emilio Mitre 985, Parque Chacabuco' },
+  { match: 'Pampa 1420', replace: 'Arribeños 1701, Belgrano' },
+  { match: 'Juan B. Justo 7700', replace: 'Roma 560, Liniers' },
+  { match: 'Triunvirato 4500', replace: 'Av. Francisco Beiró 2835, Agronomía' },
+  { match: 'Boedo 800', replace: 'Castro 1224, Boedo' },
+  { match: 'Libertador 15000', replace: 'Gaetán Gutiérrez 857, San Isidro' },
+  { match: 'Maipú 1100', replace: 'Carlos Francisco Melo 460, Vicente López' },
+  { match: 'Libertador 900', replace: 'Av. del Libertador 1081, Vicente López' },
+  { match: 'Liniers 1200', replace: 'Av. Liniers 2244, Victoria, Tigre' },
+  { match: 'Mitre 1200', replace: '9 de Julio 398, Avellaneda' },
+  { match: 'Hipólito Yrigoyen 4500', replace: 'Ramón Cabrero 2007, Lanús' },
+  { match: 'Alsina 1200', replace: 'Av. Las Heras 1512, Lomas de Zamora' },
+  { match: 'Guido y Autopista', replace: 'Av. Vicente López 3186, Quilmes' },
+  { match: '25 de Mayo 1200', replace: 'Rodríguez Peña 3131, Villa Lynch, San Martín' },
+  { match: 'Rivadavia 14200', replace: 'Necochea 953, Ramos Mejía' },
+  { match: 'Hipólito Yrigoyen 1200', replace: 'Av. Eva Perón 2176, Morón' },
+  { match: 'Brandson 3200', replace: 'Intendente Carlos Ratti 1490, Ituzaingó' },
+  { match: 'Arias 2300', replace: 'Pte. Sarmiento 3391, Castelar' }
+];
+
 function getFieldAddress(field) {
-  if (field && SPECIFIC_FIELD_ADDRESSES[field.name]) {
+  if (!field) return '';
+  if (SPECIFIC_FIELD_ADDRESSES[field.name]) {
     return SPECIFIC_FIELD_ADDRESSES[field.name];
   }
-  return field ? field.address : '';
+  const rawAddress = field.address || '';
+  for (const corr of OLD_ADDRESS_CORRECTIONS) {
+    if (rawAddress.includes(corr.match)) {
+      return corr.replace;
+    }
+  }
+  return rawAddress;
 }
 
 const SPECIFIC_FIELD_ZONES = {
