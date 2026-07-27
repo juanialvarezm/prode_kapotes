@@ -4,16 +4,6 @@ from init import app
 from db import db
 from models import FootballField
 
-# Selected premium Unsplash images for soccer fields
-images = [
-    "https://images.unsplash.com/photo-1529900748604-07564a03e7a6?w=600&auto=format&fit=crop&q=80",
-    "https://images.unsplash.com/photo-1575361204480-aadea2559ee2?w=600&auto=format&fit=crop&q=80",
-    "https://images.unsplash.com/photo-1551958219-acbc608c6377?w=600&auto=format&fit=crop&q=80",
-    "https://images.unsplash.com/photo-1560272564-c83b66b1ad12?w=600&auto=format&fit=crop&q=80",
-    "https://images.unsplash.com/photo-1518063319789-7217e6706b04?w=600&auto=format&fit=crop&q=80",
-    "https://images.unsplash.com/photo-1431324155629-1a6edd1d2224?w=600&auto=format&fit=crop&q=80"
-]
-
 fields_data = [
     # CABA
     {
@@ -51,18 +41,18 @@ fields_data = [
     },
     {
         "name": "Caballito Norte",
-        "address": "Av. Avellaneda 1423, Caballito",
+        "address": "Av. Avellaneda 1240, Caballito",
         "zone": "CABA",
         "phone": "+54 11 2345-6789",
         "field_types": "F5, F8",
         "surface": "Césped Sintético",
         "features": "Techado, Vestuarios, Buffet, Climatizado",
-        "description": "Canchas techadas de gran categoría entre Nicasio Oroño y Biedma en Caballito, ideal para días de lluvia y torneos semanales.",
+        "description": "Canchas en el predio anexo de Ferro en Caballito, ideales para torneos semanales y partidos nocturnos.",
         "image_url": "https://images.unsplash.com/photo-1575361204480-aadea2559ee2?w=800&auto=format&fit=crop&q=80"
     },
     {
         "name": "Club Caballito",
-        "address": "Av. Avellaneda 1423, Caballito",
+        "address": "Av. Avellaneda 1240, Caballito",
         "zone": "CABA",
         "phone": "+54 11 2345-6789",
         "field_types": "F5, F8",
@@ -359,7 +349,7 @@ fields_data = [
     },
     {
         "name": "El Galpón de Colegiales",
-        "address": "Av. Elcano 3800, Colegiales",
+        "address": "Av. Elcano 3840, Colegiales",
         "zone": "CABA",
         "phone": "+54 11 4551-2233",
         "field_types": "F5",
@@ -427,13 +417,13 @@ fields_data = [
     },
     {
         "name": "Arena Vicente López",
-        "address": "Carlos Francisco Melo 460, Vicente López",
+        "address": "Juan Zufriategui 2021, Florida, Vicente López",
         "zone": "GBA Norte",
         "phone": "+54 11 4791-3344",
         "field_types": "F5, F7",
         "surface": "Césped Sintético",
         "features": "Estacionamiento, Bar, Vestuarios",
-        "description": "Complejo deportivo premium de fútbol en Vicente López, GBA Norte.",
+        "description": "Predio deportivo en Florida, Vicente López, al lado del estadio de Platense.",
         "image_url": "https://images.unsplash.com/photo-1531415074968-036ba1b575da?w=800&auto=format&fit=crop&q=80"
     },
     {
@@ -471,7 +461,7 @@ fields_data = [
     },
     {
         "name": "Pilar Soccer Club",
-        "address": "Panamericana Km 52, Pilar",
+        "address": "Colectora Panamericana Km 52.5, Pilar",
         "zone": "GBA Norte",
         "phone": "+54 11 2299-1122",
         "field_types": "F8, F11",
