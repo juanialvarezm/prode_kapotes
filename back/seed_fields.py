@@ -578,9 +578,13 @@ fields_data = [
 def seed():
     print(f"Starting seeding of {len(fields_data)} football fields...")
     count_added = 0
+    count_updated = 0
     for data in fields_data:
-        existing = FootballField.query.filter_by(name=data["name"], address=data["address"]).first()
-        if not existing:
+        existing = FootballField.query.filter_by(name=data["name"]).first()
+        if existing:
+            existing.image_url = data["image_url"]
+            count_updated += 1
+        else:
             field = FootballField(
                 name=data["name"],
                 address=data["address"],
@@ -596,7 +600,7 @@ def seed():
             count_added += 1
     
     db.session.commit()
-    print(f"Seeding completed. Added {count_added} new fields.")
+    print(f"Seeding completed. Added {count_added} new fields, updated {count_updated} existing fields.")
 
 if __name__ == "__main__":
     with app.app_context():

@@ -6,6 +6,68 @@ import Breadcrumbs from '../components/Breadcrumbs';
 const ZONES = ['Todos', 'CABA', 'GBA Norte', 'GBA Sur', 'GBA Oeste'];
 const TYPES = ['Todos', 'F5', 'F7', 'F8', 'F11'];
 
+const DEFAULT_FIELD_IMAGE = 'https://images.unsplash.com/photo-1529900748604-07564a03e7a6?w=800&auto=format&fit=crop&q=80';
+
+const SPECIFIC_FIELD_IMAGES = {
+  'Fútbol Vieytes': 'https://images.unsplash.com/photo-1574629810360-7efbbe195018?w=800&auto=format&fit=crop&q=80',
+  'Fútbol Madero': 'https://images.unsplash.com/photo-1529900748604-07564a03e7a6?w=800&auto=format&fit=crop&q=80',
+  'Grün FC Núñez': 'https://images.unsplash.com/photo-1551958219-acbc608c6377?w=800&auto=format&fit=crop&q=80',
+  'Caballito Norte': 'https://images.unsplash.com/photo-1575361204480-aadea2559ee2?w=800&auto=format&fit=crop&q=80',
+  'Fútbol Retiro': 'https://images.unsplash.com/photo-1518063319789-7217e6706b04?w=800&auto=format&fit=crop&q=80',
+  'Racket Club Palermo': 'https://images.unsplash.com/photo-1560272564-c83b66b1ad12?w=800&auto=format&fit=crop&q=80',
+  'Complejo Salguero Fútbol': 'https://images.unsplash.com/photo-1508098682722-e99c43a406b2?w=800&auto=format&fit=crop&q=80',
+  'Doble Cinco Caballito': 'https://images.unsplash.com/photo-1543351611-c82399575a20?w=800&auto=format&fit=crop&q=80',
+  'Club Harrods Gath & Chaves': 'https://images.unsplash.com/photo-1431324155629-1a6edd1d2224?w=800&auto=format&fit=crop&q=80',
+  'Parque Sarmiento Predio': 'https://images.unsplash.com/photo-1489944440615-453fc2b6a9a9?w=800&auto=format&fit=crop&q=80',
+  'Complejo El Portón': 'https://images.unsplash.com/photo-1589487391730-58f20eb2c308?w=800&auto=format&fit=crop&q=80',
+  'El Trébol de Parque Chacabuco': 'https://images.unsplash.com/photo-1556816214-3d61168547df?w=800&auto=format&fit=crop&q=80',
+  'Pampa Fútbol Belgrano': 'https://images.unsplash.com/photo-1577223625816-7546f13df25d?w=800&auto=format&fit=crop&q=80',
+  'El Duende de Floresta': 'https://images.unsplash.com/photo-1628891890467-b79f2c8ba9dc?w=800&auto=format&fit=crop&q=80',
+  'Camp Nou Liniers': 'https://images.unsplash.com/photo-1524015368236-bdf6f7254216?w=800&auto=format&fit=crop&q=80',
+  'La Esquina Fútbol': 'https://images.unsplash.com/photo-1531415074968-036ba1b575da?w=800&auto=format&fit=crop&q=80',
+  'Locos por el Fútbol Belgrano': 'https://images.unsplash.com/photo-1600679472126-c695dd65db83?w=800&auto=format&fit=crop&q=80',
+  'El Barrilete de Almagro': 'https://images.unsplash.com/photo-1519766304817-4f37bda74a29?w=800&auto=format&fit=crop&q=80',
+  'Predio La Quemita (Huracán)': 'https://images.unsplash.com/photo-1518604666860-9ed391f76460?w=800&auto=format&fit=crop&q=80',
+  'Solanas Fútbol Villa Urquiza': 'https://images.unsplash.com/photo-1579952363873-27f3bade9f55?w=800&auto=format&fit=crop&q=80',
+  'Complejo La Terraza Boedo': 'https://images.unsplash.com/photo-1510051640316-5b1275214227?w=800&auto=format&fit=crop&q=80',
+  'Club Sunderland Urquiza': 'https://images.unsplash.com/photo-1574629810360-7efbbe195018?w=800&auto=format&fit=crop&q=80',
+  'Torneos y Complejo El Semillero': 'https://images.unsplash.com/photo-1560272564-c83b66b1ad12?w=800&auto=format&fit=crop&q=80',
+  'Club 17 de Agosto Pueyrredón': 'https://images.unsplash.com/photo-1546519638-68e109498ffc?w=800&auto=format&fit=crop&q=80',
+  'El Diego de San Telmo': 'https://images.unsplash.com/photo-1529900748604-07564a03e7a6?w=800&auto=format&fit=crop&q=80',
+  'Complejo Parque Patricios': 'https://images.unsplash.com/photo-1551958219-acbc608c6377?w=800&auto=format&fit=crop&q=80',
+  'Fútbol Palace Palermo': 'https://images.unsplash.com/photo-1575361204480-aadea2559ee2?w=800&auto=format&fit=crop&q=80',
+  'Complejo Open Gallo Abasto': 'https://images.unsplash.com/photo-1518063319789-7217e6706b04?w=800&auto=format&fit=crop&q=80',
+  'La Bombonerita Predio Boca': 'https://images.unsplash.com/photo-1508098682722-e99c43a406b2?w=800&auto=format&fit=crop&q=80',
+  'Metegol Complejo Devoto': 'https://images.unsplash.com/photo-1589487391730-58f20eb2c308?w=800&auto=format&fit=crop&q=80',
+  'El Galpón de Colegiales': 'https://images.unsplash.com/photo-1556816214-3d61168547df?w=800&auto=format&fit=crop&q=80',
+  'Fútbol Plaza Italia Palermo': 'https://images.unsplash.com/photo-1577223625816-7546f13df25d?w=800&auto=format&fit=crop&q=80',
+  'Complejo La Rosadita Monserrat': 'https://images.unsplash.com/photo-1519766304817-4f37bda74a29?w=800&auto=format&fit=crop&q=80',
+  'Complejo Estación Congreso': 'https://images.unsplash.com/photo-1628891890467-b79f2c8ba9dc?w=800&auto=format&fit=crop&q=80',
+  'Doble 5 San Isidro': 'https://images.unsplash.com/photo-1524015368236-bdf6f7254216?w=800&auto=format&fit=crop&q=80',
+  'Punto Gol Vicente López': 'https://images.unsplash.com/photo-1531415074968-036ba1b575da?w=800&auto=format&fit=crop&q=80',
+  'San Isidro Club (SIC) Predio': 'https://images.unsplash.com/photo-1489944440615-453fc2b6a9a9?w=800&auto=format&fit=crop&q=80',
+  'Centro Asturiano Vicente López': 'https://images.unsplash.com/photo-1518604666860-9ed391f76460?w=800&auto=format&fit=crop&q=80',
+  'Tigre Fútbol Club Predio': 'https://images.unsplash.com/photo-1579952363873-27f3bade9f55?w=800&auto=format&fit=crop&q=80',
+  'Pilar Soccer Club': 'https://images.unsplash.com/photo-1510051640316-5b1275214227?w=800&auto=format&fit=crop&q=80',
+  'Fútbol Total Avellaneda': 'https://images.unsplash.com/photo-1600679472126-c695dd65db83?w=800&auto=format&fit=crop&q=80',
+  'La Masía Lanús': 'https://images.unsplash.com/photo-1574629810360-7efbbe195018?w=800&auto=format&fit=crop&q=80',
+  'Club Atlético Lanús Predio F5': 'https://images.unsplash.com/photo-1529900748604-07564a03e7a6?w=800&auto=format&fit=crop&q=80',
+  'Lomas Fútbol Complejo': 'https://images.unsplash.com/photo-1551958219-acbc608c6377?w=800&auto=format&fit=crop&q=80',
+  'Quilmes Predio Fútbol': 'https://images.unsplash.com/photo-1575361204480-aadea2559ee2?w=800&auto=format&fit=crop&q=80',
+  'Predio San Martín F5 y F7': 'https://images.unsplash.com/photo-1518063319789-7217e6706b04?w=800&auto=format&fit=crop&q=80',
+  'Ramos Mejía Fútbol Club': 'https://images.unsplash.com/photo-1560272564-c83b66b1ad12?w=800&auto=format&fit=crop&q=80',
+  'Morón Predio Fútbol 5': 'https://images.unsplash.com/photo-1508098682722-e99c43a406b2?w=800&auto=format&fit=crop&q=80',
+  'Ituzaingó Soccer Club': 'https://images.unsplash.com/photo-1431324155629-1a6edd1d2224?w=800&auto=format&fit=crop&q=80',
+  'Castelar Fútbol 5': 'https://images.unsplash.com/photo-1589487391730-58f20eb2c308?w=800&auto=format&fit=crop&q=80'
+};
+
+function getFieldImageUrl(field) {
+  if (SPECIFIC_FIELD_IMAGES[field.name]) {
+    return SPECIFIC_FIELD_IMAGES[field.name];
+  }
+  return field.image_url || DEFAULT_FIELD_IMAGE;
+}
+
 export default function FieldsPage() {
   useSEO({
     title: 'Buscador de Canchas y Complejos de Fútbol Amateur',
@@ -227,9 +289,13 @@ export default function FieldsPage() {
                 {/* Complex Image */}
                 <div style={{ height: 160, width: '100%', overflow: 'hidden', position: 'relative' }}>
                   <img
-                    src={f.image_url}
+                    src={getFieldImageUrl(f)}
                     alt={f.name}
                     style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.3s' }}
+                    onError={(e) => {
+                      e.target.onerror = null;
+                      e.target.src = DEFAULT_FIELD_IMAGE;
+                    }}
                   />
                   <span style={{
                     position: 'absolute',
@@ -341,9 +407,13 @@ export default function FieldsPage() {
             {/* Modal Header Image */}
             <div style={{ height: 220, width: '100%', overflow: 'hidden', position: 'relative' }}>
               <img
-                src={selectedField.image_url}
+                src={getFieldImageUrl(selectedField)}
                 alt={selectedField.name}
                 style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                onError={(e) => {
+                  e.target.onerror = null;
+                  e.target.src = DEFAULT_FIELD_IMAGE;
+                }}
               />
               <div style={{
                 position: 'absolute',
