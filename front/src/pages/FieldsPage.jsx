@@ -68,6 +68,66 @@ function getFieldImageUrl(field) {
   return field.image_url || DEFAULT_FIELD_IMAGE;
 }
 
+const SPECIFIC_FIELD_ADDRESSES = {
+  'Fútbol Vieytes': 'Av. Vieytes 1134, Barracas',
+  'Fútbol Madero': 'Av. Alicia Moreau de Justo 989, Puerto Madero',
+  'Grün FC Núñez': 'Padre Canavery 1351, Núñez',
+  'Caballito Norte': 'Av. Avellaneda 1423, Caballito',
+  'Fútbol Retiro': 'Av. Ramos Mejía 1350, Retiro',
+  'Racket Club Palermo': 'Av. Valentín Alsina 1450, Palermo',
+  'Complejo Salguero Fútbol': 'Av. Rafael Obligado 1221, Costanera Norte',
+  'Doble Cinco Caballito': 'Doblas 1043, Caballito',
+  'Club Harrods Gath & Chaves': 'Virrey del Pino 1480, Belgrano',
+  'Parque Sarmiento Predio': 'Av. Dr. Ricardo Balbín 4750, Saavedra',
+  'Complejo El Portón': "O'Higgins 3487, Núñez",
+  'El Trébol de Parque Chacabuco': 'Emilio Mitre 985, Parque Chacabuco',
+  'Pampa Fútbol Belgrano': 'Arribeños 1701, Belgrano',
+  'El Duende de Floresta': 'Av. Gaona 4660, Floresta',
+  'Camp Nou Liniers': 'Roma 560, Liniers',
+  'La Esquina Fútbol': 'Av. San Martín 4500, Villa del Parque',
+  'Locos por el Fútbol Belgrano': 'Moldes 2200, Belgrano',
+  'El Barrilete de Almagro': 'Guardia Vieja 3400, Almagro',
+  'Predio La Quemita (Huracán)': 'Av. Mariano Acosta 1981, Villa Soldati',
+  'Solanas Fútbol Villa Urquiza': 'Av. Francisco Beiró 2835, Agronomía',
+  'Complejo La Terraza Boedo': 'Castro 1224, Boedo',
+  'Club Sunderland Urquiza': 'Lugones 3161, Villa Urquiza',
+  'Torneos y Complejo El Semillero': 'Av. Díaz Vélez 4100, Almagro',
+  'Club 17 de Agosto Pueyrredón': 'Av. Albarellos 2935, Villa Pueyrredón',
+  'El Diego de San Telmo': 'Av. San Juan 500, San Telmo',
+  'Complejo Parque Patricios': 'Pepirí 135, Parque Patricios',
+  'Fútbol Palace Palermo': 'Av. Santa Fe 4200, Palermo',
+  'Complejo Open Gallo Abasto': 'Gallo 240, Abasto',
+  'La Bombonerita Predio Boca': 'Brandsen 805, La Boca',
+  'Metegol Complejo Devoto': 'Av. Francisco Beiró 4200, Villa Devoto',
+  'El Galpón de Colegiales': 'Av. Elcano 3800, Colegiales',
+  'Fútbol Plaza Italia Palermo': 'Thames 2400, Palermo',
+  'Complejo La Rosadita Monserrat': 'Av. Entre Ríos 1100, Monserrat',
+  'Complejo Estación Congreso': 'Av. Congreso 2300, Belgrano',
+  'Doble 5 San Isidro': 'Gaetán Gutiérrez 857, San Isidro',
+  'Punto Gol Vicente López': 'Carlos Francisco Melo 460, Vicente López',
+  'San Isidro Club (SIC) Predio': 'Av. Blanco Encalada 404, San Isidro',
+  'Centro Asturiano Vicente López': 'Av. del Libertador 1081, Vicente López',
+  'Tigre Fútbol Club Predio': 'Av. Liniers 2244, Victoria, Tigre',
+  'Pilar Soccer Club': 'Panamericana Km 52, Pilar',
+  'Fútbol Total Avellaneda': '9 de Julio 398, Avellaneda',
+  'La Masía Lanús': 'Ramón Cabrero 2007, Lanús',
+  'Club Atlético Lanús Predio F5': 'Madariaga 900, Lanús',
+  'Lomas Fútbol Complejo': 'Av. Las Heras 1512, Lomas de Zamora',
+  'Quilmes Predio Fútbol': 'Av. Vicente López 3186, Quilmes',
+  'Predio San Martín F5 y F7': 'Rodríguez Peña 3131, Villa Lynch, San Martín',
+  'Ramos Mejía Fútbol Club': 'Necochea 953, Ramos Mejía',
+  'Morón Predio Fútbol 5': 'Av. Eva Perón 2176, Morón',
+  'Ituzaingó Soccer Club': 'Intendente Carlos Ratti 1490, Ituzaingó',
+  'Castelar Fútbol 5': 'Pte. Sarmiento 3391, Castelar'
+};
+
+function getFieldAddress(field) {
+  if (field && SPECIFIC_FIELD_ADDRESSES[field.name]) {
+    return SPECIFIC_FIELD_ADDRESSES[field.name];
+  }
+  return field ? field.address : '';
+}
+
 export default function FieldsPage() {
   useSEO({
     title: 'Buscador de Canchas y Complejos de Fútbol Amateur',
@@ -318,7 +378,7 @@ export default function FieldsPage() {
                 <div style={{ padding: 16, display: 'flex', flexDirection: 'column', flex: 1 }}>
                   <h4 style={{ margin: '0 0 4px 0', fontSize: '1.1rem', color: 'var(--text-primary)' }}>{f.name}</h4>
                   <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', margin: '0 0 12px 0', display: 'flex', alignItems: 'center', gap: 4 }}>
-                    <span>📍</span> {f.address}
+                    <span>📍</span> {getFieldAddress(f)}
                   </p>
 
                   {/* Badges types */}
@@ -514,7 +574,7 @@ export default function FieldsPage() {
 
               {/* Simulated Map Container */}
               <div
-                onClick={() => handleOpenGoogleMaps(selectedField.address)}
+                onClick={() => handleOpenGoogleMaps(getFieldAddress(selectedField))}
                 style={{
                   height: 90,
                   background: 'radial-gradient(circle, rgba(16,185,129,0.15) 0%, rgba(10,15,26,0.9) 100%)',
@@ -537,7 +597,7 @@ export default function FieldsPage() {
                   Ver en Google Maps
                 </span>
                 <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)', textAlign: 'center', marginTop: 2 }}>
-                  {selectedField.address}
+                  {getFieldAddress(selectedField)}
                 </span>
               </div>
 
