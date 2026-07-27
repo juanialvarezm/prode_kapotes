@@ -375,21 +375,9 @@ export default function ProfilePage() {
                 <div className="metric-desc">Partidos programados</div>
               </div>
 
-              <div className="metric-card" style={{ background: stats.pending_payment_count > 0 ? 'rgba(239, 68, 68, 0.05)' : 'var(--bg-card)', borderColor: stats.pending_payment_count > 0 ? 'rgba(239, 68, 68, 0.15)' : 'var(--border)' }}>
-                <div className="metric-value" style={{ color: stats.pending_payment_count > 0 ? '#ef4444' : 'var(--text-primary)' }}>
-                  {stats.pending_payment_count}
-                </div>
-                <div className="metric-label">Pagos Pendientes ❌</div>
-                <div className="metric-desc">Falta abonar al admin</div>
-              </div>
 
-              <div className="metric-card">
-                <div className="metric-value" style={{ color: 'var(--gold-light)' }}>
-                  ${stats.total_spent.toLocaleString('es-AR')}
-                </div>
-                <div className="metric-label">Gasto Total Estimado 💵</div>
-                <div className="metric-desc">Share de canchas jugadas</div>
-              </div>
+
+
             </div>
           </div>
 
