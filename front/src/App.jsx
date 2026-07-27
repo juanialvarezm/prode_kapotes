@@ -147,9 +147,6 @@ function App() {
               <Route path="/" element={<HomePage />} />
               <Route path="/grupos" element={<PublicGroupsPage />} />
               <Route path="/partidos" element={<PublicMatchesPage />} />
-              <Route path="/minijuegos" element={<PublicGamesPage />} />
-              <Route path="/estadisticas" element={<PublicStatsPage />} />
-              <Route path="/ranking" element={<PublicRankingPage />} />
               <Route path="/como-funciona" element={<HowItWorksPage />} />
               <Route path="/ayuda" element={<HelpPage />} />
               <Route path="/ayuda/:slug" element={<HelpArticlePage />} />
@@ -175,6 +172,10 @@ function App() {
               <Route path="/sobre-nosotros" element={<AboutUsPage />} />
 
               {/* Protected routes - redirect to /auth if not logged in */}
+              <Route path="/minijuegos" element={<ProtectedRoute><PublicGamesPage /></ProtectedRoute>} />
+              <Route path="/estadisticas" element={<ProtectedRoute><PublicStatsPage /></ProtectedRoute>} />
+              <Route path="/ranking" element={<ProtectedRoute><PublicRankingPage /></ProtectedRoute>} />
+              <Route path="/rankings" element={<ProtectedRoute><PublicRankingPage /></ProtectedRoute>} />
               <Route path="/join-group" element={<ProtectedRoute><JoinGroupPage onGroupChange={refreshGroups} /></ProtectedRoute>} />
               <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
               <Route path="/profile/:userId" element={

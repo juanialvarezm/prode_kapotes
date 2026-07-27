@@ -139,26 +139,7 @@ export default function HomePage() {
               <span className="feature-link">Explorar Canchas →</span>
             </div>
 
-            <div className="seo-card feature-card-interactive" onClick={() => navigate('/estadisticas')}>
-              <span className="feature-icon">📊</span>
-              <h3>Estadísticas de Jugadores</h3>
-              <p>Tabla de goleadores, máximos asistidores, efectividad % y distinciones de MVP.</p>
-              <span className="feature-link">Ver Estadísticas →</span>
-            </div>
 
-            <div className="seo-card feature-card-interactive" onClick={() => navigate('/ranking')}>
-              <span className="feature-icon">🏆</span>
-              <h3>Rankings y Tablas</h3>
-              <p>Tabla de posiciones del grupo y leaderboard global por presentismo y minijuegos.</p>
-              <span className="feature-link">Ver Rankings →</span>
-            </div>
-
-            <div className="seo-card feature-card-interactive" onClick={() => navigate('/minijuegos')}>
-              <span className="feature-icon">🎮</span>
-              <h3>Minijuegos Futboleros</h3>
-              <p>Desafíos diarios de FutWordle, GolTexto y FutLegacy para jugar entre fecha y fecha.</p>
-              <span className="feature-link">Ver Minijuegos →</span>
-            </div>
           </div>
         </section>
 
