@@ -35,65 +35,7 @@ export default function PublicMatchesPage() {
         </div>
       </header>
 
-      {/* Match features grid */}
-      <section className="seo-section">
-        <h2 className="seo-section-title">Herramientas para la Fecha del Partido</h2>
-        <div className="seo-grid-3">
-          <div className="seo-card">
-            <span className="seo-card-icon" aria-hidden="true">✅</span>
-            <h3>Confirmación RSVP en Tiempo Real</h3>
-            <p>
-              Los jugadores reciben la convocatoria y confirman si van o no. La lista se actualiza
-              al instante y habilita cola de suplentes en caso de que alguien se baje a último momento.
-            </p>
-          </div>
 
-          <div className="seo-card">
-            <span className="seo-card-icon" aria-hidden="true">⚖️</span>
-            <h3>Armado Equilibrado de Equipos</h3>
-            <p>
-              ¿Cansado de que un equipo sea invencible? ProdeKapotes permite armar los planteles (Pechera Claros vs Oscuros)
-              distribuyendo los jugadores según sus promedios y estadísticas acumuladas.
-            </p>
-          </div>
-
-          <div className="seo-card">
-            <span className="seo-card-icon" aria-hidden="true">💵</span>
-            <h3>Control de Pagos de Cancha</h3>
-            <p>
-              El organizador puede marcar quién pagó su cuota del alquiler y quién debe.
-              Transparencia total para evitar que uno solo termine pagando por el resto.
-            </p>
-          </div>
-
-          <div className="seo-card">
-            <span className="seo-card-icon" aria-hidden="true">📝</span>
-            <h3>Carga de Resultado y Goleadores</h3>
-            <p>
-              Al finalizar el encuentro, registrá el resultado final, anotá los goles y asistencias
-              de cada jugador y actualizá la tabla de goleadores del grupo.
-            </p>
-          </div>
-
-          <div className="seo-card">
-            <span className="seo-card-icon" aria-hidden="true">⭐</span>
-            <h3>Votación del Jugador MVP</h3>
-            <p>
-              Al terminar el partido, los jugadores pueden votar de forma anónima a la figura del encuentro.
-              ¡Sumá puntos de MVP para tu perfil personal!
-            </p>
-          </div>
-
-          <div className="seo-card">
-            <span className="seo-card-icon" aria-hidden="true">📸</span>
-            <h3>Galería de Fotos del Partido</h3>
-            <p>
-              Subí la foto del equipo ganador o la postal post-partido para guardar los recuerdos
-              de cada encuentro en el historial del grupo.
-            </p>
-          </div>
-        </div>
-      </section>
 
       {/* Workflow step by step */}
       <section className="seo-section">

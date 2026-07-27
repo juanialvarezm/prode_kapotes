@@ -135,34 +135,6 @@ export default function Header({ hasGroups, pendingRequestsCount = 0, userPoints
               </button>
 
               <button
-                className={`nav-link ${isActive('/minijuegos') ? 'active' : ''}`}
-                onClick={() => navTo('/minijuegos')}
-              >
-                🎮 Minijuegos
-              </button>
-
-              <button
-                className={`nav-link ${isActive('/estadisticas') ? 'active' : ''}`}
-                onClick={() => navTo('/estadisticas')}
-              >
-                📊 Estadísticas
-              </button>
-
-              <button
-                className={`nav-link ${isActive('/ranking') ? 'active' : ''}`}
-                onClick={() => navTo('/ranking')}
-              >
-                🏆 Ranking
-              </button>
-
-              <button
-                className={`nav-link ${isActive('/ayuda') ? 'active' : ''}`}
-                onClick={() => navTo('/ayuda')}
-              >
-                ❓ Ayuda
-              </button>
-
-              <button
                 className="nav-link btn-header-cta"
                 onClick={() => navTo('/auth')}
                 aria-label="Ingresar o crear cuenta"
