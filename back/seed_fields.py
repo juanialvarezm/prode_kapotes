@@ -41,7 +41,7 @@ fields_data = [
     },
     {
         "name": "Caballito Norte",
-        "address": "Av. Avellaneda 1240, Caballito",
+        "address": "Av. Avellaneda 1423, Caballito",
         "zone": "CABA",
         "phone": "+54 11 2345-6789",
         "field_types": "F5, F8",
@@ -51,7 +51,7 @@ fields_data = [
         "image_url": "https://images.unsplash.com/photo-1575361204480-aadea2559ee2?w=800&auto=format&fit=crop&q=80"
     },
     {
-        "name": "Club Caballito",
+        "name": "Camp Nou",
         "address": "Av. Avellaneda 1240, Caballito",
         "zone": "CABA",
         "phone": "+54 11 2345-6789",
@@ -84,7 +84,7 @@ fields_data = [
         "image_url": "https://images.unsplash.com/photo-1560272564-c83b66b1ad12?w=800&auto=format&fit=crop&q=80"
     },
     {
-        "name": "Complejo Salguero Fútbol",
+        "name": "Salguero Fútbol",
         "address": "Av. Rafael Obligado 1221, Costanera Norte",
         "zone": "CABA",
         "phone": "+54 11 4801-8757",
@@ -106,7 +106,7 @@ fields_data = [
         "image_url": "https://images.unsplash.com/photo-1543351611-c82399575a20?w=800&auto=format&fit=crop&q=80"
     },
     {
-        "name": "Club Harrods Gath & Chaves",
+        "name": "Harrods Gath & Chaves",
         "address": "Virrey del Pino 1480, Belgrano",
         "zone": "CABA",
         "phone": "+54 11 5544-3322",
@@ -117,7 +117,7 @@ fields_data = [
         "image_url": "https://images.unsplash.com/photo-1431324155629-1a6edd1d2224?w=800&auto=format&fit=crop&q=80"
     },
     {
-        "name": "Parque Sarmiento Predio",
+        "name": "Parque Sarmiento",
         "address": "Av. Dr. Ricardo Balbín 4750, Saavedra",
         "zone": "CABA",
         "phone": "+54 11 4547-0800",
@@ -128,7 +128,7 @@ fields_data = [
         "image_url": "https://images.unsplash.com/photo-1489944440615-453fc2b6a9a9?w=800&auto=format&fit=crop&q=80"
     },
     {
-        "name": "Complejo El Portón",
+        "name": "El Portón",
         "address": "O'Higgins 3487, Núñez",
         "zone": "CABA",
         "phone": "+54 11 4998-3321",
@@ -216,7 +216,7 @@ fields_data = [
         "image_url": "https://images.unsplash.com/photo-1519766304817-4f37bda74a29?w=800&auto=format&fit=crop&q=80"
     },
     {
-        "name": "Predio La Quemita (Huracán)",
+        "name": "La Quemita (Huracán)",
         "address": "Av. Mariano Acosta 1981, Villa Soldati",
         "zone": "CABA",
         "phone": "+54 11 4611-3311",
@@ -238,7 +238,7 @@ fields_data = [
         "image_url": "https://images.unsplash.com/photo-1579952363873-27f3bade9f55?w=800&auto=format&fit=crop&q=80"
     },
     {
-        "name": "Complejo La Terraza Boedo",
+        "name": "La Terraza Boedo",
         "address": "Castro 1224, Boedo",
         "zone": "CABA",
         "phone": "+54 11 4931-1122",
@@ -260,7 +260,7 @@ fields_data = [
         "image_url": "https://images.unsplash.com/photo-1574629810360-7efbbe195018?w=800&auto=format&fit=crop&q=80"
     },
     {
-        "name": "Torneos y Complejo El Semillero",
+        "name": "El Semillero",
         "address": "Av. Díaz Vélez 4100, Almagro",
         "zone": "CABA",
         "phone": "+54 11 4981-8822",
@@ -293,7 +293,7 @@ fields_data = [
         "image_url": "https://images.unsplash.com/photo-1529900748604-07564a03e7a6?w=800&auto=format&fit=crop&q=80"
     },
     {
-        "name": "Complejo Parque Patricios",
+        "name": "Parque Patricios Fútbol",
         "address": "Pepirí 135, Parque Patricios",
         "zone": "CABA",
         "phone": "+54 11 4911-3344",
@@ -315,7 +315,7 @@ fields_data = [
         "image_url": "https://images.unsplash.com/photo-1575361204480-aadea2559ee2?w=800&auto=format&fit=crop&q=80"
     },
     {
-        "name": "Complejo Open Gallo Abasto",
+        "name": "Open Gallo Abasto",
         "address": "Gallo 240, Abasto",
         "zone": "CABA",
         "phone": "+54 11 4861-3434",
@@ -326,7 +326,7 @@ fields_data = [
         "image_url": "https://images.unsplash.com/photo-1518063319789-7217e6706b04?w=800&auto=format&fit=crop&q=80"
     },
     {
-        "name": "La Bombonerita Predio Boca",
+        "name": "La Bombonerita Boca",
         "address": "Brandsen 805, La Boca",
         "zone": "CABA",
         "phone": "+54 11 4309-4700",
@@ -337,7 +337,7 @@ fields_data = [
         "image_url": "https://images.unsplash.com/photo-1508098682722-e99c43a406b2?w=800&auto=format&fit=crop&q=80"
     },
     {
-        "name": "Metegol Complejo Devoto",
+        "name": "Metegol Devoto",
         "address": "Av. Francisco Beiró 4200, Villa Devoto",
         "zone": "CABA",
         "phone": "+54 11 4501-7788",
@@ -370,7 +370,7 @@ fields_data = [
         "image_url": "https://images.unsplash.com/photo-1577223625816-7546f13df25d?w=800&auto=format&fit=crop&q=80"
     },
     {
-        "name": "Complejo La Rosadita Monserrat",
+        "name": "La Rosadita Monserrat",
         "address": "Av. Entre Ríos 1100, Monserrat",
         "zone": "CABA",
         "phone": "+54 11 4304-2233",
@@ -381,7 +381,7 @@ fields_data = [
         "image_url": "https://images.unsplash.com/photo-1519766304817-4f37bda74a29?w=800&auto=format&fit=crop&q=80"
     },
     {
-        "name": "Complejo Estación Congreso",
+        "name": "Estación Congreso",
         "address": "Av. Congreso 2300, Belgrano",
         "zone": "CABA",
         "phone": "+54 11 4781-1122",
@@ -416,7 +416,7 @@ fields_data = [
         "image_url": "https://images.unsplash.com/photo-1531415074968-036ba1b575da?w=800&auto=format&fit=crop&q=80"
     },
     {
-        "name": "Arena Vicente López",
+        "name": "Camp Nou",
         "address": "Juan Zufriategui 2021, Florida, Vicente López",
         "zone": "GBA Norte",
         "phone": "+54 11 4791-3344",
@@ -427,7 +427,7 @@ fields_data = [
         "image_url": "https://images.unsplash.com/photo-1531415074968-036ba1b575da?w=800&auto=format&fit=crop&q=80"
     },
     {
-        "name": "San Isidro Club (SIC) Predio",
+        "name": "San Isidro Club (SIC)",
         "address": "Av. Blanco Encalada 404, San Isidro",
         "zone": "GBA Norte",
         "phone": "+54 11 4766-2345",
@@ -449,7 +449,7 @@ fields_data = [
         "image_url": "https://images.unsplash.com/photo-1518604666860-9ed391f76460?w=800&auto=format&fit=crop&q=80"
     },
     {
-        "name": "Tigre Fútbol Club Predio",
+        "name": "Tigre Fútbol Club",
         "address": "Av. Liniers 2244, Victoria, Tigre",
         "zone": "GBA Norte",
         "phone": "+54 11 4749-3322",
@@ -495,7 +495,7 @@ fields_data = [
         "image_url": "https://images.unsplash.com/photo-1574629810360-7efbbe195018?w=800&auto=format&fit=crop&q=80"
     },
     {
-        "name": "Club Atlético Lanús Predio F5",
+        "name": "Club Atlético Lanús F5",
         "address": "Madariaga 900, Lanús",
         "zone": "GBA Sur",
         "phone": "+54 11 4357-1200",
@@ -506,7 +506,7 @@ fields_data = [
         "image_url": "https://images.unsplash.com/photo-1529900748604-07564a03e7a6?w=800&auto=format&fit=crop&q=80"
     },
     {
-        "name": "Lomas Fútbol Complejo",
+        "name": "Lomas Fútbol",
         "address": "Av. Las Heras 1512, Lomas de Zamora",
         "zone": "GBA Sur",
         "phone": "+54 11 4244-9988",
@@ -517,7 +517,7 @@ fields_data = [
         "image_url": "https://images.unsplash.com/photo-1551958219-acbc608c6377?w=800&auto=format&fit=crop&q=80"
     },
     {
-        "name": "Quilmes Predio Fútbol",
+        "name": "Quilmes Fútbol",
         "address": "Av. Vicente López 3186, Quilmes",
         "zone": "GBA Sur",
         "phone": "+54 11 4253-1200",
@@ -530,7 +530,7 @@ fields_data = [
 
     # GBA OESTE
     {
-        "name": "Predio San Martín F5 y F7",
+        "name": "San Martín F5 y F7",
         "address": "Rodríguez Peña 3131, Villa Lynch, San Martín",
         "zone": "GBA Oeste",
         "phone": "+54 11 4754-3322",
@@ -552,7 +552,7 @@ fields_data = [
         "image_url": "https://images.unsplash.com/photo-1560272564-c83b66b1ad12?w=800&auto=format&fit=crop&q=80"
     },
     {
-        "name": "Morón Predio Fútbol 5",
+        "name": "Morón Fútbol 5",
         "address": "Av. Eva Perón 2176, Morón",
         "zone": "GBA Oeste",
         "phone": "+54 11 4627-8899",
@@ -589,37 +589,27 @@ fields_data = [
 
 def seed():
     print(f"Starting seeding of {len(fields_data)} football fields...")
+    db.session.query(FootballField).delete()
+    db.session.commit()
+    
     count_added = 0
-    count_updated = 0
     for data in fields_data:
-        existing = FootballField.query.filter_by(name=data["name"]).first()
-        if existing:
-            existing.address = data["address"]
-            existing.zone = data["zone"]
-            existing.phone = data["phone"]
-            existing.field_types = data["field_types"]
-            existing.surface = data["surface"]
-            existing.features = data["features"]
-            existing.description = data["description"]
-            existing.image_url = data["image_url"]
-            count_updated += 1
-        else:
-            field = FootballField(
-                name=data["name"],
-                address=data["address"],
-                zone=data["zone"],
-                phone=data["phone"],
-                field_types=data["field_types"],
-                surface=data["surface"],
-                features=data["features"],
-                image_url=data["image_url"],
-                description=data["description"]
-            )
-            db.session.add(field)
-            count_added += 1
+        field = FootballField(
+            name=data["name"],
+            address=data["address"],
+            zone=data["zone"],
+            phone=data["phone"],
+            field_types=data["field_types"],
+            surface=data["surface"],
+            features=data["features"],
+            image_url=data["image_url"],
+            description=data["description"]
+        )
+        db.session.add(field)
+        count_added += 1
     
     db.session.commit()
-    print(f"Seeding completed. Added {count_added} new fields, updated {count_updated} existing fields.")
+    print(f"Seeding completed. Added {count_added} fields.")
 
 if __name__ == "__main__":
     with app.app_context():

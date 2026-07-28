@@ -21,10 +21,6 @@ export default function PublicMatchesPage() {
         <h1 className="seo-page-title">
           Organizador de Partidos de Fútbol <span className="text-highlight">Amateur</span>
         </h1>
-        <p className="seo-page-lead">
-          Creá convocatorias en segundos, coordiná la fecha, hora y cancha, y permití que los jugadores
-          confirmen su presencia con un toque. Nunca más te vas a quedar con un jugador de menos.
-        </p>
         <div className="seo-header-actions">
           <button className="btn-primary-lg" onClick={() => navigate('/auth')}>
             ⚽ Organizar un Partido

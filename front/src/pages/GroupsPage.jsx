@@ -625,7 +625,7 @@ export default function GroupsPage() {
                       <input
                         type="text"
                         required
-                        placeholder="Ej: Cancha 5 - El Predio"
+                        placeholder="Ej: Cancha 5 - San Martín"
                         className="predictions-search-input"
                         style={{ width: '100%', height: '40px', padding: '0 10px', fontSize: '0.85rem' }}
                         value={matchForm.field_name}

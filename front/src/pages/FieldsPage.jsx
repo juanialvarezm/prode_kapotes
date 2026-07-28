@@ -8,6 +8,19 @@ const TYPES = ['Todos', 'F5', 'F7', 'F8', 'F11'];
 
 const DEFAULT_FIELD_IMAGE = 'https://images.unsplash.com/photo-1529900748604-07564a03e7a6?w=800&auto=format&fit=crop&q=80';
 
+function cleanFieldName(name) {
+  if (!name) return 'Camp Nou';
+  let cleaned = name;
+  ['Predio ', ' Predio', 'Arena ', ' Arena', 'Complejo ', ' Complejo', 'Torneos y Complejo '].forEach((word) => {
+    cleaned = cleaned.replaceAll(word, '');
+  });
+  cleaned = cleaned.trim();
+  if (!cleaned || ['arena', 'predio', 'complejo'].includes(cleaned.toLowerCase())) {
+    return 'Camp Nou';
+  }
+  return cleaned;
+}
+
 const SPECIFIC_FIELD_IMAGES = {
   'Fútbol Vieytes': 'https://images.unsplash.com/photo-1574629810360-7efbbe195018?w=800&auto=format&fit=crop&q=80',
   'Fútbol Madero': 'https://images.unsplash.com/photo-1529900748604-07564a03e7a6?w=800&auto=format&fit=crop&q=80',
@@ -15,11 +28,11 @@ const SPECIFIC_FIELD_IMAGES = {
   'Caballito Norte': 'https://images.unsplash.com/photo-1575361204480-aadea2559ee2?w=800&auto=format&fit=crop&q=80',
   'Fútbol Retiro': 'https://images.unsplash.com/photo-1518063319789-7217e6706b04?w=800&auto=format&fit=crop&q=80',
   'Racket Club Palermo': 'https://images.unsplash.com/photo-1560272564-c83b66b1ad12?w=800&auto=format&fit=crop&q=80',
-  'Complejo Salguero Fútbol': 'https://images.unsplash.com/photo-1508098682722-e99c43a406b2?w=800&auto=format&fit=crop&q=80',
+  'Salguero Fútbol': 'https://images.unsplash.com/photo-1508098682722-e99c43a406b2?w=800&auto=format&fit=crop&q=80',
   'Doble Cinco Caballito': 'https://images.unsplash.com/photo-1543351611-c82399575a20?w=800&auto=format&fit=crop&q=80',
-  'Club Harrods Gath & Chaves': 'https://images.unsplash.com/photo-1431324155629-1a6edd1d2224?w=800&auto=format&fit=crop&q=80',
-  'Parque Sarmiento Predio': 'https://images.unsplash.com/photo-1489944440615-453fc2b6a9a9?w=800&auto=format&fit=crop&q=80',
-  'Complejo El Portón': 'https://images.unsplash.com/photo-1589487391730-58f20eb2c308?w=800&auto=format&fit=crop&q=80',
+  'Harrods Gath & Chaves': 'https://images.unsplash.com/photo-1431324155629-1a6edd1d2224?w=800&auto=format&fit=crop&q=80',
+  'Parque Sarmiento': 'https://images.unsplash.com/photo-1489944440615-453fc2b6a9a9?w=800&auto=format&fit=crop&q=80',
+  'El Portón': 'https://images.unsplash.com/photo-1589487391730-58f20eb2c308?w=800&auto=format&fit=crop&q=80',
   'El Trébol de Parque Chacabuco': 'https://images.unsplash.com/photo-1556816214-3d61168547df?w=800&auto=format&fit=crop&q=80',
   'Pampa Fútbol Belgrano': 'https://images.unsplash.com/photo-1577223625816-7546f13df25d?w=800&auto=format&fit=crop&q=80',
   'El Duende de Floresta': 'https://images.unsplash.com/photo-1628891890467-b79f2c8ba9dc?w=800&auto=format&fit=crop&q=80',
@@ -27,63 +40,65 @@ const SPECIFIC_FIELD_IMAGES = {
   'La Esquina Fútbol': 'https://images.unsplash.com/photo-1531415074968-036ba1b575da?w=800&auto=format&fit=crop&q=80',
   'Locos por el Fútbol Belgrano': 'https://images.unsplash.com/photo-1600679472126-c695dd65db83?w=800&auto=format&fit=crop&q=80',
   'El Barrilete de Almagro': 'https://images.unsplash.com/photo-1519766304817-4f37bda74a29?w=800&auto=format&fit=crop&q=80',
-  'Predio La Quemita (Huracán)': 'https://images.unsplash.com/photo-1518604666860-9ed391f76460?w=800&auto=format&fit=crop&q=80',
+  'La Quemita (Huracán)': 'https://images.unsplash.com/photo-1518604666860-9ed391f76460?w=800&auto=format&fit=crop&q=80',
   'Solanas Fútbol Villa Urquiza': 'https://images.unsplash.com/photo-1579952363873-27f3bade9f55?w=800&auto=format&fit=crop&q=80',
-  'Complejo La Terraza Boedo': 'https://images.unsplash.com/photo-1510051640316-5b1275214227?w=800&auto=format&fit=crop&q=80',
+  'La Terraza Boedo': 'https://images.unsplash.com/photo-1510051640316-5b1275214227?w=800&auto=format&fit=crop&q=80',
   'Club Sunderland Urquiza': 'https://images.unsplash.com/photo-1574629810360-7efbbe195018?w=800&auto=format&fit=crop&q=80',
-  'Torneos y Complejo El Semillero': 'https://images.unsplash.com/photo-1560272564-c83b66b1ad12?w=800&auto=format&fit=crop&q=80',
+  'El Semillero': 'https://images.unsplash.com/photo-1560272564-c83b66b1ad12?w=800&auto=format&fit=crop&q=80',
   'Club 17 de Agosto Pueyrredón': 'https://images.unsplash.com/photo-1546519638-68e109498ffc?w=800&auto=format&fit=crop&q=80',
   'El Diego de San Telmo': 'https://images.unsplash.com/photo-1529900748604-07564a03e7a6?w=800&auto=format&fit=crop&q=80',
-  'Complejo Parque Patricios': 'https://images.unsplash.com/photo-1551958219-acbc608c6377?w=800&auto=format&fit=crop&q=80',
+  'Parque Patricios Fútbol': 'https://images.unsplash.com/photo-1551958219-acbc608c6377?w=800&auto=format&fit=crop&q=80',
   'Fútbol Palace Palermo': 'https://images.unsplash.com/photo-1575361204480-aadea2559ee2?w=800&auto=format&fit=crop&q=80',
-  'Complejo Open Gallo Abasto': 'https://images.unsplash.com/photo-1518063319789-7217e6706b04?w=800&auto=format&fit=crop&q=80',
-  'La Bombonerita Predio Boca': 'https://images.unsplash.com/photo-1508098682722-e99c43a406b2?w=800&auto=format&fit=crop&q=80',
-  'Metegol Complejo Devoto': 'https://images.unsplash.com/photo-1589487391730-58f20eb2c308?w=800&auto=format&fit=crop&q=80',
+  'Open Gallo Abasto': 'https://images.unsplash.com/photo-1518063319789-7217e6706b04?w=800&auto=format&fit=crop&q=80',
+  'La Bombonerita Boca': 'https://images.unsplash.com/photo-1508098682722-e99c43a406b2?w=800&auto=format&fit=crop&q=80',
+  'Metegol Devoto': 'https://images.unsplash.com/photo-1589487391730-58f20eb2c308?w=800&auto=format&fit=crop&q=80',
   'El Galpón de Colegiales': 'https://images.unsplash.com/photo-1556816214-3d61168547df?w=800&auto=format&fit=crop&q=80',
   'Fútbol Plaza Italia Palermo': 'https://images.unsplash.com/photo-1577223625816-7546f13df25d?w=800&auto=format&fit=crop&q=80',
-  'Complejo La Rosadita Monserrat': 'https://images.unsplash.com/photo-1519766304817-4f37bda74a29?w=800&auto=format&fit=crop&q=80',
-  'Complejo Estación Congreso': 'https://images.unsplash.com/photo-1628891890467-b79f2c8ba9dc?w=800&auto=format&fit=crop&q=80',
+  'La Rosadita Monserrat': 'https://images.unsplash.com/photo-1519766304817-4f37bda74a29?w=800&auto=format&fit=crop&q=80',
+  'Estación Congreso': 'https://images.unsplash.com/photo-1628891890467-b79f2c8ba9dc?w=800&auto=format&fit=crop&q=80',
   'Doble 5 San Isidro': 'https://images.unsplash.com/photo-1524015368236-bdf6f7254216?w=800&auto=format&fit=crop&q=80',
   'Punto Gol Vicente López': 'https://images.unsplash.com/photo-1531415074968-036ba1b575da?w=800&auto=format&fit=crop&q=80',
-  'San Isidro Club (SIC) Predio': 'https://images.unsplash.com/photo-1489944440615-453fc2b6a9a9?w=800&auto=format&fit=crop&q=80',
+  'San Isidro Club (SIC)': 'https://images.unsplash.com/photo-1489944440615-453fc2b6a9a9?w=800&auto=format&fit=crop&q=80',
   'Centro Asturiano Vicente López': 'https://images.unsplash.com/photo-1518604666860-9ed391f76460?w=800&auto=format&fit=crop&q=80',
-  'Tigre Fútbol Club Predio': 'https://images.unsplash.com/photo-1579952363873-27f3bade9f55?w=800&auto=format&fit=crop&q=80',
+  'Tigre Fútbol Club': 'https://images.unsplash.com/photo-1579952363873-27f3bade9f55?w=800&auto=format&fit=crop&q=80',
   'Pilar Soccer Club': 'https://images.unsplash.com/photo-1510051640316-5b1275214227?w=800&auto=format&fit=crop&q=80',
   'Fútbol Total Avellaneda': 'https://images.unsplash.com/photo-1600679472126-c695dd65db83?w=800&auto=format&fit=crop&q=80',
   'La Masía Lanús': 'https://images.unsplash.com/photo-1574629810360-7efbbe195018?w=800&auto=format&fit=crop&q=80',
-  'Club Atlético Lanús Predio F5': 'https://images.unsplash.com/photo-1529900748604-07564a03e7a6?w=800&auto=format&fit=crop&q=80',
-  'Lomas Fútbol Complejo': 'https://images.unsplash.com/photo-1551958219-acbc608c6377?w=800&auto=format&fit=crop&q=80',
-  'Quilmes Predio Fútbol': 'https://images.unsplash.com/photo-1575361204480-aadea2559ee2?w=800&auto=format&fit=crop&q=80',
-  'Predio San Martín F5 y F7': 'https://images.unsplash.com/photo-1518063319789-7217e6706b04?w=800&auto=format&fit=crop&q=80',
+  'Club Atlético Lanús F5': 'https://images.unsplash.com/photo-1529900748604-07564a03e7a6?w=800&auto=format&fit=crop&q=80',
+  'Lomas Fútbol': 'https://images.unsplash.com/photo-1551958219-acbc608c6377?w=800&auto=format&fit=crop&q=80',
+  'Quilmes Fútbol': 'https://images.unsplash.com/photo-1575361204480-aadea2559ee2?w=800&auto=format&fit=crop&q=80',
+  'San Martín F5 y F7': 'https://images.unsplash.com/photo-1518063319789-7217e6706b04?w=800&auto=format&fit=crop&q=80',
   'Ramos Mejía Fútbol Club': 'https://images.unsplash.com/photo-1560272564-c83b66b1ad12?w=800&auto=format&fit=crop&q=80',
-  'Morón Predio Fútbol 5': 'https://images.unsplash.com/photo-1508098682722-e99c43a406b2?w=800&auto=format&fit=crop&q=80',
+  'Morón Fútbol 5': 'https://images.unsplash.com/photo-1508098682722-e99c43a406b2?w=800&auto=format&fit=crop&q=80',
   'Ituzaingó Soccer Club': 'https://images.unsplash.com/photo-1431324155629-1a6edd1d2224?w=800&auto=format&fit=crop&q=80',
-  'Arena Vicente López': 'https://images.unsplash.com/photo-1531415074968-036ba1b575da?w=800&auto=format&fit=crop&q=80',
-  'Club Caballito': 'https://images.unsplash.com/photo-1575361204480-aadea2559ee2?w=800&auto=format&fit=crop&q=80',
+  'Camp Nou': 'https://images.unsplash.com/photo-1531415074968-036ba1b575da?w=800&auto=format&fit=crop&q=80',
   'Castelar Fútbol 5': 'https://images.unsplash.com/photo-1589487391730-58f20eb2c308?w=800&auto=format&fit=crop&q=80'
 };
 
 function getFieldImageUrl(field) {
-  if (SPECIFIC_FIELD_IMAGES[field.name]) {
+  const cleanName = cleanFieldName(field?.name);
+  if (SPECIFIC_FIELD_IMAGES[cleanName]) {
+    return SPECIFIC_FIELD_IMAGES[cleanName];
+  }
+  if (SPECIFIC_FIELD_IMAGES[field?.name]) {
     return SPECIFIC_FIELD_IMAGES[field.name];
   }
-  return field.image_url || DEFAULT_FIELD_IMAGE;
+  return field?.image_url || DEFAULT_FIELD_IMAGE;
 }
 
 const SPECIFIC_FIELD_ADDRESSES = {
-  'Arena Vicente López': 'Juan Zufriategui 2021, Florida, Vicente López',
-  'Club Caballito': 'Av. Avellaneda 1423, Caballito',
+  'Camp Nou': 'Juan Zufriategui 2021, Florida, Vicente López',
   'Fútbol Vieytes': 'Av. Vieytes 1134, Barracas',
   'Fútbol Madero': 'Av. Alicia Moreau de Justo 989, Puerto Madero',
   'Grün FC Núñez': 'Padre Canavery 1351, Núñez',
   'Caballito Norte': 'Av. Avellaneda 1423, Caballito',
   'Fútbol Retiro': 'Av. Ramos Mejía 1350, Retiro',
   'Racket Club Palermo': 'Av. Valentín Alsina 1450, Palermo',
-  'Complejo Salguero Fútbol': 'Av. Rafael Obligado 1221, Costanera Norte',
+  'Salguero Fútbol': 'Av. Rafael Obligado 1221, Costanera Norte',
   'Doble Cinco Caballito': 'Doblas 1043, Caballito',
-  'Club Harrods Gath & Chaves': 'Virrey del Pino 1480, Belgrano',
-  'Parque Sarmiento Predio': 'Av. Dr. Ricardo Balbín 4750, Saavedra',
-  'Complejo El Portón': "O'Higgins 3487, Núñez",
+  'Harrods Gath & Chaves': 'Virrey del Pino 1480, Belgrano',
+  'Parque Sarmiento': 'Av. Dr. Ricardo Balbín 4750, Saavedra',
+  'El Portón': "O'Higgins 3487, Núñez",
   'El Trébol de Parque Chacabuco': 'Emilio Mitre 985, Parque Chacabuco',
   'Pampa Fútbol Belgrano': 'Arribeños 1701, Belgrano',
   'El Duende de Floresta': 'Av. Gaona 4660, Floresta',
@@ -91,41 +106,43 @@ const SPECIFIC_FIELD_ADDRESSES = {
   'La Esquina Fútbol': 'Av. San Martín 4500, Villa del Parque',
   'Locos por el Fútbol Belgrano': 'Moldes 2200, Belgrano',
   'El Barrilete de Almagro': 'Guardia Vieja 3400, Almagro',
-  'Predio La Quemita (Huracán)': 'Av. Mariano Acosta 1981, Villa Soldati',
+  'La Quemita (Huracán)': 'Av. Mariano Acosta 1981, Villa Soldati',
   'Solanas Fútbol Villa Urquiza': 'Av. Francisco Beiró 2835, Agronomía',
-  'Complejo La Terraza Boedo': 'Castro 1224, Boedo',
+  'La Terraza Boedo': 'Castro 1224, Boedo',
   'Club Sunderland Urquiza': 'Lugones 3161, Villa Urquiza',
-  'Torneos y Complejo El Semillero': 'Av. Díaz Vélez 4100, Almagro',
+  'El Semillero': 'Av. Díaz Vélez 4100, Almagro',
   'Club 17 de Agosto Pueyrredón': 'Av. Albarellos 2935, Villa Pueyrredón',
   'El Diego de San Telmo': 'Av. San Juan 500, San Telmo',
-  'Complejo Parque Patricios': 'Pepirí 135, Parque Patricios',
+  'Parque Patricios Fútbol': 'Pepirí 135, Parque Patricios',
   'Fútbol Palace Palermo': 'Av. Santa Fe 4200, Palermo',
-  'Complejo Open Gallo Abasto': 'Gallo 240, Abasto',
-  'La Bombonerita Predio Boca': 'Brandsen 805, La Boca',
-  'Metegol Complejo Devoto': 'Av. Francisco Beiró 4200, Villa Devoto',
-  'El Galpón de Colegiales': 'Av. Elcano 3800, Colegiales',
+  'Open Gallo Abasto': 'Gallo 240, Abasto',
+  'La Bombonerita Boca': 'Brandsen 805, La Boca',
+  'Metegol Devoto': 'Av. Francisco Beiró 4200, Villa Devoto',
+  'El Galpón de Colegiales': 'Av. Elcano 3840, Colegiales',
   'Fútbol Plaza Italia Palermo': 'Thames 2400, Palermo',
-  'Complejo La Rosadita Monserrat': 'Av. Entre Ríos 1100, Monserrat',
-  'Complejo Estación Congreso': 'Av. Congreso 2300, Belgrano',
+  'La Rosadita Monserrat': 'Av. Entre Ríos 1100, Monserrat',
+  'Estación Congreso': 'Av. Congreso 2300, Belgrano',
   'Doble 5 San Isidro': 'Gaetán Gutiérrez 857, San Isidro',
   'Punto Gol Vicente López': 'Carlos Francisco Melo 460, Vicente López',
-  'San Isidro Club (SIC) Predio': 'Av. Blanco Encalada 404, San Isidro',
+  'San Isidro Club (SIC)': 'Av. Blanco Encalada 404, San Isidro',
   'Centro Asturiano Vicente López': 'Av. del Libertador 1081, Vicente López',
-  'Tigre Fútbol Club Predio': 'Av. Liniers 2244, Victoria, Tigre',
+  'Tigre Fútbol Club': 'Av. Liniers 2244, Victoria, Tigre',
   'Pilar Soccer Club': 'Panamericana Km 52, Pilar',
   'Fútbol Total Avellaneda': '9 de Julio 398, Avellaneda',
   'La Masía Lanús': 'Ramón Cabrero 2007, Lanús',
-  'Club Atlético Lanús Predio F5': 'Madariaga 900, Lanús',
-  'Lomas Fútbol Complejo': 'Av. Las Heras 1512, Lomas de Zamora',
-  'Quilmes Predio Fútbol': 'Av. Vicente López 3186, Quilmes',
-  'Predio San Martín F5 y F7': 'Rodríguez Peña 3131, Villa Lynch, San Martín',
+  'Club Atlético Lanús F5': 'Madariaga 900, Lanús',
+  'Lomas Fútbol': 'Av. Las Heras 1512, Lomas de Zamora',
+  'Quilmes Fútbol': 'Av. Vicente López 3186, Quilmes',
+  'San Martín F5 y F7': 'Rodríguez Peña 3131, Villa Lynch, San Martín',
   'Ramos Mejía Fútbol Club': 'Necochea 953, Ramos Mejía',
-  'Morón Predio Fútbol 5': 'Av. Eva Perón 2176, Morón',
+  'Morón Fútbol 5': 'Av. Eva Perón 2176, Morón',
   'Ituzaingó Soccer Club': 'Intendente Carlos Ratti 1490, Ituzaingó',
   'Castelar Fútbol 5': 'Pte. Sarmiento 3391, Castelar'
 };
 
 const OLD_ADDRESS_CORRECTIONS = [
+  { match: 'San Martin 892', replace: 'Rodríguez Peña 3131, Villa Lynch, San Martín' },
+  { match: 'San Martín 892', replace: 'Rodríguez Peña 3131, Villa Lynch, San Martín' },
   { match: 'Directorio', replace: 'Doblas 1043, Caballito' },
   { match: 'Crisólogo Larralde', replace: 'Padre Canavery 1351, Núñez' },
   { match: 'Elvira Rawson', replace: 'Av. Alicia Moreau de Justo 989, Puerto Madero' },
@@ -152,6 +169,10 @@ const OLD_ADDRESS_CORRECTIONS = [
 
 function getFieldAddress(field) {
   if (!field) return '';
+  const cleanName = cleanFieldName(field.name);
+  if (SPECIFIC_FIELD_ADDRESSES[cleanName]) {
+    return SPECIFIC_FIELD_ADDRESSES[cleanName];
+  }
   if (SPECIFIC_FIELD_ADDRESSES[field.name]) {
     return SPECIFIC_FIELD_ADDRESSES[field.name];
   }
@@ -498,7 +519,7 @@ export default function FieldsPage() {
 
                 {/* Complex details */}
                 <div style={{ padding: 16, display: 'flex', flexDirection: 'column', flex: 1 }}>
-                  <h4 style={{ margin: '0 0 4px 0', fontSize: '1.1rem', color: 'var(--text-primary)' }}>{f.name}</h4>
+                  <h4 style={{ margin: '0 0 4px 0', fontSize: '1.1rem', color: 'var(--text-primary)' }}>{cleanFieldName(f.name)}</h4>
                   <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', margin: '0 0 12px 0', display: 'flex', alignItems: 'center', gap: 4 }}>
                     <span>📍</span> {getFieldAddress(f)}
                   </p>
@@ -590,7 +611,7 @@ export default function FieldsPage() {
             <div style={{ height: 220, width: '100%', overflow: 'hidden', position: 'relative' }}>
               <img
                 src={getFieldImageUrl(selectedField)}
-                alt={selectedField.name}
+                alt={cleanFieldName(selectedField.name)}
                 style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                 onError={(e) => {
                   e.target.onerror = null;
@@ -617,7 +638,7 @@ export default function FieldsPage() {
                 }}>
                   📍 {getFieldZone(selectedField)}
                 </span>
-                <h3 style={{ margin: 0, fontSize: '1.6rem', color: '#fff', fontWeight: '800' }}>{selectedField.name}</h3>
+                <h3 style={{ margin: 0, fontSize: '1.6rem', color: '#fff', fontWeight: '800' }}>{cleanFieldName(selectedField.name)}</h3>
               </div>
               {/* Close button */}
               <button

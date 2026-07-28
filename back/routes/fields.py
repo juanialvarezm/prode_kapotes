@@ -5,6 +5,8 @@ from models import FootballField
 from .blueprint import bp
 
 ADDRESS_CLEANUP_MAP = {
+    "San Martin 892": "Rodríguez Peña 3131, Villa Lynch, San Martín",
+    "San Martín 892": "Rodríguez Peña 3131, Villa Lynch, San Martín",
     "Directorio": "Doblas 1043, Caballito",
     "Crisólogo Larralde": "Padre Canavery 1351, Núñez",
     "Elvira Rawson": "Av. Alicia Moreau de Justo 989, Puerto Madero",
@@ -29,6 +31,17 @@ ADDRESS_CLEANUP_MAP = {
     "Arias 2300": "Pte. Sarmiento 3391, Castelar"
 }
 
+def clean_field_name(name):
+    if not name:
+        return "Camp Nou"
+    cleaned = name
+    for word in ["Predio ", " Predio", "Arena ", " Arena", "Complejo ", " Complejo", "Torneos y Complejo "]:
+        cleaned = cleaned.replace(word, "")
+    cleaned = cleaned.strip()
+    if not cleaned or cleaned.lower() in ["arena", "predio", "complejo"]:
+        return "Camp Nou"
+    return cleaned
+
 def sanitize_field_dict(f):
     addr = f.address or ""
     for match_str, replace_str in ADDRESS_CLEANUP_MAP.items():
@@ -36,8 +49,9 @@ def sanitize_field_dict(f):
             addr = replace_str
             break
             
+    name = clean_field_name(f.name)
     zone = f.zone
-    name_lower = (f.name or "").lower()
+    name_lower = (name or "").lower()
     addr_lower = addr.lower()
     if "caballito" in name_lower or "caballito" in addr_lower:
         zone = "CABA"
@@ -46,7 +60,7 @@ def sanitize_field_dict(f):
 
     return {
         'id': f.id,
-        'name': f.name,
+        'name': name,
         'address': addr,
         'zone': zone,
         'phone': f.phone,
