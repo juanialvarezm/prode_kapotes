@@ -115,44 +115,8 @@ export default function UserProfilePage() {
 
       {/* Stats Section */}
       <div className="profile-stats-container">
-        {/* Radial effectiveness is now played vs paid matches */}
-        <div className="effectiveness-card">
-          <span className="effectiveness-title">Cumplimiento de Pago</span>
-          <div className="radial-progress">
-            <svg width="140" height="140">
-              <circle
-                className="circle-bg"
-                cx="70"
-                cy="70"
-                r="50"
-                strokeWidth="8"
-              />
-              <circle
-                className="circle-val"
-                cx="70"
-                cy="70"
-                r="50"
-                strokeWidth="8"
-                strokeDasharray="314.16"
-                strokeDashoffset={
-                  314.16 - (stats.played_count > 0 ? (stats.paid_count / stats.played_count) : 1) * 314.16
-                }
-              />
-            </svg>
-            <div className="radial-progress-text">
-              <span className="radial-progress-percent">
-                {stats.played_count > 0 ? Math.round((stats.paid_count / stats.played_count) * 100) : 100}%
-              </span>
-              <span className="radial-progress-label">Al día</span>
-            </div>
-          </div>
-          <p style={{ marginTop: '16px', fontSize: '0.82rem', color: 'var(--text-secondary)' }}>
-            Ha pagado {stats.paid_count} de {stats.played_count} partidos jugados.
-          </p>
-        </div>
-
         {/* Stats Metrics Cards */}
-        <div className="metrics-grid">
+        <div className="metrics-grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', width: '100%' }}>
           <div className="metric-card exact-hits-card" style={{ background: 'rgba(16, 185, 129, 0.05)', borderColor: 'rgba(16, 185, 129, 0.15)' }}>
             <div className="metric-value" style={{ color: 'var(--accent-light)' }}>{stats.played_count}</div>
             <div className="metric-label">Partidos Jugados ⚽</div>
@@ -165,28 +129,12 @@ export default function UserProfilePage() {
             <div className="metric-desc">Partidos programados</div>
           </div>
 
-          <div className="metric-card" style={{ background: stats.pending_payment_count > 0 ? 'rgba(239, 68, 68, 0.05)' : 'var(--bg-card)', borderColor: stats.pending_payment_count > 0 ? 'rgba(239, 68, 68, 0.15)' : 'var(--border)' }}>
-            <div className="metric-value" style={{ color: stats.pending_payment_count > 0 ? '#ef4444' : 'var(--text-primary)' }}>
-              {stats.pending_payment_count}
-            </div>
-            <div className="metric-label">Pagos Pendientes ❌</div>
-            <div className="metric-desc">Falta abonar al admin</div>
-          </div>
-
           <div className="metric-card">
             <div className="metric-value">
               ⭐ {user.points || 0}
             </div>
             <div className="metric-label">Puntos Acumulados</div>
             <div className="metric-desc">Beneficios y minijuegos</div>
-          </div>
-
-          <div className="metric-card">
-            <div className="metric-value" style={{ color: 'var(--gold-light)' }}>
-              ${stats.total_spent.toLocaleString('es-AR')}
-            </div>
-            <div className="metric-label">Gasto Total Estimado 💵</div>
-            <div className="metric-desc">Share de canchas jugadas</div>
           </div>
         </div>
       </div>
