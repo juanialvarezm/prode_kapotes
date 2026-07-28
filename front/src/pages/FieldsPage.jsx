@@ -344,14 +344,25 @@ export default function FieldsPage() {
     }
   };
 
-  const handleOpenGoogleMaps = (address) => {
-    const encodedAddress = encodeURIComponent(address + ", Buenos Aires, Argentina");
-    window.open(`https://www.google.com/maps/search/?api=1&query=${encodedAddress}`, '_blank');
+  const handleOpenGoogleMaps = (name, address) => {
+    const cleanName = typeof name === 'string' ? cleanFieldName(name) : '';
+    const targetAddr = address || (typeof name === 'object' ? getFieldAddress(name) : '');
+    const targetName = typeof name === 'object' ? cleanFieldName(name.name) : cleanName;
+    const queryStr = targetName ? `${targetName} ${targetAddr}, Buenos Aires, Argentina` : `${targetAddr}, Buenos Aires, Argentina`;
+    window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(queryStr)}`, '_blank');
+  };
+
+  const handleOpenGoogleImages = (name, address) => {
+    const cleanName = typeof name === 'object' ? cleanFieldName(name.name) : cleanFieldName(name);
+    const targetAddr = typeof name === 'object' ? getFieldAddress(name) : address;
+    const query = encodeURIComponent(`cancha ${cleanName} ${targetAddr} Buenos Aires`);
+    window.open(`https://www.google.com/search?tbm=isch&q=${query}`, '_blank');
   };
 
   const handleWhatsApp = (phone, name) => {
-    const cleanPhone = phone.replace(/[^0-9]/g, '');
-    const message = encodeURIComponent(`Hola, te consulto desde Prode Kapotes por disponibilidad para reservar en ${name}.`);
+    const cleanPhone = (phone || '').replace(/[^0-9]/g, '');
+    const cleanName = cleanFieldName(name);
+    const message = encodeURIComponent(`Hola, te consulto desde Prode Kapotes por disponibilidad para reservar en ${cleanName}.`);
     window.open(`https://wa.me/${cleanPhone}?text=${message}`, '_blank');
   };
 
@@ -715,33 +726,73 @@ export default function FieldsPage() {
                 </div>
               )}
 
-              {/* Simulated Map Container */}
-              <div
-                onClick={() => handleOpenGoogleMaps(getFieldAddress(selectedField))}
-                style={{
-                  height: 90,
-                  background: 'radial-gradient(circle, rgba(16,185,129,0.15) 0%, rgba(10,15,26,0.9) 100%)',
-                  border: '1px dashed var(--border)',
-                  borderRadius: 'var(--radius-sm)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  flexDirection: 'column',
-                  cursor: 'pointer',
-                  marginBottom: 24,
-                  padding: 10,
-                  transition: 'border-color 0.2s'
-                }}
-                onMouseEnter={(e) => e.currentTarget.style.borderColor = 'var(--accent)'}
-                onMouseLeave={(e) => e.currentTarget.style.borderColor = 'var(--border)'}
-              >
-                <span style={{ fontSize: '1.2rem', marginBottom: 2 }}>🗺️</span>
-                <span style={{ fontSize: '0.8rem', fontWeight: '600', color: 'var(--accent-light)' }}>
-                  Ver en Google Maps
-                </span>
-                <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)', textAlign: 'center', marginTop: 2 }}>
-                  {getFieldAddress(selectedField)}
-                </span>
+              {/* Google Maps & Google Photos Search Box */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 20 }}>
+                <div
+                  onClick={() => handleOpenGoogleMaps(selectedField, getFieldAddress(selectedField))}
+                  style={{
+                    height: 80,
+                    background: 'radial-gradient(circle, rgba(16,185,129,0.15) 0%, rgba(10,15,26,0.9) 100%)',
+                    border: '1px dashed var(--border)',
+                    borderRadius: 'var(--radius-sm)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    flexDirection: 'column',
+                    cursor: 'pointer',
+                    padding: 10,
+                    transition: 'all 0.2s'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.borderColor = 'var(--accent)';
+                    e.currentTarget.style.transform = 'translateY(-2px)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.borderColor = 'var(--border)';
+                    e.currentTarget.style.transform = 'translateY(0)';
+                  }}
+                >
+                  <span style={{ fontSize: '1.2rem', marginBottom: 2 }}>🗺️</span>
+                  <span style={{ fontSize: '0.8rem', fontWeight: '600', color: 'var(--accent-light)' }}>
+                    Ver en Google Maps
+                  </span>
+                  <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)', textAlign: 'center', marginTop: 2 }}>
+                    {getFieldAddress(selectedField)}
+                  </span>
+                </div>
+
+                <div
+                  onClick={() => handleOpenGoogleImages(selectedField, getFieldAddress(selectedField))}
+                  style={{
+                    height: 80,
+                    background: 'radial-gradient(circle, rgba(245,158,11,0.15) 0%, rgba(10,15,26,0.9) 100%)',
+                    border: '1px dashed var(--border)',
+                    borderRadius: 'var(--radius-sm)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    flexDirection: 'column',
+                    cursor: 'pointer',
+                    padding: 10,
+                    transition: 'all 0.2s'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.borderColor = 'var(--gold)';
+                    e.currentTarget.style.transform = 'translateY(-2px)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.borderColor = 'var(--border)';
+                    e.currentTarget.style.transform = 'translateY(0)';
+                  }}
+                >
+                  <span style={{ fontSize: '1.2rem', marginBottom: 2 }}>📸</span>
+                  <span style={{ fontSize: '0.8rem', fontWeight: '600', color: 'var(--gold-light)' }}>
+                    Fotos en Google
+                  </span>
+                  <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)', textAlign: 'center', marginTop: 2 }}>
+                    Galería real del predio
+                  </span>
+                </div>
               </div>
 
               {/* Call to actions */}
