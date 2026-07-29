@@ -55,6 +55,7 @@ export default function GroupsPage() {
   const [sendingChat, setSendingChat] = useState(false);
   const [loadingChat, setLoadingChat] = useState(false);
   const chatEndRef = useRef(null);
+  const lastMessageIdRef = useRef(null);
 
   useEffect(() => {
     getMe().then(res => setCurrentUserId(res.data.id)).catch(() => { });
@@ -102,10 +103,26 @@ export default function GroupsPage() {
   };
 
   const loadChatMessages = async (groupId, silent = false) => {
+    const afterId = silent ? lastMessageIdRef.current : null;
     if (!silent) setLoadingChat(true);
+
     try {
-      const res = await getGroupMessages(groupId);
-      setChatMessages(res.data.messages || []);
+      const res = await getGroupMessages(groupId, afterId);
+      const newMsgs = res.data.messages || [];
+
+      if (!silent) {
+        setChatMessages(newMsgs);
+        if (newMsgs.length > 0) {
+          lastMessageIdRef.current = newMsgs[newMsgs.length - 1].id;
+        }
+      } else if (newMsgs.length > 0) {
+        setChatMessages(prev => {
+          const existingIds = new Set(prev.map(m => m.id));
+          const filtered = newMsgs.filter(m => !existingIds.has(m.id));
+          return filtered.length > 0 ? [...prev, ...filtered] : prev;
+        });
+        lastMessageIdRef.current = newMsgs[newMsgs.length - 1].id;
+      }
     } catch (err) {
       if (!silent) setError(err?.response?.data?.error || 'No se pudieron cargar los mensajes del chat.');
     } finally {
@@ -122,9 +139,11 @@ export default function GroupsPage() {
     try {
       const res = await sendGroupMessage(selected.id, textToSend);
       if (res.data?.chat_message) {
-        setChatMessages(prev => [...prev, res.data.chat_message]);
+        const newMsg = res.data.chat_message;
+        lastMessageIdRef.current = Math.max(lastMessageIdRef.current || 0, newMsg.id);
+        setChatMessages(prev => [...prev, newMsg]);
       } else {
-        await loadChatMessages(selected.id, true);
+        await loadChatMessages(selected.id, false);
       }
     } catch (err) {
       setError(err?.response?.data?.error || 'Error al enviar el mensaje.');
@@ -134,20 +153,53 @@ export default function GroupsPage() {
   };
 
   useEffect(() => {
-    if (activeTab === 'chat' && selected) {
-      loadChatMessages(selected.id);
-      const interval = setInterval(() => {
-        loadChatMessages(selected.id, true);
-      }, 5000);
-      return () => clearInterval(interval);
+    if (activeTab !== 'chat' || !selected) {
+      lastMessageIdRef.current = null;
+      return;
     }
+
+    loadChatMessages(selected.id, false);
+
+    let intervalId = null;
+
+    const startPolling = () => {
+      if (!intervalId && document.visibilityState === 'visible') {
+        intervalId = setInterval(() => {
+          loadChatMessages(selected.id, true);
+        }, 4000);
+      }
+    };
+
+    const stopPolling = () => {
+      if (intervalId) {
+        clearInterval(intervalId);
+        intervalId = null;
+      }
+    };
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        loadChatMessages(selected.id, true);
+        startPolling();
+      } else {
+        stopPolling();
+      }
+    };
+
+    startPolling();
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      stopPolling();
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
   }, [activeTab, selected]);
 
   useEffect(() => {
-    if (activeTab === 'chat') {
+    if (activeTab === 'chat' && chatMessages.length > 0) {
       chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }
-  }, [chatMessages, activeTab]);
+  }, [chatMessages.length, activeTab]);
 
   const handleCreateMatch = async (e) => {
     e.preventDefault();
@@ -445,742 +497,734 @@ export default function GroupsPage() {
           {/* Active Group Details Card */}
           {selected ? (
             <div className="group-info-card" style={{ marginTop: 0, borderRadius: 'var(--radius-lg)' }}>
-          {/* Group header with avatar */}
-          <div className="group-detail-header">
-            <div className="group-detail-avatar">
-              {selected.avatar_url ? (
-                <img src={getAvatarUrl(selected.avatar_url)} alt={selected.name} />
-              ) : (
-                <span>{selected.name.charAt(0).toUpperCase()}</span>
-              )}
-              {selected.is_owner && (
-                <label className="avatar-upload-label" title="Cambiar foto de perfil del grupo">
-                  📷
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={handleAvatarChange}
-                    style={{ display: 'none' }}
-                  />
-                </label>
-              )}
-            </div>
-            <div>
-              <h4>🎯 Grupo activo: {selected.name}</h4>
-              {selected.description && <p>{selected.description}</p>}
-              <span className="group-id-badge">ID: {selected.id}</span>
-              {selected.is_owner && <span className="owner-badge">👑 Admin</span>}
-              <div className="group-invite-section" style={{ marginTop: 12, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                <button
-                  className="btn-secondary"
-                  style={{ fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: 6, width: 'auto', padding: '6px 12px' }}
-                  onClick={async () => {
-                    try {
-                      const res = await getGroupInviteLink(selected.id);
-                      const url = res.data.whatsapp_url;
-                      window.open(url, '_blank');
-                    } catch (err) {
-                      alert('No se pudo generar el enlace de WhatsApp.');
-                    }
-                  }}
-                >
-                  <span>💬 Invitar por WhatsApp</span>
-                </button>
-                <button
-                  className="btn-secondary"
-                  style={{ fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: 6, width: 'auto', padding: '6px 12px' }}
-                  onClick={() => {
-                    const base = (window.location.origin + window.location.pathname).replace(/\/+$/, '');
-                    const inviteLink = `${base}/#/join-group?groupId=${selected.id}`;
-                    navigator.clipboard.writeText(inviteLink);
-                    setSuccess('📋 ¡Enlace de invitación copiado al portapapeles!');
-                    setTimeout(() => setSuccess(''), 3000);
-                  }}
-                >
-                  <span>🔗 Copiar enlace</span>
-                </button>
-              </div>
-            </div>
-          </div>
-
-
-          {/* Tabs Navigation */}
-          <div className="group-tabs" style={{ display: 'flex', gap: 10, margin: '20px 0 16px 0', borderBottom: '1px solid var(--border)', paddingBottom: 8 }}>
-            <button
-              className={`group-tab-btn ${activeTab === 'members' ? 'active' : ''}`}
-              onClick={() => setActiveTab('members')}
-              style={{
-                background: activeTab === 'members' ? 'rgba(16, 185, 129, 0.15)' : 'var(--glass-bg)',
-                border: activeTab === 'members' ? '1px solid rgba(16, 185, 129, 0.35)' : '1px solid var(--border)',
-                borderRadius: 'var(--radius-md)',
-                color: activeTab === 'members' ? 'var(--accent-light)' : 'var(--text-secondary)',
-                padding: '8px 18px',
-                cursor: 'pointer',
-                fontWeight: '600',
-                fontSize: '0.92rem',
-                transition: 'all 0.2s',
-                outline: 'none',
-                boxShadow: activeTab === 'members' ? '0 2px 8px rgba(16, 185, 129, 0.15)' : 'none'
-              }}
-            >
-              👥 Miembros
-            </button>
-            <button
-              className={`group-tab-btn ${activeTab === 'matches' ? 'active' : ''}`}
-              onClick={() => setActiveTab('matches')}
-              style={{
-                background: activeTab === 'matches' ? 'rgba(16, 185, 129, 0.15)' : 'var(--glass-bg)',
-                border: activeTab === 'matches' ? '1px solid rgba(16, 185, 129, 0.35)' : '1px solid var(--border)',
-                borderRadius: 'var(--radius-md)',
-                color: activeTab === 'matches' ? 'var(--accent-light)' : 'var(--text-secondary)',
-                padding: '8px 18px',
-                cursor: 'pointer',
-                fontWeight: '600',
-                fontSize: '0.92rem',
-                transition: 'all 0.2s',
-                outline: 'none',
-                boxShadow: activeTab === 'matches' ? '0 2px 8px rgba(16, 185, 129, 0.15)' : 'none'
-              }}
-            >
-              ⚽ Organizar Partido
-            </button>
-            <button
-              className={`group-tab-btn ${activeTab === 'chat' ? 'active' : ''}`}
-              onClick={() => setActiveTab('chat')}
-              style={{
-                background: activeTab === 'chat' ? 'rgba(16, 185, 129, 0.15)' : 'var(--glass-bg)',
-                border: activeTab === 'chat' ? '1px solid rgba(16, 185, 129, 0.35)' : '1px solid var(--border)',
-                borderRadius: 'var(--radius-md)',
-                color: activeTab === 'chat' ? 'var(--accent-light)' : 'var(--text-secondary)',
-                padding: '8px 18px',
-                cursor: 'pointer',
-                fontWeight: '600',
-                fontSize: '0.92rem',
-                transition: 'all 0.2s',
-                outline: 'none',
-                boxShadow: activeTab === 'chat' ? '0 2px 8px rgba(16, 185, 129, 0.15)' : 'none'
-              }}
-            >
-              💬 Chat
-            </button>
-          </div>
-
-          {activeTab === 'members' && (
-            <>
-              {/* Members */}
-              {members.length > 0 && (
-                <div style={{ marginTop: 16 }}>
-                  <h4 style={{ fontSize: '0.9rem', marginBottom: 8 }}>👥 Miembros ({members.length}{membersHasMore ? ` de ${membersTotal}` : ` de ${membersTotal}`})</h4>
-                  <div className="members-list">
-                    {members.map((m) => (
-                      <div key={m.id} className="member-row">
-                        <div className="member-info" onClick={() => navigate(`/profile/${m.id}`)} style={{ cursor: 'pointer' }} title={`Ver perfil de ${m.username}`}>
-                          <div className="member-avatar">
-                            {m.profile_picture ? (
-                              <img src={m.profile_picture} alt={m.username} />
-                            ) : (
-                              m.username.charAt(0).toUpperCase()
-                            )}
-                          </div>
-                          <div>
-                            <span className="member-name">
-                              {m.username}
-                              {m.id === selected.owner_id && <span className="owner-tag">👑</span>}
-                            </span>
-                            <span className="member-email">{m.email}</span>
-                          </div>
-                        </div>
-                        {selected.is_owner && m.id !== currentUserId && (
-                          <button
-                            className="btn-kick"
-                            onClick={() => handleKick(m.id, m.username)}
-                            disabled={loadingAction}
-                            title="Eliminar del grupo"
-                          >
-                            ✕
-                          </button>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                  {membersHasMore && (
-                    <button
-                      className="btn-load-more"
-                      onClick={loadMoreMembers}
-                      disabled={loadingMembers}
-                      style={{ marginTop: 8, width: '100%' }}
-                    >
-                      {loadingMembers ? 'Cargando...' : `Ver más miembros (${membersTotal - members.length} restantes)`}
-                    </button>
+              {/* Group header with avatar */}
+              <div className="group-detail-header">
+                <div className="group-detail-avatar">
+                  {selected.avatar_url ? (
+                    <img src={getAvatarUrl(selected.avatar_url)} alt={selected.name} />
+                  ) : (
+                    <span>{selected.name.charAt(0).toUpperCase()}</span>
+                  )}
+                  {selected.is_owner && (
+                    <label className="avatar-upload-label" title="Cambiar foto de perfil del grupo">
+                      📷
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleAvatarChange}
+                        style={{ display: 'none' }}
+                      />
+                    </label>
                   )}
                 </div>
-              )}
-
-              {/* Pending Requests (owner only) */}
-              {selected.is_owner && requests.length > 0 && (
-                <div className="requests-section">
-                  <h4>📨 Solicitudes pendientes ({requests.length})</h4>
-                  <div className="requests-list">
-                    {requests.map((r) => (
-                      <div key={r.id} className="request-row">
-                        <div className="member-info" onClick={() => navigate(`/profile/${r.user_id}`)} style={{ cursor: 'pointer' }} title={`Ver perfil de ${r.username}`}>
-                          <div className="member-avatar request">
-                            {r.profile_picture ? (
-                              <img src={r.profile_picture} alt={r.username} />
-                            ) : (
-                              r.username.charAt(0).toUpperCase()
-                            )}
-                          </div>
-                          <div>
-                            <span className="member-name">{r.username}</span>
-                            <span className="member-email">{r.email}</span>
-                          </div>
-                        </div>
-                        <div className="request-actions">
-                          <button
-                            className="btn-accept"
-                            onClick={() => handleAccept(r.id)}
-                            disabled={loadingAction}
-                          >
-                            ✓ Aceptar
-                          </button>
-                          <button
-                            className="btn-reject"
-                            onClick={() => handleReject(r.id)}
-                            disabled={loadingAction}
-                          >
-                            ✕ Rechazar
-                          </button>
-                        </div>
-                      </div>
-                    ))}
+                <div>
+                  <h4>🎯 Grupo activo: {selected.name}</h4>
+                  {selected.description && <p>{selected.description}</p>}
+                  <span className="group-id-badge">ID: {selected.id}</span>
+                  {selected.is_owner && <span className="owner-badge">👑 Admin</span>}
+                  <div className="group-invite-section" style={{ marginTop: 12, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                    <button
+                      className="btn-secondary"
+                      style={{ fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: 6, width: 'auto', padding: '6px 12px' }}
+                      onClick={async () => {
+                        try {
+                          const res = await getGroupInviteLink(selected.id);
+                          const url = res.data.whatsapp_url;
+                          window.open(url, '_blank');
+                        } catch (err) {
+                          alert('No se pudo generar el enlace de WhatsApp.');
+                        }
+                      }}
+                    >
+                      <span>💬 Invitar por WhatsApp</span>
+                    </button>
+                    <button
+                      className="btn-secondary"
+                      style={{ fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: 6, width: 'auto', padding: '6px 12px' }}
+                      onClick={() => {
+                        const base = (window.location.origin + window.location.pathname).replace(/\/+$/, '');
+                        const inviteLink = `${base}/#/join-group?groupId=${selected.id}`;
+                        navigator.clipboard.writeText(inviteLink);
+                        setSuccess('📋 ¡Enlace de invitación copiado al portapapeles!');
+                        setTimeout(() => setSuccess(''), 3000);
+                      }}
+                    >
+                      <span>🔗 Copiar enlace</span>
+                    </button>
                   </div>
                 </div>
-              )}
+              </div>
 
-              {selected.is_owner && selected.pending_requests_count === 0 && requests.length === 0 && (
-                <div style={{ marginTop: 12, fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-                  📨 No hay solicitudes pendientes
-                </div>
-              )}
-            </>
-          )}
 
-          {activeTab === 'matches' && (
-            <div style={{ marginTop: 16 }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-                <h4 style={{ fontSize: '1rem', margin: 0 }}>⚽ Partidos Organizados</h4>
+              {/* Tabs Navigation */}
+              <div className="group-tabs" style={{ display: 'flex', gap: 10, margin: '20px 0 16px 0', borderBottom: '1px solid var(--border)', paddingBottom: 8 }}>
                 <button
-                  className="btn-primary"
-                  style={{ width: 'auto', padding: '6px 12px', fontSize: '0.85rem' }}
-                  onClick={() => setShowCreateForm(!showCreateForm)}
+                  className={`group-tab-btn ${activeTab === 'members' ? 'active' : ''}`}
+                  onClick={() => setActiveTab('members')}
+                  style={{
+                    background: activeTab === 'members' ? 'rgba(16, 185, 129, 0.15)' : 'var(--glass-bg)',
+                    border: activeTab === 'members' ? '1px solid rgba(16, 185, 129, 0.35)' : '1px solid var(--border)',
+                    borderRadius: 'var(--radius-md)',
+                    color: activeTab === 'members' ? 'var(--accent-light)' : 'var(--text-secondary)',
+                    padding: '8px 18px',
+                    cursor: 'pointer',
+                    fontWeight: '600',
+                    fontSize: '0.92rem',
+                    transition: 'all 0.2s',
+                    outline: 'none',
+                    boxShadow: activeTab === 'members' ? '0 2px 8px rgba(16, 185, 129, 0.15)' : 'none'
+                  }}
                 >
-                  {showCreateForm ? 'Cancelar' : '➕ Organizar Partido'}
+                  👥 Miembros
+                </button>
+                <button
+                  className={`group-tab-btn ${activeTab === 'matches' ? 'active' : ''}`}
+                  onClick={() => setActiveTab('matches')}
+                  style={{
+                    background: activeTab === 'matches' ? 'rgba(16, 185, 129, 0.15)' : 'var(--glass-bg)',
+                    border: activeTab === 'matches' ? '1px solid rgba(16, 185, 129, 0.35)' : '1px solid var(--border)',
+                    borderRadius: 'var(--radius-md)',
+                    color: activeTab === 'matches' ? 'var(--accent-light)' : 'var(--text-secondary)',
+                    padding: '8px 18px',
+                    cursor: 'pointer',
+                    fontWeight: '600',
+                    fontSize: '0.92rem',
+                    transition: 'all 0.2s',
+                    outline: 'none',
+                    boxShadow: activeTab === 'matches' ? '0 2px 8px rgba(16, 185, 129, 0.15)' : 'none'
+                  }}
+                >
+                  ⚽ Organizar Partido
+                </button>
+                <button
+                  className={`group-tab-btn ${activeTab === 'chat' ? 'active' : ''}`}
+                  onClick={() => setActiveTab('chat')}
+                  style={{
+                    background: activeTab === 'chat' ? 'rgba(16, 185, 129, 0.15)' : 'var(--glass-bg)',
+                    border: activeTab === 'chat' ? '1px solid rgba(16, 185, 129, 0.35)' : '1px solid var(--border)',
+                    borderRadius: 'var(--radius-md)',
+                    color: activeTab === 'chat' ? 'var(--accent-light)' : 'var(--text-secondary)',
+                    padding: '8px 18px',
+                    cursor: 'pointer',
+                    fontWeight: '600',
+                    fontSize: '0.92rem',
+                    transition: 'all 0.2s',
+                    outline: 'none',
+                    boxShadow: activeTab === 'chat' ? '0 2px 8px rgba(16, 185, 129, 0.15)' : 'none'
+                  }}
+                >
+                  💬 Chat
                 </button>
               </div>
 
-              {/* Create Match Form */}
-              {showCreateForm && (
-                <form onSubmit={handleCreateMatch} className="card" style={{ padding: 16, marginBottom: 20, background: 'var(--bg-card-solid)', border: '1px solid var(--border)' }}>
-                  <h5 style={{ marginBottom: 12, fontSize: '0.95rem' }}>Organizar Nuevo Partido</h5>
-                  
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 12 }}>
-                    <div>
-                      <label style={{ display: 'block', fontSize: '0.75rem', color: 'var(--text-secondary)', marginBottom: 4 }}>Día y Hora</label>
-                      <input
-                        type="datetime-local"
-                        required
-                        className="predictions-search-input"
-                        style={{ width: '100%', height: '40px', padding: '0 10px', fontSize: '0.85rem' }}
-                        value={matchForm.match_date}
-                        onChange={(e) => setMatchForm({ ...matchForm, match_date: e.target.value })}
-                      />
-                    </div>
-                    <div>
-                      <label style={{ display: 'block', fontSize: '0.75rem', color: 'var(--text-secondary)', marginBottom: 4 }}>Cancha / Lugar</label>
-                      <input
-                        type="text"
-                        required
-                        placeholder="Ej: Cancha 5 - San Martín"
-                        className="predictions-search-input"
-                        style={{ width: '100%', height: '40px', padding: '0 10px', fontSize: '0.85rem' }}
-                        value={matchForm.field_name}
-                        onChange={(e) => setMatchForm({ ...matchForm, field_name: e.target.value })}
-                      />
-                    </div>
-                  </div>
-
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 16 }}>
-                    <div>
-                      <label style={{ display: 'block', fontSize: '0.75rem', color: 'var(--text-secondary)', marginBottom: 4 }}>Precio Total Cancha ($)</label>
-                      <input
-                        type="number"
-                        placeholder="Ej: 24000"
-                        className="predictions-search-input"
-                        style={{ width: '100%', height: '40px', padding: '0 10px', fontSize: '0.85rem' }}
-                        value={matchForm.price}
-                        onChange={(e) => setMatchForm({ ...matchForm, price: e.target.value })}
-                      />
-                    </div>
-                    <div>
-                      <label style={{ display: 'block', fontSize: '0.75rem', color: 'var(--text-secondary)', marginBottom: 4 }}>Título / Descripción corta</label>
-                      <input
-                        type="text"
-                        placeholder="Ej: Fútbol 5 de los lunes"
-                        className="predictions-search-input"
-                        style={{ width: '100%', height: '40px', padding: '0 10px', fontSize: '0.85rem' }}
-                        value={matchForm.title}
-                        onChange={(e) => setMatchForm({ ...matchForm, title: e.target.value })}
-                      />
-                    </div>
-                  </div>
-
-                  <button
-                    type="submit"
-                    className="btn-primary"
-                    style={{ width: '100%' }}
-                    disabled={submittingMatch}
-                  >
-                    {submittingMatch ? 'Publicando...' : '🚀 Publicar Partido'}
-                  </button>
-                </form>
-              )}
-
-              {/* Organized Matches List */}
-              {loadingMatches ? (
-                <div style={{ textAlign: 'center', padding: 24, color: 'var(--text-secondary)' }}>
-                  ⏳ Cargando partidos organizados...
-                </div>
-              ) : organizedMatches.length === 0 ? (
-                <div className="card empty-state" style={{ padding: 32 }}>
-                  <span className="empty-icon">⚽</span>
-                  <p>No hay partidos organizados para este grupo aún.</p>
-                  <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>¡Organizá el primero usando el botón de arriba!</p>
-                </div>
-              ) : (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-                  {organizedMatches.map((m) => {
-                    const matchDateObj = new Date(m.match_date);
-                    const dateFormatted = matchDateObj.toLocaleDateString('es-AR', { weekday: 'long', day: 'numeric', month: 'long' });
-                    const timeFormatted = matchDateObj.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' });
-                    
-                    const isPast = m.is_past;
-                    const confirmedCount = m.participants.filter(p => p.confirmed).length;
-                    const costPerPerson = confirmedCount > 0 ? Math.round(m.price / confirmedCount) : m.price;
-                    
-                    return (
-                      <div key={m.id} className="card" style={{ padding: 18, border: '1px solid var(--border)', background: 'rgba(255,255,255,0.02)' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 10, marginBottom: 14 }}>
-                          <div>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-                              <h5 style={{ margin: 0, fontSize: '1.05rem', color: 'var(--text-primary)' }}>{m.title || 'Partido de fútbol'}</h5>
-                              {isPast && (
-                                <span style={{ fontSize: '0.65rem', background: 'rgba(16, 185, 129, 0.15)', color: 'var(--accent-light)', border: '1px solid rgba(16,185,129,0.25)', padding: '2px 8px', borderRadius: '12px', fontWeight: '700' }}>
-                                  🏆 Finalizado
-                                </span>
-                              )}
-                            </div>
-                            <span style={{ fontSize: '0.8rem', color: 'var(--accent)', fontWeight: '600', textTransform: 'capitalize' }}>
-                              📅 {dateFormatted} · ⏰ {timeFormatted} hs
-                            </span>
-                          </div>
-                          
-                          {(selected.is_owner || String(m.creator_id) === String(currentUserId)) && (
-                            <button
-                              onClick={() => handleDeleteMatch(m.id)}
-                              className="btn-danger-leave"
-                              style={{ width: 'auto', padding: '4px 8px', fontSize: '0.75rem', margin: 0 }}
-                              title="Eliminar partido"
-                            >
-                              ✕ Cancelar Partido
-                            </button>
-                          )}
-                        </div>
-
-                        {/* Details Grid */}
-                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: 12, padding: 12, background: 'rgba(0,0,0,0.2)', borderRadius: 'var(--radius-sm)', marginBottom: 14 }}>
-                          <div>
-                            <span style={{ display: 'block', fontSize: '0.7rem', color: 'var(--text-secondary)' }}>🏟️ Cancha</span>
-                            <span style={{ fontSize: '0.85rem', fontWeight: '600' }}>{m.field_name}</span>
-                          </div>
-                          <div>
-                            <span style={{ display: 'block', fontSize: '0.7rem', color: 'var(--text-secondary)' }}>💰 Precio Total</span>
-                            <span style={{ fontSize: '0.85rem', fontWeight: '600' }}>${m.price.toLocaleString('es-AR')}</span>
-                          </div>
-                          <div>
-                            <span style={{ display: 'block', fontSize: '0.7rem', color: 'var(--text-secondary)' }}>👥 Confirmados</span>
-                            <span style={{ fontSize: '0.85rem', fontWeight: '600' }}>{confirmedCount} jugadores</span>
-                          </div>
-                          <div>
-                            <span style={{ display: 'block', fontSize: '0.7rem', color: 'var(--text-secondary)' }}>💵 Costo / Persona</span>
-                            <span style={{ fontSize: '0.85rem', fontWeight: '600', color: 'var(--gold-light)' }}>
-                              {confirmedCount > 0 ? `$${costPerPerson.toLocaleString('es-AR')}` : 'Por confirmar'}
-                            </span>
-                          </div>
-                        </div>
-
-                        {/* Attend Button / Polaroid Memory & MVP voting for Past matches */}
-                        {!isPast ? (
-                          <div style={{ marginBottom: 14 }}>
-                            <button
-                              className={m.is_confirmed ? 'btn-danger-leave' : 'btn-primary'}
-                              onClick={() => handleToggleAttendance(m.id, m.is_confirmed)}
-                              style={{
-                                width: '100%',
-                                padding: '8px 16px',
-                                fontWeight: '600',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                gap: 8,
-                                margin: 0,
-                                background: m.is_confirmed ? 'rgba(239, 68, 68, 0.15)' : '',
-                                border: m.is_confirmed ? '1px solid var(--danger)' : '',
-                                color: m.is_confirmed ? 'var(--danger-light)' : ''
-                              }}
-                            >
-                              {m.is_confirmed ? '❌ Cancelar mi Asistencia' : '🙋‍♂️ Confirmar mi Asistencia'}
-                            </button>
-                          </div>
-                        ) : (
-                          <div style={{ display: 'flex', flexDirection: 'column', gap: 16, marginBottom: 16, padding: 14, background: 'rgba(0,0,0,0.15)', borderRadius: 'var(--radius-sm)', border: '1px solid rgba(255,255,255,0.03)' }}>
-                            {/* Polaroid Memory Photo */}
-                            <div>
-                              <h6 style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: 10, display: 'flex', alignItems: 'center', gap: 6 }}>
-                                📸 Foto del Recuerdo del Partido
-                              </h6>
-                              {m.match_photo ? (
-                                <div style={{ 
-                                  background: '#fff', 
-                                  padding: '10px 10px 24px 10px', 
-                                  boxShadow: '0 8px 16px rgba(0,0,0,0.5)', 
-                                  transform: 'rotate(-1deg)',
-                                  maxWidth: '300px',
-                                  margin: '10px auto',
-                                  border: '1px solid #ddd'
-                                }}>
-                                  <div style={{ width: '100%', height: '180px', overflow: 'hidden', background: '#eee' }}>
-                                    <img 
-                                      src={m.match_photo} 
-                                      alt="Recuerdo del partido" 
-                                      style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
-                                    />
-                                  </div>
-                                  <p style={{ 
-                                    margin: '10px 0 0 0', 
-                                    fontFamily: 'system-ui, sans-serif', 
-                                    fontSize: '0.85rem', 
-                                    color: '#222', 
-                                    textAlign: 'center',
-                                    fontWeight: 'bold',
-                                    textTransform: 'uppercase',
-                                    letterSpacing: '1px'
-                                  }}>
-                                    ⚽ {m.field_name}
-                                  </p>
-                                  
-                                  {/* Replace photo option */}
-                                  {(m.is_confirmed || selected.is_owner) && (
-                                    <div style={{ textAlign: 'center', marginTop: 10 }}>
-                                      <label style={{ fontSize: '0.7rem', color: 'var(--accent)', cursor: 'pointer', textDecoration: 'underline' }}>
-                                        Cambiar foto
-                                        <input
-                                          type="file"
-                                          accept="image/*"
-                                          style={{ display: 'none' }}
-                                          onChange={(e) => {
-                                            if (e.target.files && e.target.files[0]) {
-                                              handleUploadPhoto(m.id, e.target.files[0]);
-                                            }
-                                          }}
-                                        />
-                                      </label>
-                                    </div>
-                                  )}
-                                </div>
-                              ) : (
-                                <div>
-                                  {(m.is_confirmed || selected.is_owner) ? (
-                                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, padding: '16px', border: '1px dashed var(--border)', borderRadius: 'var(--radius-sm)', background: 'rgba(255,255,255,0.01)', textAlign: 'center' }}>
-                                      <span style={{ fontSize: '1.5rem' }}>📷</span>
-                                      <p style={{ margin: 0, fontSize: '0.75rem', color: 'var(--text-secondary)' }}>¡Inmortalizá el partido subiendo una foto del recuerdo!</p>
-                                      <label className="btn btn-secondary" style={{ width: 'auto', margin: 0, padding: '4px 10px', fontSize: '0.75rem', cursor: 'pointer' }}>
-                                        Subir Foto
-                                        <input
-                                          type="file"
-                                          accept="image/*"
-                                          style={{ display: 'none' }}
-                                          onChange={(e) => {
-                                            if (e.target.files && e.target.files[0]) {
-                                              handleUploadPhoto(m.id, e.target.files[0]);
-                                            }
-                                          }}
-                                        />
-                                      </label>
-                                    </div>
-                                  ) : (
-                                    <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontStyle: 'italic', textAlign: 'center', padding: '12px' }}>
-                                      Aún no se subió una foto del recuerdo de este partido.
-                                    </div>
-                                  )}
-                                </div>
-                              )}
-                            </div>
-
-                            {/* MVP Voting section */}
-                            {m.is_confirmed && (
-                              <div style={{ borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: 12 }}>
-                                <h6 style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 6 }}>
-                                  🗳️ Elegí al MVP (Jugador del Partido)
-                                </h6>
-                                <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
-                                  <select
-                                    value={m.my_vote || ''}
-                                    onChange={(e) => handleVoteMvp(m.id, e.target.value)}
-                                    style={{
-                                      flex: 1,
-                                      padding: '8px 12px',
-                                      background: 'var(--bg-card)',
-                                      border: '1px solid var(--border)',
-                                      borderRadius: 'var(--radius-sm)',
-                                      color: 'var(--text-primary)',
-                                      fontSize: '0.8rem',
-                                      outline: 'none',
-                                      cursor: 'pointer'
-                                    }}
-                                  >
-                                    <option value="" disabled>Seleccioná al mejor jugador del partido...</option>
-                                    {m.participants
-                                      .filter(p => p.confirmed)
-                                      .map(p => (
-                                        <option key={p.user_id} value={p.user_id}>
-                                          {p.username} {p.user_id === currentUserId && '(Vos)'}
-                                        </option>
-                                      ))
-                                    }
-                                  </select>
-                                </div>
+              {activeTab === 'members' && (
+                <>
+                  {/* Members */}
+                  {members.length > 0 && (
+                    <div style={{ marginTop: 16 }}>
+                      <h4 style={{ fontSize: '0.9rem', marginBottom: 8 }}>👥 Miembros ({members.length}{membersHasMore ? ` de ${membersTotal}` : ` de ${membersTotal}`})</h4>
+                      <div className="members-list">
+                        {members.map((m) => (
+                          <div key={m.id} className="member-row">
+                            <div className="member-info" onClick={() => navigate(`/profile/${m.id}`)} style={{ cursor: 'pointer' }} title={`Ver perfil de ${m.username}`}>
+                              <div className="member-avatar">
+                                {m.profile_picture ? (
+                                  <img src={m.profile_picture} alt={m.username} />
+                                ) : (
+                                  m.username.charAt(0).toUpperCase()
+                                )}
                               </div>
+                              <div>
+                                <span className="member-name">
+                                  {m.username}
+                                  {m.id === selected.owner_id && <span className="owner-tag">👑</span>}
+                                </span>
+                                <span className="member-email">{m.email}</span>
+                              </div>
+                            </div>
+                            {selected.is_owner && m.id !== currentUserId && (
+                              <button
+                                className="btn-kick"
+                                onClick={() => handleKick(m.id, m.username)}
+                                disabled={loadingAction}
+                                title="Eliminar del grupo"
+                              >
+                                ✕
+                              </button>
                             )}
                           </div>
-                        )}
-
-                        {/* Participants list */}
-                        <div>
-                          <h6 style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: 8, borderBottom: '1px solid var(--border)', paddingBottom: 4 }}>
-                            Asistencia ({confirmedCount})
-                          </h6>
-                          
-                          {m.participants.length === 0 ? (
-                            <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontStyle: 'italic', padding: '4px 0' }}>
-                              Nadie ha confirmado asistencia todavía.
-                            </div>
-                          ) : (
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                              {m.participants.map((p) => {
-                                const isCurrentUser = p.user_id === currentUserId;
-                                const isMvp = isPast && m.winner_mvp_id && p.user_id === m.winner_mvp_id;
-                                
-                                return (
-                                  <div key={p.user_id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '6px 8px', borderRadius: 'var(--radius-sm)', background: 'rgba(255,255,255,0.01)', border: '1px solid rgba(255,255,255,0.02)' }}>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                                      <div style={{ width: 24, height: 24, borderRadius: '50%', background: 'var(--accent-dark)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.75rem', fontWeight: 'bold', color: '#fff', overflow: 'hidden' }}>
-                                        {p.profile_picture ? (
-                                          <img src={p.profile_picture} alt={p.username} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                                        ) : (
-                                          p.username.charAt(0).toUpperCase()
-                                        )}
-                                      </div>
-                                      <span style={{ fontSize: '0.85rem', fontWeight: isCurrentUser ? '600' : '400', display: 'flex', alignItems: 'center', gap: 6 }}>
-                                        {p.username} {isCurrentUser && '(Vos)'}
-                                        {isMvp && (
-                                          <span 
-                                            style={{ 
-                                              fontSize: '0.65rem', 
-                                              background: 'rgba(245, 158, 11, 0.15)', 
-                                              color: 'var(--gold-light)', 
-                                              border: '1px solid rgba(245,158,11,0.25)', 
-                                              padding: '1px 6px', 
-                                              borderRadius: '10px', 
-                                              fontWeight: 'bold',
-                                              display: 'flex',
-                                              alignItems: 'center',
-                                              gap: 2
-                                            }}
-                                            title="Jugador del Partido (MVP) 🏆"
-                                          >
-                                            👑 MVP
-                                          </span>
-                                        )}
-                                      </span>
-                                    </div>
-
-                                    {/* Payment Toggle or MVP Votes count */}
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                                      {isPast && p.votes_count > 0 && (
-                                        <span style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', background: 'rgba(255,255,255,0.05)', padding: '2px 8px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.08)', marginRight: 4, fontWeight: '600' }}>
-                                          🗳️ {p.votes_count} {p.votes_count === 1 ? 'voto' : 'votos'}
-                                        </span>
-                                      )}
-                                      
-                                      {(selected.is_owner || String(m.creator_id) === String(currentUserId)) ? (
-                                        <button
-                                          onClick={() => handleTogglePayment(m.id, p.user_id, p.paid)}
-                                          style={{
-                                            background: p.paid ? 'rgba(34, 197, 94, 0.2)' : 'rgba(255,255,255,0.05)',
-                                            border: p.paid ? '1px solid var(--success)' : '1px solid var(--border)',
-                                            borderRadius: '20px',
-                                            padding: '4px 10px',
-                                            fontSize: '0.75rem',
-                                            color: p.paid ? 'var(--accent-light)' : 'var(--text-secondary)',
-                                            cursor: 'pointer',
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            gap: 4,
-                                            transition: 'all 0.2s',
-                                            width: 'auto'
-                                          }}
-                                          title={p.paid ? 'Marcar como pendiente' : 'Marcar como pagado'}
-                                        >
-                                          {p.paid ? '💵 Pagó ✅' : '💵 Pendiente'}
-                                        </button>
-                                      ) : (
-                                        <span
-                                          style={{
-                                            background: p.paid ? 'rgba(34, 197, 94, 0.1)' : 'rgba(255,255,255,0.02)',
-                                            border: p.paid ? '1px solid rgba(34, 197, 94, 0.3)' : '1px solid rgba(255,255,255,0.05)',
-                                            borderRadius: '20px',
-                                            padding: '3px 8px',
-                                            fontSize: '0.7rem',
-                                            color: p.paid ? 'var(--success)' : 'var(--text-muted)',
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            gap: 4
-                                          }}
-                                        >
-                                          {p.paid ? '💵 Pagó ✅' : '💵 Pendiente'}
-                                        </span>
-                                      )}
-                                    </div>
-                                  </div>
-                                );
-                              })}
-                            </div>
-                          )}
-                        </div>
-
+                        ))}
                       </div>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
-          )}
-
-          {activeTab === 'chat' && (
-            <div style={{ marginTop: 16 }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-                <h4 style={{ fontSize: '1rem', margin: 0 }}>💬 Chat de {selected.name}</h4>
-                <button
-                  className="btn-secondary"
-                  style={{ fontSize: '0.8rem', padding: '4px 10px', width: 'auto' }}
-                  onClick={() => selected && loadChatMessages(selected.id)}
-                  disabled={loadingChat}
-                >
-                  🔄 Actualizar
-                </button>
-              </div>
-
-              <div className="group-chat-container">
-                <div className="group-chat-messages">
-                  {loadingChat && chatMessages.length === 0 ? (
-                    <div className="group-chat-empty">
-                      <span>🔄 Cargando conversación...</span>
+                      {membersHasMore && (
+                        <button
+                          className="btn-load-more"
+                          onClick={loadMoreMembers}
+                          disabled={loadingMembers}
+                          style={{ marginTop: 8, width: '100%' }}
+                        >
+                          {loadingMembers ? 'Cargando...' : `Ver más miembros (${membersTotal - members.length} restantes)`}
+                        </button>
+                      )}
                     </div>
-                  ) : chatMessages.length === 0 ? (
-                    <div className="group-chat-empty">
-                      <span style={{ fontSize: '2rem' }}>💬</span>
-                      <p style={{ margin: 0 }}>¡Aún no hay mensajes en este chat!</p>
-                      <span style={{ fontSize: '0.8rem' }}>Sé el primero en enviar un mensaje para organizar el grupo.</span>
+                  )}
+
+                  {/* Pending Requests (owner only) */}
+                  {selected.is_owner && requests.length > 0 && (
+                    <div className="requests-section">
+                      <h4>📨 Solicitudes pendientes ({requests.length})</h4>
+                      <div className="requests-list">
+                        {requests.map((r) => (
+                          <div key={r.id} className="request-row">
+                            <div className="member-info" onClick={() => navigate(`/profile/${r.user_id}`)} style={{ cursor: 'pointer' }} title={`Ver perfil de ${r.username}`}>
+                              <div className="member-avatar request">
+                                {r.profile_picture ? (
+                                  <img src={r.profile_picture} alt={r.username} />
+                                ) : (
+                                  r.username.charAt(0).toUpperCase()
+                                )}
+                              </div>
+                              <div>
+                                <span className="member-name">{r.username}</span>
+                                <span className="member-email">{r.email}</span>
+                              </div>
+                            </div>
+                            <div className="request-actions">
+                              <button
+                                className="btn-accept"
+                                onClick={() => handleAccept(r.id)}
+                                disabled={loadingAction}
+                              >
+                                ✓ Aceptar
+                              </button>
+                              <button
+                                className="btn-reject"
+                                onClick={() => handleReject(r.id)}
+                                disabled={loadingAction}
+                              >
+                                ✕ Rechazar
+                              </button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {selected.is_owner && selected.pending_requests_count === 0 && requests.length === 0 && (
+                    <div style={{ marginTop: 12, fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                      📨 No hay solicitudes pendientes
+                    </div>
+                  )}
+                </>
+              )}
+
+              {activeTab === 'matches' && (
+                <div style={{ marginTop: 16 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+                    <h4 style={{ fontSize: '1rem', margin: 0 }}>⚽ Partidos Organizados</h4>
+                    <button
+                      className="btn-primary"
+                      style={{ width: 'auto', padding: '6px 12px', fontSize: '0.85rem' }}
+                      onClick={() => setShowCreateForm(!showCreateForm)}
+                    >
+                      {showCreateForm ? 'Cancelar' : '➕ Organizar Partido'}
+                    </button>
+                  </div>
+
+                  {/* Create Match Form */}
+                  {showCreateForm && (
+                    <form onSubmit={handleCreateMatch} className="card" style={{ padding: 16, marginBottom: 20, background: 'var(--bg-card-solid)', border: '1px solid var(--border)' }}>
+                      <h5 style={{ marginBottom: 12, fontSize: '0.95rem' }}>Organizar Nuevo Partido</h5>
+
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 12 }}>
+                        <div>
+                          <label style={{ display: 'block', fontSize: '0.75rem', color: 'var(--text-secondary)', marginBottom: 4 }}>Día y Hora</label>
+                          <input
+                            type="datetime-local"
+                            required
+                            className="predictions-search-input"
+                            style={{ width: '100%', height: '40px', padding: '0 10px', fontSize: '0.85rem' }}
+                            value={matchForm.match_date}
+                            onChange={(e) => setMatchForm({ ...matchForm, match_date: e.target.value })}
+                          />
+                        </div>
+                        <div>
+                          <label style={{ display: 'block', fontSize: '0.75rem', color: 'var(--text-secondary)', marginBottom: 4 }}>Cancha / Lugar</label>
+                          <input
+                            type="text"
+                            required
+                            placeholder="Ej: Cancha 5 - San Martín"
+                            className="predictions-search-input"
+                            style={{ width: '100%', height: '40px', padding: '0 10px', fontSize: '0.85rem' }}
+                            value={matchForm.field_name}
+                            onChange={(e) => setMatchForm({ ...matchForm, field_name: e.target.value })}
+                          />
+                        </div>
+                      </div>
+
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 16 }}>
+                        <div>
+                          <label style={{ display: 'block', fontSize: '0.75rem', color: 'var(--text-secondary)', marginBottom: 4 }}>Precio Total Cancha ($)</label>
+                          <input
+                            type="number"
+                            placeholder="Ej: 24000"
+                            className="predictions-search-input"
+                            style={{ width: '100%', height: '40px', padding: '0 10px', fontSize: '0.85rem' }}
+                            value={matchForm.price}
+                            onChange={(e) => setMatchForm({ ...matchForm, price: e.target.value })}
+                          />
+                        </div>
+                        <div>
+                          <label style={{ display: 'block', fontSize: '0.75rem', color: 'var(--text-secondary)', marginBottom: 4 }}>Título / Descripción corta</label>
+                          <input
+                            type="text"
+                            placeholder="Ej: Fútbol 5 de los lunes"
+                            className="predictions-search-input"
+                            style={{ width: '100%', height: '40px', padding: '0 10px', fontSize: '0.85rem' }}
+                            value={matchForm.title}
+                            onChange={(e) => setMatchForm({ ...matchForm, title: e.target.value })}
+                          />
+                        </div>
+                      </div>
+
+                      <button
+                        type="submit"
+                        className="btn-primary"
+                        style={{ width: '100%' }}
+                        disabled={submittingMatch}
+                      >
+                        {submittingMatch ? 'Publicando...' : '🚀 Publicar Partido'}
+                      </button>
+                    </form>
+                  )}
+
+                  {/* Organized Matches List */}
+                  {loadingMatches ? (
+                    <div style={{ textAlign: 'center', padding: 24, color: 'var(--text-secondary)' }}>
+                      ⏳ Cargando partidos organizados...
+                    </div>
+                  ) : organizedMatches.length === 0 ? (
+                    <div className="card empty-state" style={{ padding: 32 }}>
+                      <span className="empty-icon">⚽</span>
+                      <p>No hay partidos organizados para este grupo aún.</p>
+                      <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>¡Organizá el primero usando el botón de arriba!</p>
                     </div>
                   ) : (
-                    chatMessages.map((msg) => {
-                      const isMine = String(msg.user_id) === String(currentUserId);
-                      const timeStr = msg.created_at
-                        ? new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-                        : '';
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                      {organizedMatches.map((m) => {
+                        const matchDateObj = new Date(m.match_date);
+                        const dateFormatted = matchDateObj.toLocaleDateString('es-AR', { weekday: 'long', day: 'numeric', month: 'long' });
+                        const timeFormatted = matchDateObj.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' });
 
-                      return (
-                        <div
-                          key={msg.id}
-                          className={`chat-message-row ${isMine ? 'chat-message-mine' : 'chat-message-other'}`}
-                        >
-                          <div
-                            className="chat-avatar"
-                            onClick={() => navigate(`/profile/${msg.user_id}`)}
-                            style={{ cursor: 'pointer' }}
-                            title={msg.username}
-                          >
-                            {msg.user_profile_picture ? (
-                              <img src={msg.user_profile_picture} alt={msg.username} />
-                            ) : (
-                              (msg.username || 'U').charAt(0).toUpperCase()
-                            )}
-                          </div>
-                          <div className="chat-bubble-content">
-                            {!isMine && <span className="chat-sender-name">{msg.username}</span>}
-                            <div className="chat-bubble">
-                              {msg.content}
-                              <div className="chat-time">{timeStr}</div>
+                        const isPast = m.is_past;
+                        const confirmedCount = m.participants.filter(p => p.confirmed).length;
+                        const costPerPerson = confirmedCount > 0 ? Math.round(m.price / confirmedCount) : m.price;
+
+                        return (
+                          <div key={m.id} className="card" style={{ padding: 18, border: '1px solid var(--border)', background: 'rgba(255,255,255,0.02)' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 10, marginBottom: 14 }}>
+                              <div>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                                  <h5 style={{ margin: 0, fontSize: '1.05rem', color: 'var(--text-primary)' }}>{m.title || 'Partido de fútbol'}</h5>
+                                  {isPast && (
+                                    <span style={{ fontSize: '0.65rem', background: 'rgba(16, 185, 129, 0.15)', color: 'var(--accent-light)', border: '1px solid rgba(16,185,129,0.25)', padding: '2px 8px', borderRadius: '12px', fontWeight: '700' }}>
+                                      🏆 Finalizado
+                                    </span>
+                                  )}
+                                </div>
+                                <span style={{ fontSize: '0.8rem', color: 'var(--accent)', fontWeight: '600', textTransform: 'capitalize' }}>
+                                  📅 {dateFormatted} · ⏰ {timeFormatted} hs
+                                </span>
+                              </div>
+
+                              {(selected.is_owner || String(m.creator_id) === String(currentUserId)) && (
+                                <button
+                                  onClick={() => handleDeleteMatch(m.id)}
+                                  className="btn-danger-leave"
+                                  style={{ width: 'auto', padding: '4px 8px', fontSize: '0.75rem', margin: 0 }}
+                                  title="Eliminar partido"
+                                >
+                                  ✕ Cancelar Partido
+                                </button>
+                              )}
                             </div>
-                          </div>
-                        </div>
-                      );
-                    })
-                  )}
-                  <div ref={chatEndRef} />
-                </div>
 
-                <form className="chat-input-bar" onSubmit={handleSendChatMessage}>
-                  <input
-                    type="text"
-                    className="chat-input-field"
-                    placeholder="Escribí un mensaje al grupo..."
-                    value={chatInput}
-                    onChange={(e) => setChatInput(e.target.value)}
-                    maxLength={1000}
-                    disabled={sendingChat}
-                  />
-                  <button
-                    type="submit"
-                    className="chat-send-btn"
-                    disabled={sendingChat || !chatInput.trim()}
-                  >
-                    {sendingChat ? '...' : 'Enviar 🚀'}
-                  </button>
-                </form>
+                            {/* Details Grid */}
+                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: 12, padding: 12, background: 'rgba(0,0,0,0.2)', borderRadius: 'var(--radius-sm)', marginBottom: 14 }}>
+                              <div>
+                                <span style={{ display: 'block', fontSize: '0.7rem', color: 'var(--text-secondary)' }}>🏟️ Cancha</span>
+                                <span style={{ fontSize: '0.85rem', fontWeight: '600' }}>{m.field_name}</span>
+                              </div>
+                              <div>
+                                <span style={{ display: 'block', fontSize: '0.7rem', color: 'var(--text-secondary)' }}>💰 Precio Total</span>
+                                <span style={{ fontSize: '0.85rem', fontWeight: '600' }}>${m.price.toLocaleString('es-AR')}</span>
+                              </div>
+                              <div>
+                                <span style={{ display: 'block', fontSize: '0.7rem', color: 'var(--text-secondary)' }}>👥 Confirmados</span>
+                                <span style={{ fontSize: '0.85rem', fontWeight: '600' }}>{confirmedCount} jugadores</span>
+                              </div>
+                              <div>
+                                <span style={{ display: 'block', fontSize: '0.7rem', color: 'var(--text-secondary)' }}>💵 Costo / Persona</span>
+                                <span style={{ fontSize: '0.85rem', fontWeight: '600', color: 'var(--gold-light)' }}>
+                                  {confirmedCount > 0 ? `$${costPerPerson.toLocaleString('es-AR')}` : 'Por confirmar'}
+                                </span>
+                              </div>
+                            </div>
+
+                            {/* Attend Button / Polaroid Memory & MVP voting for Past matches */}
+                            {!isPast ? (
+                              <div style={{ marginBottom: 14 }}>
+                                <button
+                                  className={m.is_confirmed ? 'btn-danger-leave' : 'btn-primary'}
+                                  onClick={() => handleToggleAttendance(m.id, m.is_confirmed)}
+                                  style={{
+                                    width: '100%',
+                                    padding: '8px 16px',
+                                    fontWeight: '600',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    gap: 8,
+                                    margin: 0,
+                                    background: m.is_confirmed ? 'rgba(239, 68, 68, 0.15)' : '',
+                                    border: m.is_confirmed ? '1px solid var(--danger)' : '',
+                                    color: m.is_confirmed ? 'var(--danger-light)' : ''
+                                  }}
+                                >
+                                  {m.is_confirmed ? '❌ Cancelar mi Asistencia' : '🙋‍♂️ Confirmar mi Asistencia'}
+                                </button>
+                              </div>
+                            ) : (
+                              <div style={{ display: 'flex', flexDirection: 'column', gap: 16, marginBottom: 16, padding: 14, background: 'rgba(0,0,0,0.15)', borderRadius: 'var(--radius-sm)', border: '1px solid rgba(255,255,255,0.03)' }}>
+                                {/* Polaroid Memory Photo */}
+                                <div>
+                                  <h6 style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: 10, display: 'flex', alignItems: 'center', gap: 6 }}>
+                                    📸 Foto del Recuerdo del Partido
+                                  </h6>
+                                  {m.match_photo ? (
+                                    <div style={{
+                                      background: '#fff',
+                                      padding: '10px 10px 24px 10px',
+                                      boxShadow: '0 8px 16px rgba(0,0,0,0.5)',
+                                      transform: 'rotate(-1deg)',
+                                      maxWidth: '300px',
+                                      margin: '10px auto',
+                                      border: '1px solid #ddd'
+                                    }}>
+                                      <div style={{ width: '100%', height: '180px', overflow: 'hidden', background: '#eee' }}>
+                                        <img
+                                          src={m.match_photo}
+                                          alt="Recuerdo del partido"
+                                          style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                                        />
+                                      </div>
+                                      <p style={{
+                                        margin: '10px 0 0 0',
+                                        fontFamily: 'system-ui, sans-serif',
+                                        fontSize: '0.85rem',
+                                        color: '#222',
+                                        textAlign: 'center',
+                                        fontWeight: 'bold',
+                                        textTransform: 'uppercase',
+                                        letterSpacing: '1px'
+                                      }}>
+                                        ⚽ {m.field_name}
+                                      </p>
+
+                                      {/* Replace photo option */}
+                                      {(m.is_confirmed || selected.is_owner) && (
+                                        <div style={{ textAlign: 'center', marginTop: 10 }}>
+                                          <label style={{ fontSize: '0.7rem', color: 'var(--accent)', cursor: 'pointer', textDecoration: 'underline' }}>
+                                            Cambiar foto
+                                            <input
+                                              type="file"
+                                              accept="image/*"
+                                              style={{ display: 'none' }}
+                                              onChange={(e) => {
+                                                if (e.target.files && e.target.files[0]) {
+                                                  handleUploadPhoto(m.id, e.target.files[0]);
+                                                }
+                                              }}
+                                            />
+                                          </label>
+                                        </div>
+                                      )}
+                                    </div>
+                                  ) : (
+                                    <div>
+                                      {(m.is_confirmed || selected.is_owner) ? (
+                                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, padding: '16px', border: '1px dashed var(--border)', borderRadius: 'var(--radius-sm)', background: 'rgba(255,255,255,0.01)', textAlign: 'center' }}>
+                                          <span style={{ fontSize: '1.5rem' }}>📷</span>
+                                          <p style={{ margin: 0, fontSize: '0.75rem', color: 'var(--text-secondary)' }}>¡Inmortalizá el partido subiendo una foto del recuerdo!</p>
+                                          <label className="btn btn-secondary" style={{ width: 'auto', margin: 0, padding: '4px 10px', fontSize: '0.75rem', cursor: 'pointer' }}>
+                                            Subir Foto
+                                            <input
+                                              type="file"
+                                              accept="image/*"
+                                              style={{ display: 'none' }}
+                                              onChange={(e) => {
+                                                if (e.target.files && e.target.files[0]) {
+                                                  handleUploadPhoto(m.id, e.target.files[0]);
+                                                }
+                                              }}
+                                            />
+                                          </label>
+                                        </div>
+                                      ) : (
+                                        <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontStyle: 'italic', textAlign: 'center', padding: '12px' }}>
+                                          Aún no se subió una foto del recuerdo de este partido.
+                                        </div>
+                                      )}
+                                    </div>
+                                  )}
+                                </div>
+
+                                {/* MVP Voting section */}
+                                {m.is_confirmed && (
+                                  <div style={{ borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: 12 }}>
+                                    <h6 style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 6 }}>
+                                      🗳️ Elegí al MVP (Jugador del Partido)
+                                    </h6>
+                                    <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+                                      <select
+                                        value={m.my_vote || ''}
+                                        onChange={(e) => handleVoteMvp(m.id, e.target.value)}
+                                        style={{
+                                          flex: 1,
+                                          padding: '8px 12px',
+                                          background: 'var(--bg-card)',
+                                          border: '1px solid var(--border)',
+                                          borderRadius: 'var(--radius-sm)',
+                                          color: 'var(--text-primary)',
+                                          fontSize: '0.8rem',
+                                          outline: 'none',
+                                          cursor: 'pointer'
+                                        }}
+                                      >
+                                        <option value="" disabled>Seleccioná al mejor jugador del partido...</option>
+                                        {m.participants
+                                          .filter(p => p.confirmed)
+                                          .map(p => (
+                                            <option key={p.user_id} value={p.user_id}>
+                                              {p.username} {p.user_id === currentUserId && '(Vos)'}
+                                            </option>
+                                          ))
+                                        }
+                                      </select>
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
+                            )}
+
+                            {/* Participants list */}
+                            <div>
+                              <h6 style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: 8, borderBottom: '1px solid var(--border)', paddingBottom: 4 }}>
+                                Asistencia ({confirmedCount})
+                              </h6>
+
+                              {m.participants.length === 0 ? (
+                                <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontStyle: 'italic', padding: '4px 0' }}>
+                                  Nadie ha confirmado asistencia todavía.
+                                </div>
+                              ) : (
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                                  {m.participants.map((p) => {
+                                    const isCurrentUser = p.user_id === currentUserId;
+                                    const isMvp = isPast && m.winner_mvp_id && p.user_id === m.winner_mvp_id;
+
+                                    return (
+                                      <div key={p.user_id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '6px 8px', borderRadius: 'var(--radius-sm)', background: 'rgba(255,255,255,0.01)', border: '1px solid rgba(255,255,255,0.02)' }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                                          <div style={{ width: 24, height: 24, borderRadius: '50%', background: 'var(--accent-dark)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.75rem', fontWeight: 'bold', color: '#fff', overflow: 'hidden' }}>
+                                            {p.profile_picture ? (
+                                              <img src={p.profile_picture} alt={p.username} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                            ) : (
+                                              p.username.charAt(0).toUpperCase()
+                                            )}
+                                          </div>
+                                          <span style={{ fontSize: '0.85rem', fontWeight: isCurrentUser ? '600' : '400', display: 'flex', alignItems: 'center', gap: 6 }}>
+                                            {p.username} {isCurrentUser && '(Vos)'}
+                                            {isMvp && (
+                                              <span
+                                                style={{
+                                                  fontSize: '0.65rem',
+                                                  background: 'rgba(245, 158, 11, 0.15)',
+                                                  color: 'var(--gold-light)',
+                                                  border: '1px solid rgba(245,158,11,0.25)',
+                                                  padding: '1px 6px',
+                                                  borderRadius: '10px',
+                                                  fontWeight: 'bold',
+                                                  display: 'flex',
+                                                  alignItems: 'center',
+                                                  gap: 2
+                                                }}
+                                                title="Jugador del Partido (MVP) 🏆"
+                                              >
+                                                👑 MVP
+                                              </span>
+                                            )}
+                                          </span>
+                                        </div>
+
+                                        {/* Payment Toggle or MVP Votes count */}
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                                          {isPast && p.votes_count > 0 && (
+                                            <span style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', background: 'rgba(255,255,255,0.05)', padding: '2px 8px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.08)', marginRight: 4, fontWeight: '600' }}>
+                                              🗳️ {p.votes_count} {p.votes_count === 1 ? 'voto' : 'votos'}
+                                            </span>
+                                          )}
+
+                                          {(selected.is_owner || String(m.creator_id) === String(currentUserId)) ? (
+                                            <button
+                                              onClick={() => handleTogglePayment(m.id, p.user_id, p.paid)}
+                                              style={{
+                                                background: p.paid ? 'rgba(34, 197, 94, 0.2)' : 'rgba(255,255,255,0.05)',
+                                                border: p.paid ? '1px solid var(--success)' : '1px solid var(--border)',
+                                                borderRadius: '20px',
+                                                padding: '4px 10px',
+                                                fontSize: '0.75rem',
+                                                color: p.paid ? 'var(--accent-light)' : 'var(--text-secondary)',
+                                                cursor: 'pointer',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                gap: 4,
+                                                transition: 'all 0.2s',
+                                                width: 'auto'
+                                              }}
+                                              title={p.paid ? 'Marcar como pendiente' : 'Marcar como pagado'}
+                                            >
+                                              {p.paid ? '💵 Pagó ✅' : '💵 Pendiente'}
+                                            </button>
+                                          ) : (
+                                            <span
+                                              style={{
+                                                background: p.paid ? 'rgba(34, 197, 94, 0.1)' : 'rgba(255,255,255,0.02)',
+                                                border: p.paid ? '1px solid rgba(34, 197, 94, 0.3)' : '1px solid rgba(255,255,255,0.05)',
+                                                borderRadius: '20px',
+                                                padding: '3px 8px',
+                                                fontSize: '0.7rem',
+                                                color: p.paid ? 'var(--success)' : 'var(--text-muted)',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                gap: 4
+                                              }}
+                                            >
+                                              {p.paid ? '💵 Pagó ✅' : '💵 Pendiente'}
+                                            </span>
+                                          )}
+                                        </div>
+                                      </div>
+                                    );
+                                  })}
+                                </div>
+                              )}
+                            </div>
+
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {activeTab === 'chat' && (
+                <div style={{ marginTop: 16 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+                    <h4 style={{ fontSize: '1rem', margin: 0 }}>💬 Chat de {selected.name}</h4>
+                  </div>
+
+                  <div className="group-chat-container">
+                    <div className="group-chat-messages">
+                      {loadingChat && chatMessages.length === 0 ? (
+                        <div className="group-chat-empty">
+                          <span>🔄 Cargando conversación...</span>
+                        </div>
+                      ) : chatMessages.length === 0 ? (
+                        <div className="group-chat-empty">
+                          <span style={{ fontSize: '2rem' }}>💬</span>
+                          <p style={{ margin: 0 }}>¡Aún no hay mensajes en este chat!</p>
+                          <span style={{ fontSize: '0.8rem' }}>Sé el primero en enviar un mensaje para organizar el grupo.</span>
+                        </div>
+                      ) : (
+                        chatMessages.map((msg) => {
+                          const isMine = String(msg.user_id) === String(currentUserId);
+                          const timeStr = msg.created_at
+                            ? new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                            : '';
+
+                          return (
+                            <div
+                              key={msg.id}
+                              className={`chat-message-row ${isMine ? 'chat-message-mine' : 'chat-message-other'}`}
+                            >
+                              <div
+                                className="chat-avatar"
+                                onClick={() => navigate(`/profile/${msg.user_id}`)}
+                                style={{ cursor: 'pointer' }}
+                                title={msg.username}
+                              >
+                                {msg.user_profile_picture ? (
+                                  <img src={msg.user_profile_picture} alt={msg.username} />
+                                ) : (
+                                  (msg.username || 'U').charAt(0).toUpperCase()
+                                )}
+                              </div>
+                              <div className="chat-bubble-content">
+                                {!isMine && <span className="chat-sender-name">{msg.username}</span>}
+                                <div className="chat-bubble">
+                                  {msg.content}
+                                  <div className="chat-time">{timeStr}</div>
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })
+                      )}
+                      <div ref={chatEndRef} />
+                    </div>
+
+                    <form className="chat-input-bar" onSubmit={handleSendChatMessage}>
+                      <input
+                        type="text"
+                        className="chat-input-field"
+                        placeholder="Escribí un mensaje al grupo..."
+                        value={chatInput}
+                        onChange={(e) => setChatInput(e.target.value)}
+                        maxLength={1000}
+                        disabled={sendingChat}
+                      />
+                      <button
+                        type="submit"
+                        className="chat-send-btn"
+                        disabled={sendingChat || !chatInput.trim()}
+                      >
+                        {sendingChat ? '...' : 'Enviar 🚀'}
+                      </button>
+                    </form>
+                  </div>
+                </div>
+              )}
+
+              {/* Leave Group Button */}
+              <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 24 }}>
+                <button
+                  className="btn-danger-leave"
+                  onClick={handleLeave}
+                  disabled={loadingAction}
+                  style={{ width: 'auto', padding: '6px 12px', fontSize: '0.8rem', margin: 0 }}
+                >
+                  🚪 Salir del grupo
+                </button>
               </div>
             </div>
+          ) : (
+            <div className="card empty-state" style={{ margin: 0 }}>
+              <span className="empty-icon">👈</span>
+              <p>Seleccioná un grupo de la lista para ver los detalles.</p>
+            </div>
           )}
-
-                {/* Leave Group Button */}
-                <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 24 }}>
-                  <button
-                    className="btn-danger-leave"
-                    onClick={handleLeave}
-                    disabled={loadingAction}
-                    style={{ width: 'auto', padding: '6px 12px', fontSize: '0.8rem', margin: 0 }}
-                  >
-                    🚪 Salir del grupo
-                  </button>
-                </div>
-              </div>
-            ) : (
-              <div className="card empty-state" style={{ margin: 0 }}>
-                <span className="empty-icon">👈</span>
-                <p>Seleccioná un grupo de la lista para ver los detalles.</p>
-              </div>
-            )}
         </div>
       )}
     </>

@@ -847,8 +847,16 @@ def get_group_messages(group_id):
     if not is_member and str(group.owner_id) != str(current_user_id):
         return jsonify({'error': 'You are not a member of this group'}), 403
 
-    messages = GroupMessage.query.filter_by(group_id=group_id).order_by(GroupMessage.created_at.desc()).limit(100).all()
-    messages.reverse()
+    after_id = request.args.get('after_id', type=int)
+
+    if after_id:
+        messages = GroupMessage.query.filter(
+            GroupMessage.group_id == group_id,
+            GroupMessage.id > after_id
+        ).order_by(GroupMessage.id.asc()).limit(100).all()
+    else:
+        messages = GroupMessage.query.filter_by(group_id=group_id).order_by(GroupMessage.id.desc()).limit(50).all()
+        messages.reverse()
 
     result = []
     for m in messages:
@@ -863,6 +871,7 @@ def get_group_messages(group_id):
         })
 
     return jsonify({'messages': result}), 200
+
 
 
 @bp.route('/groups/<int:group_id>/messages', methods=['POST'])

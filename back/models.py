@@ -300,8 +300,13 @@ class GroupMessage(db.Model):
     content = db.Column(db.Text, nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
+    __table_args__ = (
+        db.Index('idx_group_messages_group_id', 'group_id', 'id'),
+    )
+
     group = db.relationship('Group', backref=db.backref('chat_messages', lazy=True, cascade='all, delete-orphan'))
     user = db.relationship('User', backref=db.backref('group_messages', lazy=True))
+
 
 
 

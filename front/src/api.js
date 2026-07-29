@@ -284,8 +284,10 @@ export async function getFootballFieldById(fieldId) {
 
 // --- Group Chat ---
 
-export async function getGroupMessages(groupId) {
-  return axios.get(`${API_URL}/groups/${groupId}/messages`, { headers: authHeaders() });
+export async function getGroupMessages(groupId, afterId = null) {
+  const params = {};
+  if (afterId) params.after_id = afterId;
+  return axios.get(`${API_URL}/groups/${groupId}/messages`, { params, headers: authHeaders() });
 }
 
 export async function sendGroupMessage(groupId, content) {
