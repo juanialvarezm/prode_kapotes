@@ -292,4 +292,17 @@ class MinigameReward(db.Model):
     user = db.relationship('User', backref=db.backref('minigame_rewards', lazy=True))
 
 
+class GroupMessage(db.Model):
+    __tablename__ = 'group_messages'
+    id = db.Column(db.Integer, primary_key=True)
+    group_id = db.Column(db.Integer, db.ForeignKey('groups.id', ondelete='CASCADE'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='CASCADE'), nullable=False)
+    content = db.Column(db.Text, nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    group = db.relationship('Group', backref=db.backref('chat_messages', lazy=True, cascade='all, delete-orphan'))
+    user = db.relationship('User', backref=db.backref('group_messages', lazy=True))
+
+
+
 

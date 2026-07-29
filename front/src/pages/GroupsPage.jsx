@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import {
   getMyGroups,
@@ -19,6 +19,8 @@ import {
   toggleParticipantPayment,
   voteMatchMvp,
   uploadMatchPhoto,
+  getGroupMessages,
+  sendGroupMessage,
 } from '../api';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
@@ -46,6 +48,13 @@ export default function GroupsPage() {
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [matchForm, setMatchForm] = useState({ title: '', match_date: '', field_name: '', price: '' });
   const [submittingMatch, setSubmittingMatch] = useState(false);
+
+  // Group chat states
+  const [chatMessages, setChatMessages] = useState([]);
+  const [chatInput, setChatInput] = useState('');
+  const [sendingChat, setSendingChat] = useState(false);
+  const [loadingChat, setLoadingChat] = useState(false);
+  const chatEndRef = useRef(null);
 
   useEffect(() => {
     getMe().then(res => setCurrentUserId(res.data.id)).catch(() => { });
@@ -91,6 +100,54 @@ export default function GroupsPage() {
       setLoadingMatches(false);
     }
   };
+
+  const loadChatMessages = async (groupId, silent = false) => {
+    if (!silent) setLoadingChat(true);
+    try {
+      const res = await getGroupMessages(groupId);
+      setChatMessages(res.data.messages || []);
+    } catch (err) {
+      if (!silent) setError(err?.response?.data?.error || 'No se pudieron cargar los mensajes del chat.');
+    } finally {
+      if (!silent) setLoadingChat(false);
+    }
+  };
+
+  const handleSendChatMessage = async (e) => {
+    e.preventDefault();
+    if (!selected || !chatInput.trim()) return;
+    const textToSend = chatInput.trim();
+    setSendingChat(true);
+    setChatInput('');
+    try {
+      const res = await sendGroupMessage(selected.id, textToSend);
+      if (res.data?.chat_message) {
+        setChatMessages(prev => [...prev, res.data.chat_message]);
+      } else {
+        await loadChatMessages(selected.id, true);
+      }
+    } catch (err) {
+      setError(err?.response?.data?.error || 'Error al enviar el mensaje.');
+    } finally {
+      setSendingChat(false);
+    }
+  };
+
+  useEffect(() => {
+    if (activeTab === 'chat' && selected) {
+      loadChatMessages(selected.id);
+      const interval = setInterval(() => {
+        loadChatMessages(selected.id, true);
+      }, 5000);
+      return () => clearInterval(interval);
+    }
+  }, [activeTab, selected]);
+
+  useEffect(() => {
+    if (activeTab === 'chat') {
+      chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [chatMessages, activeTab]);
 
   const handleCreateMatch = async (e) => {
     e.preventDefault();
@@ -486,6 +543,25 @@ export default function GroupsPage() {
               }}
             >
               ⚽ Organizar Partido
+            </button>
+            <button
+              className={`group-tab-btn ${activeTab === 'chat' ? 'active' : ''}`}
+              onClick={() => setActiveTab('chat')}
+              style={{
+                background: activeTab === 'chat' ? 'rgba(16, 185, 129, 0.15)' : 'var(--glass-bg)',
+                border: activeTab === 'chat' ? '1px solid rgba(16, 185, 129, 0.35)' : '1px solid var(--border)',
+                borderRadius: 'var(--radius-md)',
+                color: activeTab === 'chat' ? 'var(--accent-light)' : 'var(--text-secondary)',
+                padding: '8px 18px',
+                cursor: 'pointer',
+                fontWeight: '600',
+                fontSize: '0.92rem',
+                transition: 'all 0.2s',
+                outline: 'none',
+                boxShadow: activeTab === 'chat' ? '0 2px 8px rgba(16, 185, 129, 0.15)' : 'none'
+              }}
+            >
+              💬 Chat
             </button>
           </div>
 
@@ -998,6 +1074,92 @@ export default function GroupsPage() {
                   })}
                 </div>
               )}
+            </div>
+          )}
+
+          {activeTab === 'chat' && (
+            <div style={{ marginTop: 16 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+                <h4 style={{ fontSize: '1rem', margin: 0 }}>💬 Chat de {selected.name}</h4>
+                <button
+                  className="btn-secondary"
+                  style={{ fontSize: '0.8rem', padding: '4px 10px', width: 'auto' }}
+                  onClick={() => selected && loadChatMessages(selected.id)}
+                  disabled={loadingChat}
+                >
+                  🔄 Actualizar
+                </button>
+              </div>
+
+              <div className="group-chat-container">
+                <div className="group-chat-messages">
+                  {loadingChat && chatMessages.length === 0 ? (
+                    <div className="group-chat-empty">
+                      <span>🔄 Cargando conversación...</span>
+                    </div>
+                  ) : chatMessages.length === 0 ? (
+                    <div className="group-chat-empty">
+                      <span style={{ fontSize: '2rem' }}>💬</span>
+                      <p style={{ margin: 0 }}>¡Aún no hay mensajes en este chat!</p>
+                      <span style={{ fontSize: '0.8rem' }}>Sé el primero en enviar un mensaje para organizar el grupo.</span>
+                    </div>
+                  ) : (
+                    chatMessages.map((msg) => {
+                      const isMine = String(msg.user_id) === String(currentUserId);
+                      const timeStr = msg.created_at
+                        ? new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                        : '';
+
+                      return (
+                        <div
+                          key={msg.id}
+                          className={`chat-message-row ${isMine ? 'chat-message-mine' : 'chat-message-other'}`}
+                        >
+                          <div
+                            className="chat-avatar"
+                            onClick={() => navigate(`/profile/${msg.user_id}`)}
+                            style={{ cursor: 'pointer' }}
+                            title={msg.username}
+                          >
+                            {msg.user_profile_picture ? (
+                              <img src={msg.user_profile_picture} alt={msg.username} />
+                            ) : (
+                              (msg.username || 'U').charAt(0).toUpperCase()
+                            )}
+                          </div>
+                          <div className="chat-bubble-content">
+                            {!isMine && <span className="chat-sender-name">{msg.username}</span>}
+                            <div className="chat-bubble">
+                              {msg.content}
+                              <div className="chat-time">{timeStr}</div>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })
+                  )}
+                  <div ref={chatEndRef} />
+                </div>
+
+                <form className="chat-input-bar" onSubmit={handleSendChatMessage}>
+                  <input
+                    type="text"
+                    className="chat-input-field"
+                    placeholder="Escribí un mensaje al grupo..."
+                    value={chatInput}
+                    onChange={(e) => setChatInput(e.target.value)}
+                    maxLength={1000}
+                    disabled={sendingChat}
+                  />
+                  <button
+                    type="submit"
+                    className="chat-send-btn"
+                    disabled={sendingChat || !chatInput.trim()}
+                  >
+                    {sendingChat ? '...' : 'Enviar 🚀'}
+                  </button>
+                </form>
+              </div>
             </div>
           )}
 

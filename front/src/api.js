@@ -282,5 +282,16 @@ export async function getFootballFieldById(fieldId) {
   return axios.get(`${API_URL}/fields/${fieldId}`, { headers: authHeaders() });
 }
 
+// --- Group Chat ---
+
+export async function getGroupMessages(groupId) {
+  return axios.get(`${API_URL}/groups/${groupId}/messages`, { headers: authHeaders() });
+}
+
+export async function sendGroupMessage(groupId, content) {
+  return axios.post(`${API_URL}/groups/${groupId}/messages`, { content }, { headers: authHeaders() });
+}
+
+
 
 

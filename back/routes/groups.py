@@ -6,7 +6,7 @@ from flask import jsonify, request, current_app
 from flask_jwt_extended import get_jwt_identity, jwt_required
 
 from db import db
-from models import User, Group, GroupMember, JoinRequest, Prediction, Match, GroupMatch, GroupMatchParticipant, GroupMatchMvpVote
+from models import User, Group, GroupMember, JoinRequest, Prediction, Match, GroupMatch, GroupMatchParticipant, GroupMatchMvpVote, GroupMessage
 from .blueprint import bp
 from .helpers import allowed_file, validate_image
 
@@ -829,3 +829,76 @@ def upload_organized_match_photo(group_id, match_id):
         }), 200
     except Exception as e:
         return jsonify({'error': f'Error al subir la imagen: {str(e)}'}), 500
+
+
+# ============================================================
+#  GROUP CHAT API
+# ============================================================
+
+@bp.route('/groups/<int:group_id>/messages', methods=['GET'])
+@jwt_required()
+def get_group_messages(group_id):
+    current_user_id = get_jwt_identity()
+    group = Group.query.get(group_id)
+    if not group:
+        return jsonify({'error': 'Group not found'}), 404
+
+    is_member = GroupMember.query.filter_by(group_id=group_id, user_id=current_user_id).first()
+    if not is_member and str(group.owner_id) != str(current_user_id):
+        return jsonify({'error': 'You are not a member of this group'}), 403
+
+    messages = GroupMessage.query.filter_by(group_id=group_id).order_by(GroupMessage.created_at.desc()).limit(100).all()
+    messages.reverse()
+
+    result = []
+    for m in messages:
+        result.append({
+            'id': m.id,
+            'group_id': m.group_id,
+            'user_id': m.user_id,
+            'username': m.user.username if m.user else 'Usuario',
+            'user_profile_picture': m.user.profile_picture if m.user else None,
+            'content': m.content,
+            'created_at': m.created_at.isoformat() if m.created_at else None
+        })
+
+    return jsonify({'messages': result}), 200
+
+
+@bp.route('/groups/<int:group_id>/messages', methods=['POST'])
+@jwt_required()
+def send_group_message(group_id):
+    current_user_id = get_jwt_identity()
+    group = Group.query.get(group_id)
+    if not group:
+        return jsonify({'error': 'Group not found'}), 404
+
+    is_member = GroupMember.query.filter_by(group_id=group_id, user_id=current_user_id).first()
+    if not is_member and str(group.owner_id) != str(current_user_id):
+        return jsonify({'error': 'You are not a member of this group'}), 403
+
+    data = request.get_json(silent=True) or {}
+    content = (data.get('content') or '').strip()
+
+    if not content:
+        return jsonify({'error': 'Message content cannot be empty'}), 400
+
+    if len(content) > 1000:
+        return jsonify({'error': 'Message is too long (max 1000 characters)'}), 400
+
+    msg = GroupMessage(group_id=group_id, user_id=current_user_id, content=content)
+    db.session.add(msg)
+    db.session.commit()
+
+    return jsonify({
+        'message': 'Message sent',
+        'chat_message': {
+            'id': msg.id,
+            'group_id': msg.group_id,
+            'user_id': msg.user_id,
+            'username': msg.user.username if msg.user else 'Usuario',
+            'user_profile_picture': msg.user.profile_picture if msg.user else None,
+            'content': msg.content,
+            'created_at': msg.created_at.isoformat() if msg.created_at else None
+        }
+    }), 201
