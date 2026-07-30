@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import logoPk from '../assets/logopk.png';
 
 export default function Header({ hasGroups, pendingRequestsCount = 0, userPoints = 0 }) {
   const navigate = useNavigate();
@@ -30,7 +29,7 @@ export default function Header({ hasGroups, pendingRequestsCount = 0, userPoints
           onClick={(e) => { e.preventDefault(); navTo('/'); }}
           aria-label="Ir a la página principal de ProdeKapotes"
         >
-          <img src={logoPk} alt="Prode Kapotes" className="header-logo-img" />
+          <span className="logo-icon" aria-hidden="true">⚽</span>
           <span>Prode <span className="logo-highlight">Kapotes</span></span>
         </a>
 
