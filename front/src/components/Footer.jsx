@@ -1,4 +1,5 @@
 import { useNavigate } from 'react-router-dom';
+import logoPk from '../assets/logopk.png';
 
 export default function Footer() {
   const navigate = useNavigate();
@@ -12,7 +13,7 @@ export default function Footer() {
     <footer className="site-footer" role="contentinfo">
       <div className="footer-inner-compact">
         <div className="footer-brand-compact">
-          <span className="footer-logo-icon" aria-hidden="true">⚽</span>
+          <img src={logoPk} alt="Prode Kapotes" className="footer-logo-img" />
           <span className="footer-brand-text">Prode <span className="logo-highlight">Kapotes</span></span>
           <span className="footer-tagline">— Organizá tu fútbol entre amigos</span>
         </div>

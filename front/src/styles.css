@@ -121,6 +121,19 @@ body {
   filter: drop-shadow(0 0 8px rgba(16, 185, 129, 0.4));
 }
 
+.header-logo-img {
+  width: 34px;
+  height: 34px;
+  object-fit: contain;
+  filter: drop-shadow(0 0 8px rgba(16, 185, 129, 0.4));
+}
+
+.footer-logo-img {
+  width: 26px;
+  height: 26px;
+  object-fit: contain;
+}
+
 .header-logo .logo-highlight {
   background: linear-gradient(135deg, var(--accent), var(--gold));
   -webkit-background-clip: text;
