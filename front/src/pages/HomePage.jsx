@@ -1,5 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { useSEO } from '../utils/useSEO';
+import logoImg from '../assets/pngwing.png';
 
 const navItems = [
   { icon: '🧩', label: 'FutWordle', path: '/futwordle', desc: '¿Quién es este jugador?' },
@@ -26,7 +27,7 @@ export default function HomePage() {
       {token && (
         <aside className="home-sidebar" aria-label="Menú de acceso rápido">
           <div className="sidebar-header">
-            <span className="sidebar-logo-icon" aria-hidden="true">⚽</span>
+            <img src={logoImg} alt="Prode Kapotes" className="footer-logo-img" style={{ width: 22, height: 22 }} />
             <span className="sidebar-logo-text">
               Menú <span className="sidebar-logo-highlight">Rápido</span>
             </span>
